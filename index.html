@@ -412,36 +412,62 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
 <!-- ═══════════════════════════════════════════════════ -->
 <!-- LOGIN SCREEN                                        -->
 <!-- ═══════════════════════════════════════════════════ -->
-<div id="screen-login" class="screen">
-  <div style="background:var(--green);padding:50px 28px 40px;text-align:center;flex-shrink:0">
-    <div style="width:64px;height:64px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
-      <i class="ti ti-truck" style="color:var(--green);font-size:28px"></i>
+<div id="screen-login" class="screen" style="background:#0B1F3A">
+
+  <!-- Top branding section -->
+  <div style="background:linear-gradient(160deg,#0B1F3A 0%,#0D2E52 60%,#0B5E35 100%);padding:52px 28px 36px;text-align:center;flex-shrink:0;position:relative;overflow:hidden">
+    <!-- Background circles -->
+    <div style="position:absolute;width:180px;height:180px;border-radius:50%;border:1px solid rgba(0,208,98,0.12);top:-40px;right:-40px"></div>
+    <div style="position:absolute;width:120px;height:120px;border-radius:50%;border:1px solid rgba(0,208,98,0.08);top:10px;left:-30px"></div>
+    <div style="position:absolute;width:60px;height:60px;border-radius:50%;background:rgba(0,208,98,0.06);bottom:10px;right:30px"></div>
+
+    <!-- Logo -->
+    <div style="width:72px;height:72px;background:var(--g);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 24px rgba(0,208,98,0.35)">
+      <i class="ti ti-truck" style="color:#fff;font-size:32px"></i>
     </div>
-    <h1 style="color:#fff;font-size:22px;font-weight:800;margin-bottom:3px">Fresh Veloz</h1>
-    <p style="color:rgba(255,255,255,0.85);font-size:10px;text-transform:uppercase;letter-spacing:2px">Driver Portal</p>
+    <h1 style="color:#fff;font-size:26px;font-weight:800;margin-bottom:5px;letter-spacing:-0.5px">Fresh Veloz</h1>
+    <p style="color:rgba(255,255,255,0.5);font-size:10px;text-transform:uppercase;letter-spacing:3px">Driver Portal</p>
+
+    <!-- Tagline pills -->
+    <div style="display:flex;justify-content:center;gap:6px;margin-top:16px">
+      <span style="background:rgba(0,208,98,0.15);color:var(--g);font-size:9px;padding:3px 10px;border-radius:20px;border:1px solid rgba(0,208,98,0.25);font-weight:600">Fast</span>
+      <span style="background:rgba(0,208,98,0.15);color:var(--g);font-size:9px;padding:3px 10px;border-radius:20px;border:1px solid rgba(0,208,98,0.25);font-weight:600">Reliable</span>
+      <span style="background:rgba(0,208,98,0.15);color:var(--g);font-size:9px;padding:3px 10px;border-radius:20px;border:1px solid rgba(0,208,98,0.25);font-weight:600">Delivered</span>
+    </div>
   </div>
-  <div style="flex:1;padding:24px 20px;display:flex;flex-direction:column;justify-content:center">
+
+  <!-- Form card -->
+  <div style="flex:1;background:#fff;border-radius:24px 24px 0 0;margin-top:-16px;padding:28px 22px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1">
     <div style="text-align:center;margin-bottom:22px">
-      <h2 style="font-size:19px;font-weight:800;margin-bottom:5px">Sign in</h2>
-      <p style="font-size:12px;color:var(--t2)">Enter your phone number and PIN</p>
+      <h2 style="font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:4px">Welcome back 👋</h2>
+      <p style="font-size:12px;color:var(--t2)">Enter your mobile number and PIN to continue</p>
     </div>
+
     <label class="lbl">Mobile number</label>
-    <div style="display:flex;align-items:center;border:1px solid var(--bor);border-radius:var(--rs);overflow:hidden;margin-bottom:12px;background:#fff">
-      <span style="padding:10px 12px;font-size:13px;color:var(--t2);border-right:1px solid var(--bor);background:var(--bg2)">🇦🇺 +61</span>
-      <input type="tel" id="login-phone" class="inp" placeholder="4XX XXX XXX" style="border:none;margin-bottom:0;border-radius:0;flex:1" maxlength="10">
-    </div>
+    <input type="tel" id="login-phone" class="inp"
+      placeholder="e.g. 0416 941 977"
+      maxlength="12"
+      inputmode="numeric"
+      style="font-size:15px;letter-spacing:1px;margin-bottom:14px">
+
     <label class="lbl">PIN</label>
-    <input type="password" id="login-pin" class="inp" placeholder="4-digit PIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:8px;font-size:20px;text-align:center">
-    <div id="login-error" style="display:none;background:var(--rl);color:var(--red);border-radius:var(--rs);padding:8px 11px;font-size:11px;margin-bottom:10px;text-align:center"></div>
-    <button class="btn btn-green" onclick="loginWithPin()" id="login-btn">Sign in</button>
-    <div class="ibox ibox-green" style="margin-top:4px">
-      <i class="ti ti-info-circle"></i>
-      <p>Your phone number and PIN are set by your manager. Contact <strong>logistics@freshveloz.com.au</strong> if you need help.</p>
+    <input type="password" id="login-pin" class="inp"
+      placeholder="••••"
+      maxlength="4"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      style="font-size:26px;letter-spacing:10px;text-align:center;padding:12px;margin-bottom:8px">
+
+    <div id="login-error" style="display:none;background:var(--rl);color:var(--red);border-radius:var(--rs);padding:9px 12px;font-size:11px;margin-bottom:10px;text-align:center;font-weight:600"></div>
+
+    <button class="btn btn-green" onclick="loginWithPin()" id="login-btn" style="font-size:15px;padding:14px;margin-top:6px;margin-bottom:14px;border-radius:12px">Sign in</button>
+
+    <div style="background:var(--gl);border-radius:var(--rs);padding:10px 12px;display:flex;gap:8px;align-items:flex-start">
+      <i class="ti ti-info-circle" style="color:var(--gt);font-size:14px;flex-shrink:0;margin-top:1px"></i>
+      <p style="font-size:11px;color:var(--gt);line-height:1.5;margin:0">PIN is set by your manager. Contact <strong>logistics@freshveloz.com.au</strong> if you need help signing in.</p>
     </div>
   </div>
-  <div style="text-align:center;padding:12px;border-top:1px solid var(--bor)">
-    <p style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:1.5px">Fast. Reliable. Delivered.</p>
-  </div>
+
 </div>
 
 <div id="screen-home" class="screen">
@@ -2012,8 +2038,9 @@ async function loginWithPin() {
   btn.textContent = 'Signing in...';
   btn.disabled = true;
 
-  // Format: remove leading 0, add 61 prefix
-  const formattedPhone = '61' + (phone.startsWith('0') ? phone.slice(1) : phone);
+  // Normalize: strip spaces, dashes, keep last 9 digits for matching
+  const cleanPhone = phone.replace(/[\s\-]/g, '');
+  const formattedPhone = cleanPhone.replace(/^(\+61|61|0)/, '');
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(formattedPhone) + '&pin=' + encodeURIComponent(pin);
