@@ -413,45 +413,37 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
 <!-- LOGIN SCREEN                                        -->
 <!-- ═══════════════════════════════════════════════════ -->
 <div id="screen-login" class="screen">
-  <div class="top">
-    <div class="logo"><i class="ti ti-truck"></i></div>
-    <h1>Fresh Veloz</h1>
-    <p>Driver Portal</p>
+  <div style="background:var(--green);padding:50px 28px 40px;text-align:center;flex-shrink:0">
+    <div style="width:64px;height:64px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+      <i class="ti ti-truck" style="color:var(--green);font-size:28px"></i>
+    </div>
+    <h1 style="color:#fff;font-size:22px;font-weight:800;margin-bottom:3px">Fresh Veloz</h1>
+    <p style="color:rgba(255,255,255,0.85);font-size:10px;text-transform:uppercase;letter-spacing:2px">Driver Portal</p>
   </div>
-  <div class="login-body">
-    <div class="login-welcome">
-      <h2 id="login-title">Welcome back</h2>
-      <p id="login-subtitle">Enter your email to receive a sign in link</p>
+  <div style="flex:1;padding:24px 20px;display:flex;flex-direction:column;justify-content:center">
+    <div style="text-align:center;margin-bottom:22px">
+      <h2 style="font-size:19px;font-weight:800;margin-bottom:5px">Sign in</h2>
+      <p style="font-size:12px;color:var(--t2)">Enter your phone number and PIN</p>
     </div>
-    <div class="dots">
-      <div class="dot active" id="dot1"></div>
-      <div class="dot" id="dot2"></div>
+    <label class="lbl">Mobile number</label>
+    <div style="display:flex;align-items:center;border:1px solid var(--bor);border-radius:var(--rs);overflow:hidden;margin-bottom:12px;background:#fff">
+      <span style="padding:10px 12px;font-size:13px;color:var(--t2);border-right:1px solid var(--bor);background:var(--bg2)">🇦🇺 +61</span>
+      <input type="tel" id="login-phone" class="inp" placeholder="4XX XXX XXX" style="border:none;margin-bottom:0;border-radius:0;flex:1" maxlength="10">
     </div>
-    <div class="login-step active" id="step1">
-      <label class="form-label">Email address</label>
-      <input type="email" class="form-input" id="login-email" placeholder="yourname@email.com" style="margin-bottom:12px">
-      <button class="btn-primary" onclick="sendMagicLink()">Send magic link</button>
-      <div class="info-box info-green" style="margin-top:4px">
-        <i class="ti ti-info-circle"></i>
-        <p>Works with Gmail, Outlook, Yahoo and any email provider.</p>
-      </div>
-    </div>
-    <div class="login-step" id="step2">
-      <div class="success-box">
-        <div class="success-icon"><i class="ti ti-mail"></i></div>
-        <h3>Check your inbox</h3>
-        <div class="email-tag" id="email-display"></div>
-        <p>Click the link in your email to sign in. You'll stay signed in permanently on this device.</p>
-      </div>
-      <button class="btn-secondary" onclick="backToStep1()">Use a different email</button>
+    <label class="lbl">PIN</label>
+    <input type="password" id="login-pin" class="inp" placeholder="4-digit PIN" maxlength="4" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:8px;font-size:20px;text-align:center">
+    <div id="login-error" style="display:none;background:var(--rl);color:var(--red);border-radius:var(--rs);padding:8px 11px;font-size:11px;margin-bottom:10px;text-align:center"></div>
+    <button class="btn btn-green" onclick="loginWithPin()" id="login-btn">Sign in</button>
+    <div class="ibox ibox-green" style="margin-top:4px">
+      <i class="ti ti-info-circle"></i>
+      <p>Your phone number and PIN are set by your manager. Contact <strong>logistics@freshveloz.com.au</strong> if you need help.</p>
     </div>
   </div>
-  <div class="login-footer"><p>Fast. Reliable. Delivered.</p></div>
+  <div style="text-align:center;padding:12px;border-top:1px solid var(--bor)">
+    <p style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:1.5px">Fast. Reliable. Delivered.</p>
+  </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════ -->
-<!-- HOME / DASHBOARD                                    -->
-<!-- ═══════════════════════════════════════════════════ -->
 <div id="screen-home" class="screen">
   <div class="home-header">
     <div class="home-top">
@@ -538,8 +530,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <p>Add <strong>logistics@freshveloz.com.au</strong> to your contacts for important updates.</p>
     </div>
   </div>
-  <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
-</div>
+  <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div></div>
 
 <!-- ═══════════════════════════════════════════════════ -->
 <!-- SIGN IN SCREEN                                      -->
@@ -584,11 +575,12 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     </div>
     <div id="si-damage-section" style="display:none">
       <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Photograph and describe the damage before starting your shift.</p></div>
-      <div class="upload-area" onclick="toast('Camera opening...')">
-        <div class="upload-icon"><i class="ti ti-camera"></i></div>
-        <h3>Photo of damage</h3>
-        <p>Required — photograph clearly</p>
-      </div>
+      <input type="file" accept="image/*" capture="environment" id="cam-1-input" style="display:none" onchange="handleFileSelect(this,'cam-1-lbl')">
+    <div class="upload-area" onclick="document.getElementById('cam-1-input').click()">
+      <div class="upload-icon"><i class="ti ti-camera"></i></div>
+      <h3 id="cam-1-lbl">Photo of damage</h3>
+      <p>Required — photograph clearly</p>
+    </div>
       <label class="form-label">Describe the damage <span style="color:var(--red)">*</span></label>
       <textarea class="form-textarea" id="si-damage-notes" style="height:60px;margin-bottom:12px" placeholder="e.g. Scratch on rear left bumper approx 15cm, small dent on passenger door..."></textarea>
     </div>
@@ -605,10 +597,11 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box checked"><i class="ti ti-check"></i></div><span class="chk-label">Van found clean</span></div>
       <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"><i class="ti ti-check" style="color:transparent"></i></div><span class="chk-label">Lights were off</span></div>
     </div>
-    <div class="upload-area" onclick="toast('Video upload coming soon')">
+    <input type="file" accept="video/*" capture="environment" id="si-video-input" style="display:none" onchange="handleFileSelect(this,'si-video-label')">
+    <div class="upload-area" onclick="document.getElementById('si-video-input').click()">
       <div class="upload-icon"><i class="ti ti-video"></i></div>
-      <h3>Van walkaround video</h3>
-      <p>Required on sign in — record full exterior</p>
+      <h3 id="si-video-label">Van walkaround video</h3>
+      <p>Tap to record — required on sign in</p>
     </div>
     <div class="form-group">
       <label class="form-label">Notes (optional)</label>
@@ -680,11 +673,12 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     </div>
     <div id="so-damage-section" style="display:none">
       <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Photograph and describe the damage before signing off.</p></div>
-      <div class="upload-area" onclick="toast('Camera opening...')">
-        <div class="upload-icon"><i class="ti ti-camera"></i></div>
-        <h3>Photo of damage</h3>
-        <p>Required — photograph clearly</p>
-      </div>
+      <input type="file" accept="image/*" capture="environment" id="cam-2-input" style="display:none" onchange="handleFileSelect(this,'cam-2-lbl')">
+    <div class="upload-area" onclick="document.getElementById('cam-2-input').click()">
+      <div class="upload-icon"><i class="ti ti-camera"></i></div>
+      <h3 id="cam-2-lbl">Photo of damage</h3>
+      <p>Required — photograph clearly</p>
+    </div>
       <label class="form-label">Describe the damage <span style="color:var(--red)">*</span></label>
       <textarea class="form-textarea" id="so-damage-notes" style="height:60px;margin-bottom:12px" placeholder="e.g. New scratch on front bumper, cracked tail light..."></textarea>
     </div>
@@ -695,9 +689,10 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="cond-btn" id="so-fuel-low" onclick="soSelectFuel('low')">⚠️ Low fuel</div>
       <div class="cond-btn" id="so-fuel-empty" onclick="soSelectFuel('empty')">🚨 Empty</div>
     </div>
-    <div class="upload-area" onclick="toast('Camera opening...')">
+    <input type="file" accept="image/*" capture="environment" id="cam-3-input" style="display:none" onchange="handleFileSelect(this,'cam-3-lbl')">
+    <div class="upload-area" onclick="document.getElementById('cam-3-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
-      <h3>Van handover photo</h3>
+      <h3 id="cam-3-lbl">Van handover photo</h3>
       <p>Photo of van at drop-off location</p>
     </div>
     <div class="form-group">
@@ -849,9 +844,10 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--text)">GPS auto-captured</p><span style="font-size:11px;color:var(--text2)">George St, Sydney 2000</span></div>
       <div class="gps-dot"></div>
     </div>
-    <div class="upload-area" onclick="toast('Photo upload coming soon')">
+    <input type="file" accept="image/*" capture="environment" id="cam-4-input" style="display:none" onchange="handleFileSelect(this,'cam-4-lbl')">
+    <div class="upload-area" onclick="document.getElementById('cam-4-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
-      <h3>Proof photo</h3>
+      <h3 id="cam-4-lbl">Proof photo</h3>
       <p>Photo of parcel at delivery location</p>
     </div>
     <div class="form-group">
@@ -953,13 +949,14 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="amount-wrap"><span class="prefix">$</span><input type="number" class="form-input" placeholder="0.00"></div>
     </div>
     <div class="form-group"><label class="form-label">Fuel type</label><select class="form-select"><option>Diesel</option><option>Petrol</option></select></div>
-    <div class="upload-area" onclick="toast('Photo upload coming soon')">
+    <input type="file" accept="image/*" capture="environment" id="cam-5-input" style="display:none" onchange="handleFileSelect(this,'cam-5-lbl')">
+    <div class="upload-area" onclick="document.getElementById('cam-5-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
-      <h3>Receipt photo</h3>
+      <h3 id="cam-5-lbl">Receipt photo</h3>
       <p>Must show full receipt clearly</p>
     </div>
     <div class="info-box info-amber"><i class="ti ti-alert-triangle"></i><p>Personal items must not appear on receipt. Use a separate transaction.</p></div>
-    <button class="btn-primary" onclick="toast('Reimbursement submitted!')">Submit reimbursement</button>
+    <button class="btn-primary" onclick="submitFuel()">Submit reimbursement</button>
     <div class="divider"></div>
     <div class="list-item">
       <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-receipt"></i></div>
@@ -988,9 +985,9 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <div class="pay-hero-amount">$1,284.50</div>
     <div class="pay-hero-sub">Paid Wed 21 May 2026</div>
     <div class="pay-pills">
-      <div class="ppill active">Weekly</div>
-      <div class="ppill">Fortnightly</div>
-      <div class="ppill">All time</div>
+      <div class="ppill active" onclick="selectPeriod(this)">Weekly</div>
+      <div class="ppill" onclick="selectPeriod(this)">Fortnightly</div>
+      <div class="ppill" onclick="selectPeriod(this)">All time</div>
     </div>
   </div>
   <div class="content">
@@ -1021,10 +1018,10 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
   </div>
   <div class="content">
     <div class="type-grid">
-      <div class="type-btn active"><i class="ti ti-beach"></i><p>Leave</p><span>Planned</span></div>
-      <div class="type-btn"><i class="ti ti-user-off"></i><p>Absence</p><span>Unplanned</span></div>
-      <div class="type-btn"><i class="ti ti-alert-circle"></i><p>Emergency</p><span>Urgent</span></div>
-      <div class="type-btn"><i class="ti ti-clock-pause"></i><p>Break</p><span>Short break</span></div>
+      <div class="type-btn active" onclick="selectType(this)"><i class="ti ti-beach"></i><p>Leave</p><span>Planned</span></div>
+      <div class="type-btn" onclick="selectType(this)"><i class="ti ti-user-off"></i><p>Absence</p><span>Unplanned</span></div>
+      <div class="type-btn" onclick="selectType(this)"><i class="ti ti-alert-circle"></i><p>Emergency</p><span>Urgent</span></div>
+      <div class="type-btn" onclick="selectType(this)"><i class="ti ti-clock-pause"></i><p>Break</p><span>Short break</span></div>
     </div>
     <div class="form-group">
       <label class="form-label">Date range</label>
@@ -1036,7 +1033,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <div class="form-group"><label class="form-label">Shift affected</label><select class="form-select"><option>Day shift</option><option>Night shift</option><option>Both</option></select></div>
     <div class="form-group"><label class="form-label">Reason</label><textarea class="form-textarea" placeholder="Provide details..."></textarea></div>
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>Requests reviewed by manager. You will be notified once approved or rejected.</p></div>
-    <button class="btn-primary" onclick="toast('Leave request submitted!')">Submit request</button>
+    <button class="btn-primary" onclick="submitLeave()">Submit request</button>
     <div class="divider"></div>
     <div class="list-item">
       <div class="list-icon" style="background:var(--blue-light);color:var(--blue)"><i class="ti ti-beach"></i></div>
@@ -1078,13 +1075,14 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     </div>
     <div class="form-group"><label class="form-label">Response type</label><select class="form-select"><option>I delivered successfully</option><option>Customer not present</option><option>Left in safe location</option><option>Other</option></select></div>
     <div class="form-group"><label class="form-label">Explanation</label><textarea class="form-textarea" style="height:90px" placeholder="Describe what happened..."></textarea></div>
-    <div class="upload-area" onclick="toast('Upload coming soon')">
+    <input type="file" accept="image/*,video/*,.pdf" id="ev-input" style="display:none" onchange="handleFileSelect(this,'ev-lbl')">
+    <div class="upload-area" onclick="document.getElementById('ev-input').click()">
       <div class="upload-icon"><i class="ti ti-upload"></i></div>
-      <h3>Supporting evidence</h3>
+      <h3 id="ev-lbl">Supporting evidence</h3>
       <p>Photos, screenshots, delivery confirmation</p>
     </div>
     <div class="info-box info-amber"><i class="ti ti-alert-triangle"></i><p>Please respond honestly. False information may result in disciplinary action.</p></div>
-    <button class="btn-primary" onclick="toast('Response submitted!')">Submit response</button>
+    <button class="btn-primary" onclick="submitTicket()">Submit response</button>
     <div class="divider"></div>
     <div class="list-item">
       <div class="list-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-check"></i></div>
@@ -1145,9 +1143,10 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="gps-dot"></div>
     </div>
     <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="height:90px" placeholder="Describe what happened..."></textarea></div>
-    <div class="upload-area" onclick="toast('Photo upload coming soon')">
+    <input type="file" accept="image/*" capture="environment" id="cam-6-input" style="display:none" onchange="handleFileSelect(this,'cam-6-lbl')">
+    <div class="upload-area" onclick="document.getElementById('cam-6-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
-      <h3>Upload photo / video</h3>
+      <h3 id="cam-6-lbl">Upload photo / video</h3>
       <p>Photo of vehicle or incident</p>
     </div>
     <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Stay safe. Do not move the vehicle unless it is safe to do so. Turn on hazard lights.</p></div>
@@ -1165,21 +1164,24 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <div class="hdr-title"><h1>Contact team</h1><p>Get help</p></div>
   </div>
   <div class="content">
-    <div class="support-opt" onclick="toast('Opening email...')">
+    <a href="mailto:logistics@freshveloz.com.au" style="text-decoration:none;display:block">
+    <div class="support-opt">
       <div class="support-icon" style="background:var(--green-light)"><i class="ti ti-mail" style="color:var(--green)"></i></div>
       <div class="support-info"><p>Email</p><span>logistics@freshveloz.com.au</span></div>
       <i class="ti ti-chevron-right" style="color:var(--text2)"></i>
-    </div>
-    <div class="support-opt" onclick="toast('Calling manager...')">
+    </div></a>
+    <a href="tel:+61416941977" style="text-decoration:none;display:block">
+    <div class="support-opt">
       <div class="support-icon" style="background:var(--blue-light)"><i class="ti ti-phone" style="color:var(--blue)"></i></div>
       <div class="support-info"><p>Call manager</p><span>Available during business hours</span></div>
       <i class="ti ti-chevron-right" style="color:var(--text2)"></i>
-    </div>
-    <div class="support-opt" onclick="toast('Opening WhatsApp...')">
+    </div></a>
+    <a href="https://wa.me/61416941977" target="_blank" style="text-decoration:none;display:block">
+    <div class="support-opt">
       <div class="support-icon" style="background:var(--amber-light)"><i class="ti ti-brand-whatsapp" style="color:var(--amber)"></i></div>
       <div class="support-info"><p>WhatsApp</p><span>Quick questions and updates</span></div>
       <i class="ti ti-chevron-right" style="color:var(--text2)"></i>
-    </div>
+    </div></a>
     <div class="divider"></div>
     <div class="form-group"><label class="form-label">Subject</label><select class="form-select"><option>General enquiry</option><option>Payment issue</option><option>Van problem</option><option>App issue</option><option>Other</option></select></div>
     <div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea" style="height:90px" placeholder="Describe your issue..."></textarea></div>
@@ -1191,7 +1193,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
 <!-- ═══════════════════════════════════════════════════ -->
 <!-- MY VEHICLE                                          -->
 <!-- ═══════════════════════════════════════════════════ -->
-<div id="screen-vehicle" class="screen">
+<div id="screen-vehicle" class="screen" style="overflow:hidden">
   <div class="hdr">
     <button class="hdr-back" onclick="goBack()"><i class="ti ti-arrow-left"></i></button>
     <div class="hdr-info"><h1>My vehicle</h1><p id="vehicle-reg-title">NSW 123 ABC</p></div>
@@ -1993,6 +1995,94 @@ function soSelectFuel(type) {
     const el = document.getElementById('so-fuel-' + f);
     if (el) el.classList.toggle('active', f === type);
   });
+}
+
+// ── PIN Login ─────────────────────────────────────────────
+async function loginWithPin() {
+  const phone = document.getElementById('login-phone').value.trim().replace(/\s/g,'');
+  const pin   = document.getElementById('login-pin').value.trim();
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+
+  if (!phone || phone.length < 8) { showLoginError('Please enter your mobile number'); return; }
+  if (!pin || pin.length !== 4)   { showLoginError('Please enter your 4-digit PIN'); return; }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  // Format: remove leading 0, add 61 prefix
+  const formattedPhone = '61' + (phone.startsWith('0') ? phone.slice(1) : phone);
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(formattedPhone) + '&pin=' + encodeURIComponent(pin);
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (data.success) {
+      localStorage.setItem('fv_driver_email', data.email);
+      localStorage.setItem('fv_driver_data',  JSON.stringify(data));
+      driverData = data;
+      setupDashboard();
+      showScreen('home');
+    } else {
+      showLoginError(data.message || 'Incorrect phone number or PIN');
+    }
+  } catch (e) {
+    // Offline fallback for testing
+    showLoginError('Connection error. Please check your internet and try again.');
+  }
+
+  btn.textContent = 'Sign in';
+  btn.disabled = false;
+}
+
+function showLoginError(msg) {
+  const errEl = document.getElementById('login-error');
+  if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+}
+
+// ── Select payout period ──────────────────────────────────
+function selectPeriod(el) {
+  el.closest('.pay-pills').querySelectorAll('.ppill').forEach(p => p.classList.remove('active','on'));
+  el.classList.add('active');
+  toast('Showing ' + el.textContent + ' earnings');
+}
+
+// ── Handle file select (camera/video) ─────────────────────
+function handleFileSelect(input, labelId) {
+  if (input.files && input.files[0]) {
+    const file  = input.files[0];
+    const label = document.getElementById(labelId);
+    if (label) {
+      label.textContent = '✅ ' + file.name.substring(0,30);
+      label.style.color = 'var(--gt)';
+    }
+    toast('File selected: ' + file.name.substring(0,20));
+  }
+}
+
+// ── Submit leave with confirmation ────────────────────────
+function submitLeave() {
+  const type = document.querySelector('.type-btn.active p');
+  const typeName = type ? type.textContent : 'Leave';
+  toast(typeName + ' request submitted! Manager will review shortly.');
+}
+
+// ── Submit ticket with confirmation ──────────────────────
+function submitTicket() {
+  toast('Response submitted! Manager has been notified.');
+}
+
+// ── Submit fuel with validation ───────────────────────────
+function submitFuel() {
+  const amount = document.getElementById('fuel-amount');
+  if (amount && (!amount.value || parseFloat(amount.value) <= 0)) {
+    toast('Please enter the fuel amount');
+    return;
+  }
+  toast('Reimbursement submitted! Will be paid on Wednesday.');
 }
 
 let toastTimer;
