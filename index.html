@@ -1590,6 +1590,11 @@ let toastTimer;
 
 // ── Screen Navigation ─────────────────────────────────────
 function showScreen(name) {
+  // Hide loading screen if still showing
+  const loadEl = document.getElementById('loading');
+  if (loadEl && loadEl.style.display !== 'none') {
+    loadEl.style.display = 'none';
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('screen-' + name);
   if (el) {
@@ -1632,6 +1637,16 @@ window.addEventListener('load', () => {
   };
   setHeight();
   window.addEventListener('resize', setHeight);
+
+  // Hide loading screen
+  const loadingEl = document.getElementById('loading');
+  if (loadingEl) {
+    setTimeout(() => {
+      loadingEl.style.opacity = '0';
+      loadingEl.style.transition = 'opacity 0.4s';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
+    }, 800);
+  }
 
   // Check if already logged in
   const saved = localStorage.getItem('fv_driver_data');
