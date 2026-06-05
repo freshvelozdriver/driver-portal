@@ -413,51 +413,58 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
 <!-- LOGIN SCREEN                                        -->
 <!-- ═══════════════════════════════════════════════════ -->
 <div id="screen-login" class="screen">
-  <!-- Green top — same as before -->
-  <div style="background:var(--g);padding:48px 28px 36px;text-align:center;flex-shrink:0">
+  <!-- Green top -->
+  <div style="background:#00D062;padding:48px 28px 36px;text-align:center;flex-shrink:0;width:100%">
     <div style="width:70px;height:70px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
-      <i class="ti ti-truck" style="color:var(--g);font-size:30px"></i>
+      <i class="ti ti-truck" style="color:#00D062;font-size:30px"></i>
     </div>
-    <h1 style="color:#fff;font-size:24px;font-weight:800;margin-bottom:4px">Fresh Veloz</h1>
-    <p style="color:rgba(255,255,255,0.85);font-size:10px;text-transform:uppercase;letter-spacing:2.5px">Driver Portal</p>
+    <h1 style="color:#fff;font-size:24px;font-weight:800;margin:0 0 4px">Fresh Veloz</h1>
+    <p style="color:rgba(255,255,255,0.85);font-size:10px;text-transform:uppercase;letter-spacing:2.5px;margin:0">Driver Portal</p>
   </div>
 
-  <!-- White card body -->
-  <div style="flex:1;background:#f5f5f5;padding:30px 22px;display:flex;flex-direction:column;justify-content:center">
-    <div style="background:#fff;border-radius:14px;padding:24px 20px;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
-      <div style="text-align:center;margin-bottom:22px">
-        <h2 style="font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:4px">Welcome back</h2>
-        <p style="font-size:12px;color:var(--t2)">Enter your mobile number and PIN</p>
+  <!-- Form -->
+  <div style="flex:1;background:#f5f5f5;padding:28px 20px;display:flex;flex-direction:column;justify-content:center;width:100%;box-sizing:border-box">
+    <div style="background:#fff;border-radius:14px;padding:24px 18px;width:100%;box-sizing:border-box;box-shadow:0 2px 12px rgba(0,0,0,0.07)">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:4px">Welcome back</div>
+        <div style="font-size:12px;color:#666">Enter your mobile number and PIN</div>
       </div>
 
-      <label class="lbl">Mobile number</label>
-      <input type="tel" id="login-phone" class="inp"
-        placeholder="e.g. 0416 941 977"
-        maxlength="12"
-        inputmode="numeric"
-        style="font-size:15px;margin-bottom:14px">
+      <div style="display:block;width:100%;margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Mobile number</div>
+        <input type="tel" id="login-phone"
+          placeholder="e.g. 0416 941 977"
+          maxlength="12"
+          inputmode="numeric"
+          style="display:block;width:100%;box-sizing:border-box;padding:11px 13px;border:1px solid #e0e0e0;border-radius:8px;font-size:15px;color:#1a1a1a;background:#fff;outline:none;-webkit-appearance:none">
+      </div>
 
-      <label class="lbl">PIN</label>
-      <input type="password" id="login-pin" class="inp"
-        placeholder="Enter your 4-digit PIN"
-        maxlength="4"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        style="font-size:15px;letter-spacing:4px;margin-bottom:10px">
+      <div style="display:block;width:100%;margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">PIN</div>
+        <input type="password" id="login-pin"
+          placeholder="4-digit PIN"
+          maxlength="4"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          style="display:block;width:100%;box-sizing:border-box;padding:11px 13px;border:1px solid #e0e0e0;border-radius:8px;font-size:22px;letter-spacing:8px;text-align:center;color:#1a1a1a;background:#fff;outline:none;-webkit-appearance:none">
+      </div>
 
-      <div id="login-error" style="display:none;background:var(--rl);color:var(--red);border-radius:var(--rs);padding:9px 12px;font-size:11px;margin-bottom:10px;text-align:center;font-weight:600"></div>
+      <div id="login-error" style="display:none;background:#FCEBEB;color:#A32D2D;border-radius:8px;padding:9px 12px;font-size:11px;margin-bottom:10px;text-align:center;font-weight:600;width:100%;box-sizing:border-box"></div>
 
-      <button class="btn btn-green" onclick="loginWithPin()" id="login-btn" style="font-size:14px;padding:13px;margin-bottom:4px">Sign in</button>
+      <button onclick="loginWithPin()" id="login-btn"
+        style="display:block;width:100%;box-sizing:border-box;background:#00D062;color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">
+        Sign in
+      </button>
     </div>
 
-    <div class="ibox ibox-green" style="margin-top:12px">
-      <i class="ti ti-info-circle"></i>
-      <p>Your PIN is set by your manager. Contact <strong>logistics@freshveloz.com.au</strong> if you need help.</p>
+    <div style="background:#e6f9f0;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;margin-top:12px;width:100%;box-sizing:border-box">
+      <i class="ti ti-info-circle" style="color:#00704A;font-size:14px;flex-shrink:0;margin-top:1px"></i>
+      <p style="font-size:11px;color:#00704A;line-height:1.5;margin:0">Your PIN is set by your manager. Contact <strong>logistics@freshveloz.com.au</strong> if you need help.</p>
     </div>
   </div>
 
   <div style="background:#f5f5f5;text-align:center;padding:10px;flex-shrink:0">
-    <p style="font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:1.5px">Fast. Reliable. Delivered.</p>
+    <p style="font-size:9px;color:#999;text-transform:uppercase;letter-spacing:1.5px;margin:0">Fast. Reliable. Delivered.</p>
   </div>
 </div>
 
@@ -592,7 +599,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     </div>
     <div id="si-damage-section" style="display:none">
       <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Photograph and describe the damage before starting your shift.</p></div>
-      <input type="file" accept="image/*" capture="environment" id="cam-1-input" style="display:none" onchange="handleFileSelect(this,'cam-1-lbl')">
+      <input type="file" accept="image/*" capture="environment" id="cam-1-input" style="display:none" onchange="handleFileSelect(this,'cam-1-lbl','Damage Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-1-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-1-lbl">Photo of damage</h3>
@@ -614,7 +621,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box checked"><i class="ti ti-check"></i></div><span class="chk-label">Van found clean</span></div>
       <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"><i class="ti ti-check" style="color:transparent"></i></div><span class="chk-label">Lights were off</span></div>
     </div>
-    <input type="file" accept="video/*" capture="environment" id="si-video-input" style="display:none" onchange="handleFileSelect(this,'si-video-label')">
+    <input type="file" accept="video/*" capture="environment" id="si-video-input" style="display:none" onchange="handleFileSelect(this,'si-video-label','Shift Videos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('si-video-input').click()">
       <div class="upload-icon"><i class="ti ti-video"></i></div>
       <h3 id="si-video-label">Van walkaround video</h3>
@@ -690,7 +697,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     </div>
     <div id="so-damage-section" style="display:none">
       <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Photograph and describe the damage before signing off.</p></div>
-      <input type="file" accept="image/*" capture="environment" id="cam-2-input" style="display:none" onchange="handleFileSelect(this,'cam-2-lbl')">
+      <input type="file" accept="image/*" capture="environment" id="cam-2-input" style="display:none" onchange="handleFileSelect(this,'cam-2-lbl','Delivery Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-2-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-2-lbl">Photo of damage</h3>
@@ -706,7 +713,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="cond-btn" id="so-fuel-low" onclick="soSelectFuel('low')">⚠️ Low fuel</div>
       <div class="cond-btn" id="so-fuel-empty" onclick="soSelectFuel('empty')">🚨 Empty</div>
     </div>
-    <input type="file" accept="image/*" capture="environment" id="cam-3-input" style="display:none" onchange="handleFileSelect(this,'cam-3-lbl')">
+    <input type="file" accept="image/*" capture="environment" id="cam-3-input" style="display:none" onchange="handleFileSelect(this,'cam-3-lbl','Emergency Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-3-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-3-lbl">Van handover photo</h3>
@@ -861,7 +868,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--text)">GPS auto-captured</p><span style="font-size:11px;color:var(--text2)">George St, Sydney 2000</span></div>
       <div class="gps-dot"></div>
     </div>
-    <input type="file" accept="image/*" capture="environment" id="cam-4-input" style="display:none" onchange="handleFileSelect(this,'cam-4-lbl')">
+    <input type="file" accept="image/*" capture="environment" id="cam-4-input" style="display:none" onchange="handleFileSelect(this,'cam-4-lbl','Inspection Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-4-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-4-lbl">Proof photo</h3>
@@ -884,7 +891,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <button class="hdr-back" onclick="goBack()"><i class="ti ti-arrow-left"></i></button>
     <div class="hdr-title"><h1>My shifts</h1><p>Schedule & requests</p></div>
   </div>
-  <div class="content">
+  <div class="content" id="myshifts-list">
     <div class="shift-item">
       <div class="shift-item-header"><i class="ti ti-sun" style="color:var(--green)"></i><h3>Day shift — Today</h3><span class="badge badge-green">Active</span></div>
       <div class="shift-meta">
@@ -966,7 +973,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="amount-wrap"><span class="prefix">$</span><input type="number" class="form-input" placeholder="0.00"></div>
     </div>
     <div class="form-group"><label class="form-label">Fuel type</label><select class="form-select"><option>Diesel</option><option>Petrol</option></select></div>
-    <input type="file" accept="image/*" capture="environment" id="cam-5-input" style="display:none" onchange="handleFileSelect(this,'cam-5-lbl')">
+    <input type="file" accept="image/*" capture="environment" id="cam-5-input" style="display:none" onchange="handleFileSelect(this,'cam-5-lbl','Defect Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-5-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-5-lbl">Receipt photo</h3>
@@ -999,8 +1006,8 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
   </div>
   <div class="pay-hero">
     <div class="pay-hero-label">Last payment</div>
-    <div class="pay-hero-amount">$1,284.50</div>
-    <div class="pay-hero-sub">Paid Wed 21 May 2026</div>
+    <div class="pay-hero-amount" id="payout-last-amount">$1,284.50</div>
+    <div class="pay-hero-sub" id="payout-last-date">Paid Wed 21 May 2026</div>
     <div class="pay-pills">
       <div class="ppill active" onclick="selectPeriod(this)">Weekly</div>
       <div class="ppill" onclick="selectPeriod(this)">Fortnightly</div>
@@ -1092,7 +1099,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     </div>
     <div class="form-group"><label class="form-label">Response type</label><select class="form-select"><option>I delivered successfully</option><option>Customer not present</option><option>Left in safe location</option><option>Other</option></select></div>
     <div class="form-group"><label class="form-label">Explanation</label><textarea class="form-textarea" style="height:90px" placeholder="Describe what happened..."></textarea></div>
-    <input type="file" accept="image/*,video/*,.pdf" id="ev-input" style="display:none" onchange="handleFileSelect(this,'ev-lbl')">
+    <input type="file" accept="image/*,video/*,.pdf" id="ev-input" style="display:none" onchange="handleFileSelect(this,'ev-lbl','Delivery Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('ev-input').click()">
       <div class="upload-icon"><i class="ti ti-upload"></i></div>
       <h3 id="ev-lbl">Supporting evidence</h3>
@@ -1160,7 +1167,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="gps-dot"></div>
     </div>
     <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="height:90px" placeholder="Describe what happened..."></textarea></div>
-    <input type="file" accept="image/*" capture="environment" id="cam-6-input" style="display:none" onchange="handleFileSelect(this,'cam-6-lbl')">
+    <input type="file" accept="image/*" capture="environment" id="cam-6-input" style="display:none" onchange="handleFileSelect(this,'cam-6-lbl','Damage Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-6-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-6-lbl">Upload photo / video</h3>
@@ -1218,8 +1225,8 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
   <div class="scroll">
     <div class="map-ph"><i class="ti ti-map"></i></div>
     <div class="stat-grid">
-      <div class="stat-box"><div class="stat-lbl">Last location</div><div style="font-size:14px;font-weight:700">Alexandria</div><div class="stat-sub">NSW 2015</div></div>
-      <div class="stat-box"><div class="stat-lbl">Last seen</div><div style="font-size:14px;font-weight:700">6:08 PM</div><div class="stat-sub">Mon 26 May</div></div>
+      <div class="stat-box"><div class="stat-lbl">Last location</div><div id="van-last-location" style="font-size:14px;font-weight:700">Alexandria</div><div class="stat-sub" id="van-last-suburb">NSW 2015</div></div>
+      <div class="stat-box"><div class="stat-lbl">Last seen</div><div id="van-last-seen-time" style="font-size:14px;font-weight:700">6:08 PM</div><div class="stat-sub" id="van-last-seen-date">Mon 26 May</div></div>
     </div>
     <!-- Last parked address -->
     <div style="background:#fff;border:1px solid var(--g);border-radius:var(--r);padding:11px;margin-bottom:11px">
@@ -1227,9 +1234,14 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
         <div style="width:28px;height:28px;background:var(--gl);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-map-pin" style="color:var(--g);font-size:13px"></i></div>
         <div>
           <span style="font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:2px">Last parked address</span>
-          <p style="font-size:13px;font-weight:700;margin-bottom:2px">88 Bourke Rd, Alexandria NSW 2015</p>
+          <p id="van-parked-addr" style="font-size:13px;font-weight:700;margin-bottom:2px">88 Bourke Rd, Alexandria NSW 2015</p>
           <span style="font-size:10px;color:var(--t2)">Near Amazon Warehouse</span>
-          <span style="font-size:9px;color:var(--t3);display:block;margin-top:2px">Parked by John Driver at 6:08 PM · Mon 26 May</span>
+          <span id="van-parked-by" style="font-size:9px;color:var(--t3);display:block;margin-top:2px">Parked by John Driver at 6:08 PM · Mon 26 May</span>
+          <a id="van-maps-link" href="https://www.google.com/maps/search/?api=1&query=88+Bourke+Rd+Alexandria+NSW+2015" target="_blank" style="text-decoration:none;display:block;margin-top:9px">
+            <button style="width:100%;background:#4285F4;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
+              <i class="ti ti-map-2" style="font-size:14px"></i> Open in Google Maps
+            </button>
+          </a>
         </div>
       </div>
     </div>
@@ -1253,7 +1265,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
           <div style="width:30px;height:30px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0">JD</div>
-          <div style="flex:1"><p style="font-size:12px;font-weight:700">John Driver</p><span style="font-size:9px;color:var(--gt)">Day shift · Started 6:02 AM · 268 km so far</span></div>
+          <div style="flex:1"><p id="van-active-name" style="font-size:12px;font-weight:700">John Driver</p><span id="van-active-info" style="font-size:9px;color:var(--gt)">Day shift · Started 6:02 AM · 268 km so far</span></div>
         </div>
         <div style="display:flex;gap:6px;margin-bottom:7px">
           <button style="flex:1;background:#fff;color:var(--gt);border:1px solid var(--g);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">📞 Call</button>
@@ -1450,7 +1462,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <button class="hdr-back" onclick="goBack()"><i class="ti ti-arrow-left"></i></button>
     <div class="hdr-title"><h1>Alerts</h1><p>Notices from Fresh Veloz</p></div>
   </div>
-  <div class="content" style="padding:0 16px">
+  <div class="content" style="padding:0 16px" id="alerts-list">
     <div class="alert-item">
       <div class="alert-dot unread"></div>
       <div class="alert-info">
@@ -1969,6 +1981,412 @@ function backToHome() {
   screenHistory = [];
   showScreen('home');
 }
+
+// ============================================================
+// LOAD VEHICLE DATA — pulls real data from Apps Script
+// ============================================================
+async function loadVehicleData() {
+  if (!driverData || !driverData.assignedVan) return;
+
+  const van = driverData.assignedVan;
+
+  // Update header
+  const titleEl = document.getElementById('vehicle-reg-title');
+  if (titleEl) titleEl.textContent = van;
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (!data.success) return;
+
+    // ── Last parked address ───────────────────────────────
+    if (data.history && data.history.length > 0) {
+      const lastShift = data.history[0];
+      const addr      = lastShift.endLocation || 'Unknown location';
+      const addrEl    = document.getElementById('van-parked-addr');
+      const byEl      = document.getElementById('van-parked-by');
+      const mapsEl    = document.getElementById('van-maps-link');
+      const locEl     = document.getElementById('van-last-location');
+      const seenEl    = document.getElementById('van-last-seen-time');
+      const dateEl    = document.getElementById('van-last-seen-date');
+
+      if (addrEl) addrEl.textContent = addr;
+      if (byEl)   byEl.textContent   = 'Parked by ' + lastShift.driver + ' · ' + lastShift.date;
+      if (locEl)  locEl.textContent  = addr.split(',')[0] || addr;
+
+      // Update Google Maps link with real address
+      if (mapsEl) {
+        mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+      }
+    }
+
+    // ── Active driver ─────────────────────────────────────
+    const activeNameEl  = document.getElementById('van-active-name');
+    const activeInfoEl  = document.getElementById('van-active-info');
+    const activeLabelEl = document.getElementById('van-active-label');
+    const noteFromEl    = document.getElementById('van-note-from');
+    const noteTextEl    = document.getElementById('van-note-text');
+    const noNoteEl      = document.getElementById('van-no-note-text');
+
+    if (data.activeDriver && activeNameEl) {
+      activeNameEl.textContent  = data.activeDriver.name;
+      if (activeLabelEl) activeLabelEl.textContent = 'Now — Active';
+      if (activeInfoEl)  activeInfoEl.textContent  = 'Currently on shift';
+
+      // No note yet — still active
+      if (noNoteEl) noNoteEl.textContent = data.activeDriver.name + ' is still on shift. Note will appear after sign off.';
+
+      // Store phone for call/SMS buttons
+      if (data.activeDriver.phone) {
+        const callBtn = document.querySelector('#van-active-call');
+        const smsBtn  = document.querySelector('#van-active-sms');
+        if (callBtn) callBtn.href = 'tel:' + data.activeDriver.phone;
+        if (smsBtn)  smsBtn.href  = 'sms:' + data.activeDriver.phone;
+      }
+    } else if (activeNameEl) {
+      activeNameEl.textContent = 'No active driver';
+      if (activeLabelEl) activeLabelEl.textContent = 'Van is available';
+    }
+
+    // ── Last shift note ───────────────────────────────────
+    if (data.lastNote && noteFromEl && noteTextEl) {
+      noteFromEl.textContent = '📝 Note from ' + data.lastNote.driver;
+      noteTextEl.textContent = data.lastNote.note;
+    }
+
+    // ── Upcoming shifts ───────────────────────────────────
+    if (data.upcoming && data.upcoming.length > 0) {
+      const up1 = data.upcoming[0];
+      const up1DayEl  = document.getElementById('up1-day');
+      const up1TimeEl = document.getElementById('up1-time');
+      const up1NameEl = document.getElementById('up1-name');
+      const up1InfoEl = document.getElementById('up1-info');
+      if (up1DayEl)  up1DayEl.textContent  = up1.date || 'Next';
+      if (up1TimeEl) up1TimeEl.textContent  = up1.startTime || '';
+      if (up1NameEl) up1NameEl.textContent  = up1.driver || '';
+      if (up1InfoEl) up1InfoEl.textContent  = up1.type + ' shift · Starts ' + up1.startTime;
+    }
+
+    // ── Shift history ─────────────────────────────────────
+    const histEl = document.getElementById('van-history-list');
+    if (histEl && data.history && data.history.length > 0) {
+      histEl.innerHTML = data.history.map((s, i) => {
+        const isDay   = s.type === 'Day';
+        const bg      = isDay ? 'var(--al)' : 'var(--pl)';
+        const c       = isDay ? 'var(--amb)' : 'var(--pur)';
+        const border  = i < data.history.length - 1 ? '1px solid var(--bor)' : 'none';
+        const dateStr = s.date ? s.date.substring(0,6) : '—';
+        return `<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:${border}">
+          <div style="width:30px;height:30px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+            <span style="font-size:6px;color:var(--t2)">${dateStr.split('/')[1] || ''}</span>
+            <span style="font-size:11px;font-weight:800;color:#1a1a1a">${dateStr.split('/')[0] || ''}</span>
+          </div>
+          <div style="flex:1">
+            <p style="font-size:11px;font-weight:600;color:#1a1a1a;margin:0">${s.driver || '—'}</p>
+            <span style="font-size:9px;color:var(--t2)">${s.type} · ${s.endKm && s.startKm ? (parseFloat(s.endKm)-parseFloat(s.startKm)).toFixed(0)+' km' : '—'}</span>
+          </div>
+          <span style="font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;background:${bg};color:${c}">${s.type}</span>
+        </div>`;
+      }).join('');
+    }
+
+  } catch (err) {
+    Logger && Logger.log && Logger.log('loadVehicleData error: ' + err.message);
+  }
+}
+
+// ============================================================
+// LOAD ALERTS — pulls from Notifications tab
+// ============================================================
+async function loadAlerts() {
+  if (!driverData) return;
+  const listEl = document.getElementById('alerts-list');
+  if (!listEl) return;
+
+  listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Loading alerts...</div>';
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getAlerts&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (!data.success || !data.alerts || data.alerts.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">No alerts yet</div>';
+      // Remove unread dot on dashboard
+      const dot = document.getElementById('notif-dot');
+      if (dot) dot.style.display = 'none';
+      return;
+    }
+
+    const unread = data.alerts.filter(a => a.read === 'No' || a.read === false).length;
+    const dot = document.getElementById('notif-dot');
+    if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
+
+    listEl.innerHTML = data.alerts.map(a => `
+      <div class="alert-item">
+        <div class="alert-dot ${a.read === 'No' || !a.read ? 'unread' : 'read'}"></div>
+        <div class="alert-info">
+          <p>${a.title || ''}</p>
+          <span>${a.message || ''}</span>
+          <div class="alert-time">${a.createdDate || ''}</div>
+        </div>
+      </div>`).join('');
+
+  } catch(e) {
+    listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Could not load alerts. Check connection.</div>';
+  }
+}
+
+
+// ============================================================
+// LOAD MY SHIFTS — pulls from Shifts tab
+// ============================================================
+async function loadMyShifts() {
+  if (!driverData) return;
+  const listEl = document.getElementById('myshifts-list');
+  if (!listEl) return;
+
+  // Keep request form, replace only shift cards
+  const existingForm = listEl.querySelector('.card');
+  listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:12px">Loading shifts...</div>';
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getShifts&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (!data.success || !data.shifts || data.shifts.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:12px;margin-bottom:12px">No upcoming shifts found</div>' + getShiftRequestForm();
+      return;
+    }
+
+    const shiftCards = data.shifts.map(s => {
+      const isDay    = s.type === 'Day';
+      const icon     = isDay ? 'ti-sun' : 'ti-moon';
+      const iconColor= isDay ? 'var(--g)' : 'var(--pur)';
+      const statusBg = s.status === 'In Progress' ? 'var(--gl)' : s.status === 'Completed' ? 'var(--bg2)' : 'var(--bl)';
+      const statusC  = s.status === 'In Progress' ? 'var(--gt)' : s.status === 'Completed' ? 'var(--t2)' : 'var(--blu)';
+      return `
+      <div class="shift-item">
+        <div class="shift-item-header">
+          <i class="ti ${icon}" style="color:${iconColor}"></i>
+          <h3>${s.type} shift — ${s.date || ''}</h3>
+          <span style="font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;background:${statusBg};color:${statusC}">${s.status || 'Scheduled'}</span>
+        </div>
+        <div class="shift-meta">
+          <div class="shift-meta-item"><span>Time</span><p>${s.startTime || '—'} – ${s.endTime || '—'}</p></div>
+          <div class="shift-meta-item"><span>Van</span><p>${s.van || '—'}</p></div>
+          <div class="shift-meta-item"><span>Start KM</span><p>${s.startKm || '—'}</p></div>
+          <div class="shift-meta-item"><span>Status</span><p>${s.status || '—'}</p></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    listEl.innerHTML = shiftCards + getShiftRequestForm();
+
+  } catch(e) {
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:12px">Could not load shifts.</div>' + getShiftRequestForm();
+  }
+}
+
+function getShiftRequestForm() {
+  return `<div class="card">
+    <p style="font-size:13px;font-weight:700;margin-bottom:12px">Request shift change or extra shift</p>
+    <label class="lbl">Request type</label>
+    <select class="sel"><option>Shift change — day to night</option><option>Shift change — night to day</option><option>Request extra shift</option><option>Cancel a shift</option></select>
+    <label class="lbl">Date</label>
+    <input type="date" class="inp">
+    <label class="lbl">Reason</label>
+    <textarea class="textarea" style="height:60px" placeholder="Why do you need this change?"></textarea>
+    <button class="btn btn-green" style="margin-bottom:0" onclick="submitShiftRequest()">Submit request</button>
+  </div>`;
+}
+
+async function submitShiftRequest() {
+  toast('Shift request submitted! Manager will review shortly.');
+}
+
+
+// ============================================================
+// LOAD PAYOUTS — pulls from Payouts tab
+// ============================================================
+async function loadPayouts() {
+  if (!driverData) return;
+  const amtEl  = document.getElementById('payout-last-amount');
+  const dateEl = document.getElementById('payout-last-date');
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getPayouts&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    if (!data.success || !data.payouts || data.payouts.length === 0) return;
+
+    // Most recent paid payout
+    const lastPaid = data.payouts.find(p => p.status === 'Paid');
+    if (lastPaid) {
+      if (amtEl)  amtEl.textContent  = '$' + parseFloat(lastPaid.total || 0).toFixed(2);
+      if (dateEl) dateEl.textContent = 'Paid ' + (lastPaid.paymentDate || '');
+    }
+
+  } catch(e) { /* show defaults */ }
+}
+
+
+// ============================================================
+// SUBMIT LEAVE — writes to Leave tab
+// ============================================================
+async function submitLeave() {
+  if (!driverData) return;
+
+  const typeEl   = document.querySelector('.type-btn.active p');
+  const fromEl   = document.querySelector('#screen-leave input[type="date"]:first-of-type');
+  const toEl     = document.querySelector('#screen-leave input[type="date"]:last-of-type');
+  const shiftEl  = document.querySelector('#screen-leave .sel');
+  const reasonEl = document.querySelector('#screen-leave .textarea');
+
+  const leaveType = typeEl ? typeEl.textContent : 'Leave';
+  const fromDate  = fromEl ? fromEl.value : '';
+  const toDate    = toEl   ? toEl.value   : '';
+  const reason    = reasonEl ? reasonEl.value : '';
+
+  if (!fromDate) { toast('Please select a start date'); return; }
+  if (!reason)   { toast('Please enter a reason'); return; }
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action:      'submitLeave',
+        driver:      driverData.driverName,
+        email:       driverData.email,
+        type:        leaveType,
+        fromDate:    fromDate,
+        toDate:      toDate || fromDate,
+        shiftAffected: shiftEl ? shiftEl.value : '',
+        reason:      reason
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      toast(leaveType + ' request submitted ✅ Manager will review shortly.');
+      if (reasonEl) reasonEl.value = '';
+    } else {
+      toast('Error: ' + (data.message || 'Could not submit. Try again.'));
+    }
+  } catch(e) {
+    toast('Connection error. Please try again.');
+  }
+}
+
+
+// ============================================================
+// SUBMIT TICKET — writes to Tickets tab
+// ============================================================
+async function submitTicket() {
+  if (!driverData) return;
+
+  const responseEl = document.querySelector('#screen-tickets .sel');
+  const explEl     = document.querySelector('#screen-tickets .textarea');
+
+  const responseType = responseEl ? responseEl.value : '';
+  const explanation  = explEl ? explEl.value : '';
+
+  if (!explanation) { toast('Please describe what happened'); return; }
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action:       'submitTicketResponse',
+        driver:       driverData.driverName,
+        email:        driverData.email,
+        responseType: responseType,
+        explanation:  explanation
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      toast('Response submitted ✅ Manager has been notified.');
+      if (explEl) explEl.value = '';
+    } else {
+      toast('Error submitting response. Try again.');
+    }
+  } catch(e) {
+    toast('Connection error. Please try again.');
+  }
+}
+
+
+// ============================================================
+// FILE UPLOAD TO DRIVE — converts to base64 and sends
+// ============================================================
+async function uploadFileToDrive(file, folderKey, filename) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64 = e.target.result.split(',')[1];
+        const resp   = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action:    'uploadFile',
+            filename:  filename,
+            mimeType:  file.type,
+            base64Data: base64,
+            folderKey: folderKey,
+            driverEmail: driverData ? driverData.email : ''
+          })
+        });
+        const data = await resp.json();
+        if (data.success) resolve(data.fileUrl);
+        else reject(data.message || 'Upload failed');
+      } catch(err) {
+        reject(err.message);
+      }
+    };
+    reader.onerror = () => reject('Could not read file');
+    reader.readAsDataURL(file);
+  });
+}
+
+// Handle file select with auto-upload
+async function handleFileSelect(input, labelId, folderKey) {
+  if (!input.files || !input.files[0]) return;
+
+  const file    = input.files[0];
+  const labelEl = document.getElementById(labelId);
+  const ext     = file.name.split('.').pop();
+  const driverName = driverData ? driverData.driverName.replace(/\s/g,'_') : 'Driver';
+  const filename   = driverName + '_' + new Date().toISOString().slice(0,10) + '.' + ext;
+
+  if (labelEl) {
+    labelEl.textContent = '⏳ Uploading...';
+    labelEl.style.color = 'var(--amb)';
+  }
+
+  try {
+    const url = await uploadFileToDrive(file, folderKey || 'Delivery Photos Folder ID', filename);
+    if (labelEl) {
+      labelEl.textContent = '✅ ' + file.name.substring(0,25);
+      labelEl.style.color = 'var(--gt)';
+    }
+    // Store URL on input for later use in form submit
+    input.dataset.uploadedUrl = url;
+    toast('File uploaded ✅');
+  } catch(e) {
+    if (labelEl) {
+      labelEl.textContent = file.name.substring(0,25);
+      labelEl.style.color = '#1a1a1a';
+    }
+    // Store file locally even if upload fails — will retry on submit
+    input.dataset.localFile = 'pending';
+    toast('File saved locally. Will upload on submit.');
+  }
+}
+
 
 // ── Sign In condition buttons ─────────────────────────────
 function siSelectCond(type) {
