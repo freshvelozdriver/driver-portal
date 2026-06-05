@@ -41,17 +41,17 @@
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f0f0;}
+html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
 
 /* APP SHELL */
 #app{width:100%;max-width:420px;height:100vh;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:var(--shadow-lg);}
 
 /* SCREENS */
-.screen{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.screen{display:none;flex-direction:column;width:100%;height:100%;overflow:hidden;position:absolute;top:0;left:0;right:0;bottom:0;background:#fff;}
 .screen.active{display:flex;}
 
 /* SCROLLABLE CONTENT */
-.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;height:0;min-height:0;padding:16px;}
 .content::-webkit-scrollbar{display:none;}
 
 /* HEADER */
@@ -410,7 +410,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
 <div id="toast"></div>
 
 <!-- APP -->
-<div id="app">
+<div id="app" style="position:relative;height:100%;height:-webkit-fill-available;overflow:hidden;width:100%;max-width:430px;margin:0 auto;background:#fff;">
 
 <!-- ═══════════════════════════════════════════════════ -->
 <!-- LOGIN SCREEN                                        -->
@@ -690,8 +690,9 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"><i class="ti ti-check" style="color:transparent"></i></div><span class="chk-label">Fuelled up (diesel)</span></div>
     </div>
     <div class="form-group">
-      <label class="form-label">Van drop-off address</label>
-      <input type="text" class="form-input" placeholder="Enter where you are leaving the van...">
+      <label class="form-label">Van drop-off address <span style="color:#A32D2D;font-weight:700">*</span></label>
+      <input type="text" id="so-dropoff-address" class="form-input" placeholder="Enter where you are leaving the van..." oninput="updateMapFromAddress(this.value)" style="border-color:#00D062">
+      <button onclick="useCurrentLocation()" style="width:100%;background:#e6f9f0;color:#00704A;border:1px solid #00D062;border-radius:8px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;margin-top:6px">📍 Use my current GPS location</button>
     </div>
     <label class="form-label">Van condition</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
@@ -1546,226 +1547,63 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <button class="hdr-back" onclick="goBack()"><i class="ti ti-arrow-left"></i></button>
     <div class="hdr-title"><h1>Settings</h1><p>App preferences</p></div>
   </div>
-  <div class="content">
-    <div class="prof-sec">
-      <div class="prof-row"><div class="prof-icon" style="background:var(--green-light)"><i class="ti ti-bell" style="color:var(--green)"></i></div><div class="prof-info"><p>Push notifications</p><span>Shift reminders, alerts</span></div></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--blue-light)"><i class="ti ti-map-pin" style="color:var(--blue)"></i></div><div class="prof-info"><p>Location access</p><span>Required for GPS tracking</span></div></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--amber-light)"><i class="ti ti-camera" style="color:var(--amber)"></i></div><div class="prof-info"><p>Camera access</p><span>For photos and videos</span></div></div>
+  <div class="scroll">
+    <div class="card">
+      <p style="font-size:13px;font-weight:700;margin-bottom:12px">Account</p>
+      <div class="list-item" onclick="navigate('profile')">
+        <div class="list-icon" style="background:var(--gl)"><i class="ti ti-user" style="color:var(--g)"></i></div>
+        <div class="list-info"><p>My profile</p><span>Name, phone, suburb</span></div>
+        <i class="ti ti-chevron-right" style="color:var(--t2)"></i>
+      </div>
+      <div class="list-item" onclick="navigate('team')">
+        <div class="list-icon" style="background:var(--bl)"><i class="ti ti-headset" style="color:var(--blu)"></i></div>
+        <div class="list-info"><p>Contact team</p><span>Get help from manager</span></div>
+        <i class="ti ti-chevron-right" style="color:var(--t2)"></i>
+      </div>
     </div>
-    <p class="section-label">About</p>
-    <div class="prof-sec">
-      <div class="prof-row"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-shield" style="color:var(--text2)"></i></div><div class="prof-info"><p>Privacy policy</p><span>How we use your data</span></div></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-info-circle" style="color:var(--text2)"></i></div><div class="prof-info"><p>App version</p><span>v1.0.0</span></div></div>
+    <div class="card">
+      <p style="font-size:13px;font-weight:700;margin-bottom:12px">App info</p>
+      <div class="list-item">
+        <div class="list-icon" style="background:var(--gl)"><i class="ti ti-info-circle" style="color:var(--g)"></i></div>
+        <div class="list-info"><p>Version</p><span>Fresh Veloz Driver App v1.0</span></div>
+      </div>
+      <div class="list-item">
+        <div class="list-icon" style="background:var(--gl)"><i class="ti ti-truck" style="color:var(--g)"></i></div>
+        <div class="list-info"><p>Website</p><span>freshveloz.com.au</span></div>
+      </div>
     </div>
+    <button class="btn btn-red" onclick="signOut()" style="margin-top:8px">Sign out</button>
   </div>
-  <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
+  <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
 
-</div><!-- end #app -->
-
 <script>
-// ═══════════════════════════════════════════════════════
-// CONFIGURATION
-// ═══════════════════════════════════════════════════════
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFBDMpRlxOgHU51FCcdISdGza0g5EVOQZIhOPrF7SmWfhb471UbgjUSzXHv5l4FDrq/exec';
 
-// ═══════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════
+// ── App State ─────────────────────────────────────────────
+let driverData    = null;
+let shiftActive   = false;
 let currentScreen = 'login';
 let screenHistory = [];
-let shiftActive   = false;
-let pinShown      = false;
-let driverData    = null;
-let currentGPS    = null;
+let currentGPS    = { lat:'', lng:'', address:'' };
+let toastTimer;
 
-// ═══════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════
-window.addEventListener('load', () => {
-  setTimeout(init, 1500);
-});
-
-async function init() {
-  // Check for magic link token in URL
-  const params = new URLSearchParams(window.location.search);
-  const token  = params.get('token');
-  const email  = params.get('email');
-
-  if (token && email) {
-    await verifyToken(token, email);
-    return;
-  }
-
-  // Check for saved session
-  const savedEmail = localStorage.getItem('fv_driver_email');
-  if (savedEmail) {
-    await loadDriverData(savedEmail);
-    return;
-  }
-
-  // Show login
-  hideLanding();
-  showScreen('login');
-}
-
-function hideLanding() {
-  document.getElementById('loading').style.display = 'none';
-}
-
-// ═══════════════════════════════════════════════════════
-// MAGIC LINK AUTH
-// ═══════════════════════════════════════════════════════
-async function sendMagicLink() {
-  const email = document.getElementById('login-email').value.trim();
-  if (!email) { toast('Please enter your email address'); return; }
-
-  try {
-    const url  = `${APPS_SCRIPT_URL}?action=requestMagicLink&email=${encodeURIComponent(email)}`;
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const data = await resp.json();
-
-    if (data.success) {
-      document.getElementById('email-display').textContent = email;
-      document.getElementById('login-title').textContent   = 'Magic link sent';
-      document.getElementById('login-subtitle').textContent = 'One step away from your dashboard';
-      document.getElementById('dot1').classList.remove('active');
-      document.getElementById('dot2').classList.add('active');
-      document.getElementById('step1').classList.remove('active');
-      document.getElementById('step2').classList.add('active');
-    } else {
-      toast(data.message || 'Email not registered. Contact your manager.');
-    }
-  } catch (e) {
-    toast('Connection error. Please try again.');
-  }
-}
-
-function backToStep1() {
-  document.getElementById('dot2').classList.remove('active');
-  document.getElementById('dot1').classList.add('active');
-  document.getElementById('step2').classList.remove('active');
-  document.getElementById('step1').classList.add('active');
-  document.getElementById('login-title').textContent    = 'Welcome back';
-  document.getElementById('login-subtitle').textContent = 'Enter your email to receive a sign in link';
-}
-
-async function verifyToken(token, email) {
-  try {
-    const url  = `${APPS_SCRIPT_URL}?action=verifyToken&token=${token}`;
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const data = await resp.json();
-
-    if (data.success) {
-      localStorage.setItem('fv_driver_email', data.email);
-      localStorage.setItem('fv_driver_data',  JSON.stringify(data));
-      driverData = data;
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      hideLanding();
-      setupDashboard();
-      showScreen('home');
-    } else {
-      hideLanding();
-      showScreen('login');
-      toast(data.message || 'Invalid or expired link');
-    }
-  } catch (e) {
-    hideLanding();
-    showScreen('login');
-    toast('Verification failed. Please try again.');
-  }
-}
-
-async function loadDriverData(email) {
-  try {
-    const cached = localStorage.getItem('fv_driver_data');
-    if (cached) {
-      driverData = JSON.parse(cached);
-      hideLanding();
-      setupDashboard();
-      showScreen('home');
-      return;
-    }
-    const url  = `${APPS_SCRIPT_URL}?action=getDriverData&email=${encodeURIComponent(email)}`;
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const data = await resp.json();
-    if (data.success) {
-      driverData = data;
-      localStorage.setItem('fv_driver_data', JSON.stringify(data));
-      hideLanding();
-      setupDashboard();
-      showScreen('home');
-    } else {
-      localStorage.removeItem('fv_driver_email');
-      localStorage.removeItem('fv_driver_data');
-      hideLanding();
-      showScreen('login');
-    }
-  } catch (e) {
-    // Use cached data if available
-    const cached = localStorage.getItem('fv_driver_data');
-    if (cached) {
-      driverData = JSON.parse(cached);
-      hideLanding();
-      setupDashboard();
-      showScreen('home');
-    } else {
-      hideLanding();
-      showScreen('login');
-    }
-  }
-}
-
-function setupDashboard() {
-  if (!driverData) return;
-  const name     = driverData.driverName || 'Driver';
-  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
-  const unit     = driverData.businessUnit || 'Lime';
-  const van      = driverData.assignedVan  || 'NSW 123 ABC';
-
-  document.getElementById('home-avatar').textContent  = initials;
-  document.getElementById('home-name').textContent    = name;
-  document.getElementById('home-unit').textContent    = unit + ' · ' + (driverData.suburb || 'Sydney');
-  document.getElementById('van-reg').textContent      = van;
-  document.getElementById('profile-avatar').textContent = initials;
-  document.getElementById('profile-name').textContent = name;
-  document.getElementById('profile-email').textContent = driverData.email || '';
-  document.getElementById('profile-unit').textContent = unit + ' · Active';
-  document.getElementById('vehicle-reg-title').textContent = van;
-  document.getElementById('vehicle-details').textContent   = van + ' · Lime Van';
-}
-
-function logout() {
-  localStorage.removeItem('fv_driver_email');
-  localStorage.removeItem('fv_driver_data');
-  driverData    = null;
-  shiftActive   = false;
-  screenHistory = [];
-  backToStep1();
-  showScreen('login');
-  toast('Signed out successfully');
-}
-
-// ═══════════════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════════════
+// ── Screen Navigation ─────────────────────────────────────
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById('screen-' + name);
   if (el) {
     el.classList.add('active');
     currentScreen = name;
-    const content = el.querySelector('.content');
-    if (content) content.scrollTop = 0;
-    // Update GPS for relevant screens
+    const c = el.querySelector('.scroll, .content');
+    if (c) c.scrollTop = 0;
     if (['signin','signoff','emergency'].includes(name)) getGPS(name);
-    if (name === 'vehicle')  { loadVehicleData(); }
-    if (name === 'alerts')   { loadAlerts(); }
-    if (name === 'myshifts') { loadMyShifts(); }
-    if (name === 'payout')   { loadPayouts(); }
-    // Update time
     if (['signin','signoff'].includes(name)) updateDateTime(name);
+    if (name === 'vehicle')  loadVehicleData();
+    if (name === 'alerts')   loadAlerts();
+    if (name === 'myshifts') loadMyShifts();
+    if (name === 'payout')   loadPayouts();
+    if (name === 'profile')  loadProfile();
   }
 }
 
@@ -1779,17 +1617,174 @@ function goBack() {
   showScreen(prev);
 }
 
-// ═══════════════════════════════════════════════════════
-// SHIFT MANAGEMENT
-// ═══════════════════════════════════════════════════════
-function toggleShift() {
-  if (!shiftActive) {
-    navigate('signin');
-  } else {
-    navigate('signoff');
+function backToHome() {
+  screenHistory = [];
+  showScreen('home');
+}
+
+// ── App Init ──────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Fix height for mobile browsers
+  const setHeight = () => {
+    document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+    const app = document.getElementById('app');
+    if (app) app.style.height = window.innerHeight + 'px';
+  };
+  setHeight();
+  window.addEventListener('resize', setHeight);
+
+  // Check if already logged in
+  const saved = localStorage.getItem('fv_driver_data');
+  if (saved) {
+    try {
+      driverData = JSON.parse(saved);
+      setupDashboard();
+      const wasOnShift = localStorage.getItem('fv_shift_on') === 'true';
+      shiftActive = wasOnShift;
+      if (wasOnShift) {
+        document.getElementById('shift-btn').textContent = 'End shift';
+        document.getElementById('shift-btn').className = 'shift-btn-end';
+        document.getElementById('shift-label').textContent = 'Shift in progress';
+        document.getElementById('home-status').textContent = 'On Shift';
+      }
+      showScreen('home');
+      return;
+    } catch(e) { localStorage.clear(); }
+  }
+  showScreen('login');
+});
+
+// ── Login with PIN ────────────────────────────────────────
+async function loginWithPin() {
+  const phone = (document.getElementById('login-phone').value || '').trim().replace(/\s/g,'');
+  const pin   = (document.getElementById('login-pin').value || '').trim();
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+  if (!phone || phone.length < 8) { showLoginError('Please enter your mobile number'); return; }
+  if (!pin || pin.length !== 4)   { showLoginError('Please enter your 4-digit PIN'); return; }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled    = true;
+
+  const cleanPhone = phone.replace(/[\s\-]/g,'').replace(/^(\+61|61|0)/,'');
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(cleanPhone) + '&pin=' + encodeURIComponent(pin);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+
+    if (data.success) {
+      driverData = data;
+      localStorage.setItem('fv_driver_email', data.email);
+      localStorage.setItem('fv_driver_data',  JSON.stringify(data));
+      setupDashboard();
+      showScreen('home');
+    } else {
+      showLoginError(data.message || 'Incorrect phone number or PIN');
+    }
+  } catch(e) {
+    showLoginError('Connection error. Check your internet and try again.');
+  }
+
+  btn.textContent = 'Sign in';
+  btn.disabled    = false;
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function signOut() {
+  localStorage.clear();
+  driverData   = null;
+  shiftActive  = false;
+  screenHistory = [];
+  showScreen('login');
+}
+
+// ── Setup Dashboard ───────────────────────────────────────
+function setupDashboard() {
+  if (!driverData) return;
+  const nameEl   = document.getElementById('driver-name');
+  const subEl    = document.getElementById('driver-subtitle');
+  const avatarEl = document.getElementById('driver-avatar');
+  const statusEl = document.getElementById('home-status');
+  const vanEl    = document.getElementById('van-reg');
+
+  if (nameEl)   nameEl.textContent   = driverData.driverName  || '';
+  if (subEl)    subEl.textContent    = (driverData.businessUnit || '') + ' · ' + (driverData.suburb || '');
+  if (statusEl) statusEl.textContent = shiftActive ? 'On Shift' : 'Active';
+  if (vanEl)    vanEl.textContent    = driverData.assignedVan  || 'No van assigned';
+
+  if (avatarEl) {
+    const parts = (driverData.driverName || 'D').split(' ');
+    avatarEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
   }
 }
 
+// ── Load Profile ──────────────────────────────────────────
+function loadProfile() {
+  if (!driverData) return;
+  const n = document.getElementById('profile-name');
+  const e = document.getElementById('profile-email');
+  const a = document.getElementById('profile-avatar');
+  const b = document.getElementById('profile-badge');
+  if (n) n.textContent = driverData.driverName || '';
+  if (e) e.textContent = driverData.email || '';
+  if (b) b.textContent = (driverData.businessUnit || '') + ' · Active';
+  if (a) {
+    const parts = (driverData.driverName || 'D').split(' ');
+    a.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+  }
+}
+
+// ── GPS ───────────────────────────────────────────────────
+function getGPS(screen) {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    currentGPS.lat = pos.coords.latitude.toFixed(6);
+    currentGPS.lng = pos.coords.longitude.toFixed(6);
+    currentGPS.address = currentGPS.lat + ', ' + currentGPS.lng;
+
+    const latEl  = document.querySelector('#screen-' + screen + ' .gps-lat');
+    const lngEl  = document.querySelector('#screen-' + screen + ' .gps-lng');
+    const dotEl  = document.querySelector('#screen-' + screen + ' .gps-dot');
+    const addrEl = document.querySelector('#screen-' + screen + ' .gps-address');
+
+    if (latEl)  latEl.textContent  = currentGPS.lat;
+    if (lngEl)  lngEl.textContent  = currentGPS.lng;
+    if (dotEl)  dotEl.style.background = '#00D062';
+    if (addrEl) addrEl.textContent = 'GPS captured';
+
+    // Reverse geocode
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + currentGPS.lat + '&lon=' + currentGPS.lng)
+      .then(r => r.json())
+      .then(d => {
+        if (d.display_name) {
+          currentGPS.address = d.display_name.split(',').slice(0,3).join(',');
+          if (addrEl) addrEl.textContent = currentGPS.address;
+        }
+      }).catch(()=>{});
+  }, () => { console.log('GPS denied'); });
+}
+
+// ── Date/Time ─────────────────────────────────────────────
+function updateDateTime(screen) {
+  const now    = new Date();
+  const dateEl = document.querySelector('#screen-' + screen + ' .current-date');
+  const timeEl = document.querySelector('#screen-' + screen + ' .current-time');
+  if (dateEl) dateEl.textContent = now.toLocaleDateString('en-AU', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+}
+
+function getCurrentTime() {
+  return new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Sign In ───────────────────────────────────────────────
 async function completeSignIn() {
   if (!driverData) { toast('Please log in first'); return; }
   const btn = document.getElementById('si-submit-btn');
@@ -1801,495 +1796,339 @@ async function completeSignIn() {
     driver:        driverData.driverName,
     email:         driverData.email,
     van:           driverData.assignedVan,
-    lat:           currentGPS ? currentGPS.lat : '',
-    lng:           currentGPS ? currentGPS.lng : '',
-    address:       currentGPS ? currentGPS.address : '',
+    lat:           currentGPS.lat || '',
+    lng:           currentGPS.lng || '',
+    address:       currentGPS.address || '',
     kmReading:     kmEl ? kmEl.value : '',
     vanCondition:  document.querySelector('#screen-signin .cond-btn.active')?.textContent?.trim() || 'Good',
-    fuelLevel:     ['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty'].map(id => { const el=document.getElementById(id); return el?.classList.contains('active') ? el.textContent.trim() : null; }).filter(Boolean)[0] || '',
+    fuelLevel:     (['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:   document.getElementById('si-damage-notes')?.value || '',
     damagePhotoUrl: document.querySelector('#screen-signin input[type="file"]')?.dataset?.uploadedUrl || '',
     shiftId:       '',
-    notes:         ''
+    notes:         document.querySelector('#screen-signin textarea.inp')?.value || ''
   };
 
   try {
-    const resp = await fetch(APPS_SCRIPT_URL, { method:'POST', redirect:'follow', body: JSON.stringify(payload) });
-    const data = await resp.json();
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = JSON.parse(await resp.text());
     if (data.success) {
       shiftActive = true;
       localStorage.setItem('fv_shift_on','true');
       localStorage.setItem('fv_sign_in_id', data.signInId || '');
       document.getElementById('shift-btn').textContent = 'End shift';
-      document.getElementById('shift-btn').className = 'shift-btn-end';
+      document.getElementById('shift-btn').className   = 'shift-btn-end';
       document.getElementById('shift-label').textContent = 'Shift in progress';
-      document.getElementById('shift-time').textContent = 'Started ' + getCurrentTime();
+      document.getElementById('shift-time').textContent  = 'Started ' + getCurrentTime();
       document.getElementById('home-status').textContent = 'On Shift';
       toast('Shift started! Have a safe day 🚚');
-      goBack();
+      backToHome();
     } else {
       toast('Error: ' + (data.message || 'Could not sign in. Try again.'));
       if (btn) { btn.textContent = 'Confirm start shift'; btn.disabled = false; }
     }
   } catch(e) {
+    // Offline fallback
     shiftActive = true;
     localStorage.setItem('fv_shift_on','true');
     document.getElementById('shift-btn').textContent = 'End shift';
-    document.getElementById('shift-btn').className = 'shift-btn-end';
+    document.getElementById('shift-btn').className   = 'shift-btn-end';
     document.getElementById('shift-label').textContent = 'Shift in progress';
-    document.getElementById('shift-time').textContent = 'Started ' + getCurrentTime();
+    document.getElementById('shift-time').textContent  = 'Started ' + getCurrentTime();
     document.getElementById('home-status').textContent = 'On Shift';
-    toast('Shift started (offline — will sync when connected) 🚚');
-    goBack();
+    toast('Shift started (offline mode) 🚚');
+    backToHome();
   }
 }
 
+// ── Sign Off ──────────────────────────────────────────────
 async function completeSignOff() {
   if (!driverData) { toast('Please log in first'); return; }
+
+  // Validate mandatory fields
+  const kmEl    = document.getElementById('so-km');
+  const addrEl  = document.getElementById('so-dropoff-address');
+  if (!kmEl?.value)   { toast('Please enter the end odometer reading'); return; }
+  if (!addrEl?.value) { toast('Please enter the drop-off address'); addrEl?.focus(); return; }
+
   const btn = document.getElementById('so-submit-btn');
   if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
 
-  const kmEl = document.getElementById('so-km');
   const noteEl = document.getElementById('so-next-driver-note');
   const payload = {
-    action:        'submitSignOff',
-    driver:        driverData.driverName,
-    email:         driverData.email,
-    van:           driverData.assignedVan,
-    lat:           currentGPS ? currentGPS.lat : '',
-    lng:           currentGPS ? currentGPS.lng : '',
-    address:       currentGPS ? currentGPS.address : '',
-    kmReading:     kmEl ? kmEl.value : '',
-    vanCondition:  document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
-    fuelLevel:     ['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty'].map(id => { const el=document.getElementById(id); return el?.classList.contains('active') ? el.textContent.trim() : null; }).filter(Boolean)[0] || '',
-    damageNotes:   document.getElementById('so-damage-notes')?.value || '',
-    damagePhotoUrl: document.querySelector('#screen-signoff input[type="file"]')?.dataset?.uploadedUrl || '',
-    nextDriverNote: noteEl ? noteEl.value : '',
-    shiftId:       localStorage.getItem('fv_sign_in_id') || '',
-    notes:         ''
+    action:          'submitSignOff',
+    driver:          driverData.driverName,
+    email:           driverData.email,
+    van:             driverData.assignedVan,
+    lat:             currentGPS.lat || '',
+    lng:             currentGPS.lng || '',
+    address:         (document.getElementById('so-dropoff-address')?.value || currentGPS.address || ''),
+    kmReading:       kmEl ? kmEl.value : '',
+    vanCondition:    document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
+    fuelLevel:       (['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
+    damageNotes:     document.getElementById('so-damage-notes')?.value || '',
+    damagePhotoUrl:  document.querySelector('#screen-signoff input[type="file"]')?.dataset?.uploadedUrl || '',
+    nextDriverNote:  noteEl ? noteEl.value : '',
+    shiftId:         localStorage.getItem('fv_sign_in_id') || '',
+    notes:           ''
   };
 
   try {
-    const resp = await fetch(APPS_SCRIPT_URL, { method:'POST', redirect:'follow', body: JSON.stringify(payload) });
-    const data = await resp.json();
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = JSON.parse(await resp.text());
     if (data.success) {
       shiftActive = false;
       localStorage.setItem('fv_shift_on','false');
       localStorage.removeItem('fv_sign_in_id');
-      document.getElementById('shift-btn').textContent = 'Start shift';
-      document.getElementById('shift-btn').className = 'shift-btn-start';
+      document.getElementById('shift-btn').textContent  = 'Start shift';
+      document.getElementById('shift-btn').className    = 'shift-btn-start';
       document.getElementById('shift-label').textContent = 'Day shift today';
-      document.getElementById('shift-time').textContent = '6:00 AM — 6:00 PM';
+      document.getElementById('shift-time').textContent  = '6:00 AM — 6:00 PM';
       document.getElementById('home-status').textContent = 'Active';
+      screenHistory = [];
       showScreen('shift-summary');
-      historyStack = [];
     } else {
-      toast('Error: ' + (data.message || 'Could not sign off. Try again.'));
+      toast('Error: ' + (data.message || 'Could not sign off.'));
       if (btn) { btn.textContent = 'Confirm end shift'; btn.disabled = false; }
     }
   } catch(e) {
     shiftActive = false;
     localStorage.setItem('fv_shift_on','false');
-    document.getElementById('shift-btn').textContent = 'Start shift';
-    document.getElementById('shift-btn').className = 'shift-btn-start';
+    document.getElementById('shift-btn').textContent  = 'Start shift';
+    document.getElementById('shift-btn').className    = 'shift-btn-start';
     document.getElementById('shift-label').textContent = 'Day shift today';
-    document.getElementById('shift-time').textContent = '6:00 AM — 6:00 PM';
     document.getElementById('home-status').textContent = 'Active';
-    toast('Shift ended (offline — will sync when connected) 🎉');
+    toast('Shift ended (offline mode) 🎉');
+    screenHistory = [];
     showScreen('shift-summary');
-    historyStack = [];
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// GPS
-// ═══════════════════════════════════════════════════════
-function getGPS(screen) {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude.toFixed(6);
-    const lng = pos.coords.longitude.toFixed(6);
-    currentGPS = { lat, lng };
-    const locText = `${lat}, ${lng}`;
-    if (screen === 'signin') {
-      document.getElementById('signin-gps').textContent    = 'GPS detected';
-      document.getElementById('signin-address').textContent = locText;
-    } else if (screen === 'signoff') {
-      document.getElementById('signoff-gps').textContent    = 'GPS detected';
-      document.getElementById('signoff-address').textContent = locText;
-    } else if (screen === 'emergency') {
-      document.getElementById('em-gps').textContent = locText;
-    }
-  }, () => {
-    const fallback = 'Location unavailable';
-    if (screen === 'signin')    document.getElementById('signin-address').textContent  = fallback;
-    if (screen === 'signoff')   document.getElementById('signoff-address').textContent = fallback;
-    if (screen === 'emergency') document.getElementById('em-gps').textContent          = fallback;
+// ── Toggle shift from dashboard ───────────────────────────
+function toggleShift() {
+  if (shiftActive) navigate('signoff');
+  else             navigate('signin');
+}
+
+// ── File Handling ─────────────────────────────────────────
+function handleFileSelect(input, labelId, folderKey) {
+  if (!input.files || !input.files[0]) return;
+  const file    = input.files[0];
+  const labelEl = document.getElementById(labelId);
+  input.dataset.folderKey   = folderKey || 'Delivery Photos Folder ID';
+  input.dataset.localFile   = 'selected';
+  input.dataset.uploadedUrl = '';
+  if (labelEl) { labelEl.textContent = '✅ ' + file.name.substring(0,28); labelEl.style.color = 'var(--gt)'; }
+  uploadFileInBackground(input, file, folderKey);
+}
+
+async function uploadFileInBackground(input, file, folderKey) {
+  try {
+    const ext      = file.name.split('.').pop();
+    const name_    = (driverData ? driverData.driverName.replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
+    const url      = await uploadFileToDrive(file, folderKey || 'Delivery Photos Folder ID', name_);
+    input.dataset.uploadedUrl = url;
+    input.dataset.localFile   = 'uploaded';
+  } catch(e) {
+    input.dataset.localFile = 'failed';
+  }
+}
+
+async function uploadFileToDrive(file, folderKey, filename) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64 = e.target.result.split(',')[1];
+        const resp   = await fetch(APPS_SCRIPT_URL, {
+          method:'POST', redirect:'follow',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({ action:'uploadFile', filename, mimeType:file.type, base64Data:base64, folderKey, driverEmail: driverData?.email || '' })
+        });
+        const data = JSON.parse(await resp.text());
+        if (data.success) resolve(data.fileUrl);
+        else reject(data.message || 'Upload failed');
+      } catch(err) { reject(err.message); }
+    };
+    reader.onerror = () => reject('Could not read file');
+    reader.readAsDataURL(file);
   });
 }
 
-// ═══════════════════════════════════════════════════════
-// DATE/TIME
-// ═══════════════════════════════════════════════════════
-function updateDateTime(screen) {
-  const now    = new Date();
-  const date   = now.toLocaleDateString('en-AU', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
-  const time   = now.toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
-  if (screen === 'signin') {
-    document.getElementById('signin-date').textContent = date;
-    document.getElementById('signin-time').textContent = time;
-  } else if (screen === 'signoff') {
-    document.getElementById('signoff-date').textContent = date;
-    document.getElementById('signoff-time').textContent = time;
-  }
-}
-
-function getCurrentTime() {
-  return new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
-}
-
-// ═══════════════════════════════════════════════════════
-// KM CALCULATION
-// ═══════════════════════════════════════════════════════
-function calcKm() {
-  const endKm  = parseFloat(document.getElementById('end-km').value)   || 0;
-  const gpsKm  = parseFloat(document.getElementById('gps-km-end').value) || 0;
-  const startKm = 45230; // In real app, get from session storage
-
-  if (endKm > 0 && startKm > 0) {
-    const odoKm  = endKm - startKm;
-    const diff   = Math.abs(odoKm - gpsKm);
-
-    document.getElementById('km-compare').style.display = 'block';
-    document.getElementById('odo-val').textContent       = odoKm + ' km';
-    document.getElementById('gps-val').textContent       = gpsKm + ' km';
-
-    const diffMsg = document.getElementById('km-diff-msg');
-    diffMsg.style.display = 'block';
-    if (diff <= 10) {
-      diffMsg.style.background = 'var(--green-light)';
-      diffMsg.style.color      = 'var(--green-text)';
-      diffMsg.textContent      = '✅ KM match — difference of ' + diff + ' km is within acceptable range';
-      document.getElementById('odo-box').style.borderColor = 'var(--green)';
-      document.getElementById('odo-box').style.background  = 'var(--green-light)';
-    } else {
-      diffMsg.style.background = 'var(--red-light)';
-      diffMsg.style.color      = 'var(--red)';
-      diffMsg.textContent      = '⚠️ KM mismatch — ' + diff + ' km difference flagged for review';
-      document.getElementById('odo-box').style.borderColor = 'var(--red)';
-      document.getElementById('odo-box').style.background  = 'var(--red-light)';
-    }
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-// UI HELPERS
-// ═══════════════════════════════════════════════════════
-function toggleChk(el) {
-  const box = el.querySelector('.chk-box');
-  const ico = el.querySelector('i');
-  if (box.classList.contains('checked')) {
-    box.classList.remove('checked');
-    ico.style.color = 'transparent';
-  } else {
-    box.classList.add('checked');
-    ico.style.color = '#fff';
-  }
-}
-
-function selectCond(el) {
-  el.closest('.cond-grid').querySelectorAll('.cond-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function togglePin() {
-  const v = document.getElementById('pin-val');
-  pinShown = !pinShown;
-  v.textContent = pinShown ? '8 · 4 · 2 · 6' : '● ● ● ●';
-}
-
-function filterCon(el, type) {
-  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('#con-list .con-card').forEach(c => {
-    c.style.display = (type === 'all' || c.dataset.type === type) ? 'block' : 'none';
-  });
-}
-
-
-function selectFuel(screen, type) {
-  const prefix = screen === 'signin' ? 'si' : 'so';
-  ['full','half','low','empty'].forEach(f => {
-    const el = document.getElementById(prefix + '-f' + f);
-    if (el) el.className = 'fuel-btn' + (f === type ? ' on' : '');
-  });
-}
-
-function selectCond(screen, type) {
-  const prefix = screen === 'signin' ? 'si' : 'so';
-  const gEl = document.getElementById(prefix + '-cg');
-  const dEl = document.getElementById(prefix + '-cd');
-  const dmgEl = document.getElementById(prefix + '-dmg');
-  if (gEl) gEl.className = 'cond-btn' + (type === 'g' ? ' ag' : '');
-  if (dEl) dEl.className = 'cond-btn' + (type === 'd' ? ' ad' : '');
-  if (dmgEl) dmgEl.style.display = type === 'd' ? 'block' : 'none';
-}
-
-function captureSig() {
-  const wrap = document.getElementById('sig-wrap');
-  if (!wrap) return;
-  wrap.className = 'sig-done';
-  wrap.onclick = null;
-  wrap.innerHTML = '<p style="font-size:12px;font-weight:700;color:var(--gt)">✅ Signature captured</p><span style="font-size:10px;color:var(--gt)">Saved to proof of delivery</span>';
-}
-
-function openMaps() {
-  window.open('https://www.google.com/maps/search/?api=1&query=12+George+St+Sydney+NSW+2000', '_blank');
-}
-
-function toggleInsp() {
-  const form = document.getElementById('insp-form');
-  const btn  = document.getElementById('insp-btn');
-  if (!form || !btn) return;
-  const open = form.style.display === 'block';
-  form.style.display = open ? 'none' : 'block';
-  btn.textContent = open ? 'Start' : 'Close';
-}
-
-function toggleDef() {
-  const form = document.getElementById('def-form');
-  const btn  = document.getElementById('def-btn');
-  if (!form || !btn) return;
-  const open = form.style.display === 'block';
-  form.style.display = open ? 'none' : 'block';
-  btn.textContent = open ? 'Report' : 'Close';
-}
-
-function selectType(el) {
-  el.closest('.type-grid').querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function backToHome() {
-  screenHistory = [];
-  showScreen('home');
-}
-
-// ============================================================
-// LOAD VEHICLE DATA — pulls real data from Apps Script
-// ============================================================
+// ── Load Vehicle Data ─────────────────────────────────────
 async function loadVehicleData() {
   if (!driverData || !driverData.assignedVan) return;
-
   const van = driverData.assignedVan;
-
-  // Update header
   const titleEl = document.getElementById('vehicle-reg-title');
   if (titleEl) titleEl.textContent = van;
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const data = await resp.json();
-
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
     if (!data.success) return;
 
-    // ── Last parked address ───────────────────────────────
     if (data.history && data.history.length > 0) {
-      const lastShift = data.history[0];
-      const addr      = lastShift.endLocation || 'Unknown location';
-      const addrEl    = document.getElementById('van-parked-addr');
-      const byEl      = document.getElementById('van-parked-by');
-      const mapsEl    = document.getElementById('van-maps-link');
-      const locEl     = document.getElementById('van-last-location');
-      const seenEl    = document.getElementById('van-last-seen-time');
-      const dateEl    = document.getElementById('van-last-seen-date');
-
+      const last   = data.history[0];
+      const addr   = last.endLocation || last.address || '';
+      const addrEl = document.getElementById('van-parked-addr');
+      const byEl   = document.getElementById('van-parked-by');
+      const mapsEl = document.getElementById('van-maps-link');
+      const locEl  = document.getElementById('van-last-location');
       if (addrEl) addrEl.textContent = addr;
-      if (byEl)   byEl.textContent   = 'Parked by ' + lastShift.driver + ' · ' + lastShift.date;
+      if (byEl)   byEl.textContent   = 'Parked by ' + last.driver + ' · ' + last.date;
       if (locEl)  locEl.textContent  = addr.split(',')[0] || addr;
-
-      // Update Google Maps link with real address
-      if (mapsEl) {
-        mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
-      }
+      if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
     }
 
-    // ── Active driver ─────────────────────────────────────
-    const activeNameEl  = document.getElementById('van-active-name');
-    const activeInfoEl  = document.getElementById('van-active-info');
-    const activeLabelEl = document.getElementById('van-active-label');
-    const noteFromEl    = document.getElementById('van-note-from');
-    const noteTextEl    = document.getElementById('van-note-text');
-    const noNoteEl      = document.getElementById('van-no-note-text');
-
-    if (data.activeDriver && activeNameEl) {
-      activeNameEl.textContent  = data.activeDriver.name;
-      if (activeLabelEl) activeLabelEl.textContent = 'Now — Active';
-      if (activeInfoEl)  activeInfoEl.textContent  = 'Currently on shift';
-
-      // No note yet — still active
-      if (noNoteEl) noNoteEl.textContent = data.activeDriver.name + ' is still on shift. Note will appear after sign off.';
-
-      // Store phone for call/SMS buttons
-      if (data.activeDriver.phone) {
-        const callBtn = document.querySelector('#van-active-call');
-        const smsBtn  = document.querySelector('#van-active-sms');
-        if (callBtn) callBtn.href = 'tel:' + data.activeDriver.phone;
-        if (smsBtn)  smsBtn.href  = 'sms:' + data.activeDriver.phone;
-      }
-    } else if (activeNameEl) {
-      activeNameEl.textContent = 'No active driver';
-      if (activeLabelEl) activeLabelEl.textContent = 'Van is available';
+    if (data.activeDriver) {
+      const nameEl = document.getElementById('van-active-name');
+      const infoEl = document.getElementById('van-active-info');
+      const callEl = document.getElementById('van-active-call');
+      const smsEl  = document.getElementById('van-active-sms');
+      if (nameEl) nameEl.textContent = data.activeDriver.name;
+      if (infoEl) infoEl.textContent = 'Currently on shift';
+      if (callEl && data.activeDriver.phone) callEl.href = 'tel:+61' + data.activeDriver.phone.replace(/^0/,'');
+      if (smsEl  && data.activeDriver.phone) smsEl.href  = 'sms:+61' + data.activeDriver.phone.replace(/^0/,'');
     }
 
-    // ── Last shift note ───────────────────────────────────
-    if (data.lastNote && noteFromEl && noteTextEl) {
-      noteFromEl.textContent = '📝 Note from ' + data.lastNote.driver;
-      noteTextEl.textContent = data.lastNote.note;
+    if (data.lastNote) {
+      const fromEl = document.getElementById('van-note-from');
+      const textEl = document.getElementById('van-note-text');
+      if (fromEl) fromEl.textContent = '📝 Note from ' + data.lastNote.driver;
+      if (textEl) textEl.textContent = data.lastNote.note;
     }
 
-    // ── Upcoming shifts ───────────────────────────────────
     if (data.upcoming && data.upcoming.length > 0) {
-      const up1 = data.upcoming[0];
-      const up1DayEl  = document.getElementById('up1-day');
-      const up1TimeEl = document.getElementById('up1-time');
-      const up1NameEl = document.getElementById('up1-name');
-      const up1InfoEl = document.getElementById('up1-info');
-      if (up1DayEl)  up1DayEl.textContent  = up1.date || 'Next';
-      if (up1TimeEl) up1TimeEl.textContent  = up1.startTime || '';
-      if (up1NameEl) up1NameEl.textContent  = up1.driver || '';
-      if (up1InfoEl) up1InfoEl.textContent  = up1.type + ' shift · Starts ' + up1.startTime;
+      const u1 = data.upcoming[0];
+      const d1 = document.getElementById('up1-day');
+      const t1 = document.getElementById('up1-time');
+      const n1 = document.getElementById('up1-name');
+      const i1 = document.getElementById('up1-info');
+      if (d1) d1.textContent = u1.date || 'Next';
+      if (t1) t1.textContent = u1.startTime || '';
+      if (n1) n1.textContent = u1.driver || '';
+      if (i1) i1.textContent = u1.type + ' shift · Starts ' + u1.startTime;
     }
 
-    // ── Shift history ─────────────────────────────────────
-    const histEl = document.getElementById('van-history-list');
-    if (histEl && data.history && data.history.length > 0) {
-      histEl.innerHTML = data.history.map((s, i) => {
-        const isDay   = s.type === 'Day';
-        const bg      = isDay ? 'var(--al)' : 'var(--pl)';
-        const c       = isDay ? 'var(--amb)' : 'var(--pur)';
-        const border  = i < data.history.length - 1 ? '1px solid var(--bor)' : 'none';
-        const dateStr = s.date ? s.date.substring(0,6) : '—';
-        return `<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:${border}">
-          <div style="width:30px;height:30px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-            <span style="font-size:6px;color:var(--t2)">${dateStr.split('/')[1] || ''}</span>
-            <span style="font-size:11px;font-weight:800;color:#1a1a1a">${dateStr.split('/')[0] || ''}</span>
-          </div>
-          <div style="flex:1">
-            <p style="font-size:11px;font-weight:600;color:#1a1a1a;margin:0">${s.driver || '—'}</p>
-            <span style="font-size:9px;color:var(--t2)">${s.type} · ${s.endKm && s.startKm ? (parseFloat(s.endKm)-parseFloat(s.startKm)).toFixed(0)+' km' : '—'}</span>
-          </div>
-          <span style="font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;background:${bg};color:${c}">${s.type}</span>
-        </div>`;
-      }).join('');
+    if (data.history) {
+      const histEl = document.getElementById('van-history-list');
+      if (histEl && data.history.length > 0) {
+        histEl.innerHTML = data.history.map((s,i) => {
+          const isDay = s.type==='Day';
+          const bg    = isDay ? 'var(--al)' : 'var(--pl)';
+          const c     = isDay ? 'var(--amb)' : 'var(--pur)';
+          const bd    = i < data.history.length-1 ? '1px solid var(--bor)' : 'none';
+          const d     = s.date ? s.date.substring(0,5) : '—';
+          return `<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:${bd}">
+            <div style="width:30px;height:30px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:6px;color:var(--t2)">${d.split('/')[1]||''}</span>
+              <span style="font-size:11px;font-weight:800">${d.split('/')[0]||''}</span>
+            </div>
+            <div style="flex:1"><p style="font-size:11px;font-weight:600;margin:0">${s.driver||'—'}</p>
+            <span style="font-size:9px;color:var(--t2)">${s.type} · ${s.endKm&&s.startKm?(parseFloat(s.endKm)-parseFloat(s.startKm)).toFixed(0)+' km':'—'}</span></div>
+            <span style="font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;background:${bg};color:${c}">${s.type}</span>
+          </div>`;
+        }).join('');
+      }
     }
 
-    // Load real defects for this van
     loadDefectsForVan(van);
-
-  } catch (err) {
-    console.log('loadVehicleData error:', err.message);
-  }
+  } catch(e) { console.log('loadVehicleData error:', e); }
 }
 
-// ============================================================
-// LOAD ALERTS — pulls from Notifications tab
-// ============================================================
+async function loadDefectsForVan(van) {
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getDefectsByVan&van=' + encodeURIComponent(van);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    if (!data.success || !data.defects || data.defects.length === 0) return;
+    const histEl = document.querySelector('.damage-history-list');
+    if (!histEl) return;
+    histEl.innerHTML = data.defects.slice(0,5).map(d => `
+      <div style="padding:6px 0;border-bottom:1px solid var(--bor)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px">
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="width:22px;height:22px;background:${d.status==='Open'?'var(--rl)':'var(--gl)'};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${d.status==='Open'?'⚠️':'✅'}</div>
+            <div><div style="font-size:9px;font-weight:700">${d.date} · ${d.driver}</div><div style="font-size:8px;color:var(--t2)">${d.category}</div></div>
+          </div>
+          <span style="font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;background:${d.status==='Open'?'var(--rl)':'var(--gl)'};color:${d.status==='Open'?'var(--red)':'var(--gt)'}">${d.status}</span>
+        </div>
+        <div style="font-size:9px;color:var(--t2);background:var(--bg2);border-radius:5px;padding:4px 6px;margin-left:27px">${d.description}</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ── Load Alerts ───────────────────────────────────────────
 async function loadAlerts() {
   if (!driverData) return;
   const listEl = document.getElementById('alerts-list');
   if (!listEl) return;
-
   listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Loading alerts...</div>';
-
   try {
     const url  = APPS_SCRIPT_URL + '?action=getAlerts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const data = await resp.json();
-
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
     if (!data.success || !data.alerts || data.alerts.length === 0) {
       listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">No alerts yet</div>';
-      // Remove unread dot on dashboard
-      const dot = document.getElementById('notif-dot');
-      if (dot) dot.style.display = 'none';
+      const dot = document.getElementById('notif-dot'); if (dot) dot.style.display = 'none';
       return;
     }
-
-    const unread = data.alerts.filter(a => a.read === 'No' || a.read === false).length;
-    const dot = document.getElementById('notif-dot');
-    if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
-
+    const unread = data.alerts.filter(a => a.read==='No').length;
+    const dot = document.getElementById('notif-dot'); if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
     listEl.innerHTML = data.alerts.map(a => `
       <div class="alert-item">
-        <div class="alert-dot ${a.read === 'No' || !a.read ? 'unread' : 'read'}"></div>
-        <div class="alert-info">
-          <p>${a.title || ''}</p>
-          <span>${a.message || ''}</span>
-          <div class="alert-time">${a.createdDate || ''}</div>
-        </div>
+        <div class="alert-dot ${a.read==='No'?'unread':'read'}"></div>
+        <div class="alert-info"><p>${a.title||''}</p><span>${a.message||''}</span><div class="alert-time">${a.createdDate||''}</div></div>
       </div>`).join('');
-
   } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Could not load alerts. Check connection.</div>';
+    listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Could not load alerts.</div>';
   }
 }
 
-
-// ============================================================
-// LOAD MY SHIFTS — pulls from Shifts tab
-// ============================================================
+// ── Load Shifts ───────────────────────────────────────────
 async function loadMyShifts() {
   if (!driverData) return;
   const listEl = document.getElementById('myshifts-list');
   if (!listEl) return;
-
-  // Keep request form, replace only shift cards
-  const existingForm = listEl.querySelector('.card');
-  listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:12px">Loading shifts...</div>';
-
   try {
     const url  = APPS_SCRIPT_URL + '?action=getShifts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const data = await resp.json();
-
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
     if (!data.success || !data.shifts || data.shifts.length === 0) {
       listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:12px;margin-bottom:12px">No upcoming shifts found</div>' + getShiftRequestForm();
       return;
     }
-
-    const shiftCards = data.shifts.map(s => {
-      const isDay    = s.type === 'Day';
-      const icon     = isDay ? 'ti-sun' : 'ti-moon';
-      const iconColor= isDay ? 'var(--g)' : 'var(--pur)';
-      const statusBg = s.status === 'In Progress' ? 'var(--gl)' : s.status === 'Completed' ? 'var(--bg2)' : 'var(--bl)';
-      const statusC  = s.status === 'In Progress' ? 'var(--gt)' : s.status === 'Completed' ? 'var(--t2)' : 'var(--blu)';
-      return `
-      <div class="shift-item">
+    const cards = data.shifts.map(s => {
+      const isDay   = s.type==='Day';
+      const statusBg = s.status==='In Progress'?'var(--gl)':s.status==='Completed'?'var(--bg2)':'var(--bl)';
+      const statusC  = s.status==='In Progress'?'var(--gt)':s.status==='Completed'?'var(--t2)':'var(--blu)';
+      return `<div class="shift-item">
         <div class="shift-item-header">
-          <i class="ti ${icon}" style="color:${iconColor}"></i>
-          <h3>${s.type} shift — ${s.date || ''}</h3>
-          <span style="font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;background:${statusBg};color:${statusC}">${s.status || 'Scheduled'}</span>
+          <i class="ti ${isDay?'ti-sun':'ti-moon'}" style="color:${isDay?'var(--g)':'var(--pur)'}"></i>
+          <h3>${s.type} shift — ${s.date||''}</h3>
+          <span style="font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;background:${statusBg};color:${statusC}">${s.status||'Scheduled'}</span>
         </div>
         <div class="shift-meta">
-          <div class="shift-meta-item"><span>Time</span><p>${s.startTime || '—'} – ${s.endTime || '—'}</p></div>
-          <div class="shift-meta-item"><span>Van</span><p>${s.van || '—'}</p></div>
-          <div class="shift-meta-item"><span>Start KM</span><p>${s.startKm || '—'}</p></div>
-          <div class="shift-meta-item"><span>Status</span><p>${s.status || '—'}</p></div>
+          <div class="shift-meta-item"><span>Time</span><p>${s.startTime||'—'} – ${s.endTime||'—'}</p></div>
+          <div class="shift-meta-item"><span>Van</span><p>${s.van||'—'}</p></div>
         </div>
       </div>`;
     }).join('');
-
-    listEl.innerHTML = shiftCards + getShiftRequestForm();
-
-  } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:12px">Could not load shifts.</div>' + getShiftRequestForm();
-  }
+    listEl.innerHTML = cards + getShiftRequestForm();
+  } catch(e) { listEl.innerHTML = getShiftRequestForm(); }
 }
 
 function getShiftRequestForm() {
   return `<div class="card">
-    <p style="font-size:13px;font-weight:700;margin-bottom:12px">Request shift change or extra shift</p>
+    <p style="font-size:13px;font-weight:700;margin-bottom:12px">Request shift change</p>
     <label class="lbl">Request type</label>
     <select class="sel"><option>Shift change — day to night</option><option>Shift change — night to day</option><option>Request extra shift</option><option>Cancel a shift</option></select>
     <label class="lbl">Date</label>
@@ -2300,485 +2139,258 @@ function getShiftRequestForm() {
   </div>`;
 }
 
-async function submitShiftRequest() {
-  toast('Shift request submitted! Manager will review shortly.');
-}
+async function submitShiftRequest() { toast('Shift request submitted ✅ Manager will review.'); }
 
-
-// ============================================================
-// LOAD PAYOUTS — pulls from Payouts tab
-// ============================================================
+// ── Load Payouts ──────────────────────────────────────────
 async function loadPayouts() {
   if (!driverData) return;
-  const amtEl  = document.getElementById('payout-last-amount');
-  const dateEl = document.getElementById('payout-last-date');
-
   try {
     const url  = APPS_SCRIPT_URL + '?action=getPayouts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const data = await resp.json();
-
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
     if (!data.success || !data.payouts || data.payouts.length === 0) return;
-
-    // Most recent paid payout
-    const lastPaid = data.payouts.find(p => p.status === 'Paid');
-    if (lastPaid) {
-      if (amtEl)  amtEl.textContent  = '$' + parseFloat(lastPaid.total || 0).toFixed(2);
-      if (dateEl) dateEl.textContent = 'Paid ' + (lastPaid.paymentDate || '');
+    const last = data.payouts.find(p => p.status==='Paid');
+    if (last) {
+      const a = document.getElementById('payout-last-amount'); if (a) a.textContent = '$' + parseFloat(last.total||0).toFixed(2);
+      const d = document.getElementById('payout-last-date');   if (d) d.textContent = 'Paid ' + (last.paymentDate||'');
     }
-
-  } catch(e) { /* show defaults */ }
+  } catch(e) {}
 }
 
+// ── Submit Fuel ───────────────────────────────────────────
+async function submitFuel() {
+  if (!driverData) return;
+  const amountEl   = document.getElementById('fuel-amount');
+  const photoInput = document.getElementById('fuel-photo-input');
+  const dateEl     = document.querySelector('#screen-fuel input[type="date"]');
+  const fuelTypeEl = document.querySelector('#screen-fuel .sel');
+  if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('Please enter the fuel amount'); return; }
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
+        fuelDate: dateEl?dateEl.value:'', amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
+        receiptUrl: photoInput?.dataset?.uploadedUrl||''
+      })
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Reimbursement submitted ✅ Paid Wednesday.'); amountEl.value=''; goBack(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
+}
 
-// ============================================================
-// SUBMIT LEAVE — writes to Leave tab
-// ============================================================
+// ── Submit Leave ──────────────────────────────────────────
 async function submitLeave() {
   if (!driverData) return;
-
-  const typeEl   = document.querySelector('.type-btn.active p');
-  const fromEl   = document.querySelector('#screen-leave input[type="date"]:first-of-type');
-  const toEl     = document.querySelector('#screen-leave input[type="date"]:last-of-type');
-  const shiftEl  = document.querySelector('#screen-leave .sel');
+  const typeEl   = document.querySelector('#screen-leave .type-btn.active p');
+  const fromEl   = document.querySelector('#screen-leave input[type="date"]');
   const reasonEl = document.querySelector('#screen-leave .textarea');
-
-  const leaveType = typeEl ? typeEl.textContent : 'Leave';
-  const fromDate  = fromEl ? fromEl.value : '';
-  const toDate    = toEl   ? toEl.value   : '';
-  const reason    = reasonEl ? reasonEl.value : '';
-
-  if (!fromDate) { toast('Please select a start date'); return; }
-  if (!reason)   { toast('Please enter a reason'); return; }
-
+  const shiftEl  = document.querySelector('#screen-leave .sel');
+  if (!fromEl?.value) { toast('Please select a start date'); return; }
+  if (!reasonEl?.value) { toast('Please enter a reason'); return; }
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
-        action:      'submitLeave',
-        driver:      driverData.driverName,
-        email:       driverData.email,
-        type:        leaveType,
-        fromDate:    fromDate,
-        toDate:      toDate || fromDate,
-        shiftAffected: shiftEl ? shiftEl.value : '',
-        reason:      reason
+        action:'submitLeave', driver:driverData.driverName, email:driverData.email,
+        type: typeEl?typeEl.textContent:'Leave', fromDate:fromEl.value, toDate:fromEl.value,
+        shiftAffected: shiftEl?shiftEl.value:'', reason:reasonEl.value
       })
     });
-    const data = await resp.json();
-    if (data.success) {
-      toast(leaveType + ' request submitted ✅ Manager will review shortly.');
-      if (reasonEl) reasonEl.value = '';
-    } else {
-      toast('Error: ' + (data.message || 'Could not submit. Try again.'));
-    }
-  } catch(e) {
-    toast('Connection error. Please try again.');
-  }
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Leave request submitted ✅ Manager notified.'); reasonEl.value=''; goBack(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
 }
 
-
-// ============================================================
-// SUBMIT TICKET — writes to Tickets tab
-// ============================================================
+// ── Submit Ticket ─────────────────────────────────────────
 async function submitTicket() {
   if (!driverData) return;
-
   const responseEl = document.querySelector('#screen-tickets .sel');
   const explEl     = document.querySelector('#screen-tickets .textarea');
-
-  const responseType = responseEl ? responseEl.value : '';
-  const explanation  = explEl ? explEl.value : '';
-
-  if (!explanation) { toast('Please describe what happened'); return; }
-
+  if (!explEl?.value) { toast('Please describe what happened'); return; }
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
-        action:       'submitTicketResponse',
-        driver:       driverData.driverName,
-        email:        driverData.email,
-        responseType: responseType,
-        explanation:  explanation
+        action:'submitTicketResponse', driver:driverData.driverName, email:driverData.email,
+        responseType: responseEl?responseEl.value:'', explanation:explEl.value
       })
     });
-    const data = await resp.json();
-    if (data.success) {
-      toast('Response submitted ✅ Manager has been notified.');
-      if (explEl) explEl.value = '';
-    } else {
-      toast('Error submitting response. Try again.');
-    }
-  } catch(e) {
-    toast('Connection error. Please try again.');
-  }
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Response submitted ✅ Manager notified.'); explEl.value=''; goBack(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
 }
 
-
-// ============================================================
-// FILE UPLOAD TO DRIVE — converts to base64 and sends
-// ============================================================
-async function uploadFileToDrive(file, folderKey, filename) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const base64 = e.target.result.split(',')[1];
-        const resp   = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            action:    'uploadFile',
-            filename:  filename,
-            mimeType:  file.type,
-            base64Data: base64,
-            folderKey: folderKey,
-            driverEmail: driverData ? driverData.email : ''
-          })
-        });
-        const data = await resp.json();
-        if (data.success) resolve(data.fileUrl);
-        else reject(data.message || 'Upload failed');
-      } catch(err) {
-        reject(err.message);
-      }
-    };
-    reader.onerror = () => reject('Could not read file');
-    reader.readAsDataURL(file);
-  });
-}
-
-// Handle file select with auto-upload
-async function handleFileSelect(input, labelId, folderKey) {
-  if (!input.files || !input.files[0]) return;
-
-  const file    = input.files[0];
-  const labelEl = document.getElementById(labelId);
-  const ext     = file.name.split('.').pop();
-  const driverName = driverData ? driverData.driverName.replace(/\s/g,'_') : 'Driver';
-  const filename   = driverName + '_' + new Date().toISOString().slice(0,10) + '.' + ext;
-
-  if (labelEl) {
-    labelEl.textContent = '⏳ Uploading...';
-    labelEl.style.color = 'var(--amb)';
-  }
-
-  try {
-    const url = await uploadFileToDrive(file, folderKey || 'Delivery Photos Folder ID', filename);
-    if (labelEl) {
-      labelEl.textContent = '✅ ' + file.name.substring(0,25);
-      labelEl.style.color = 'var(--gt)';
-    }
-    // Store URL on input for later use in form submit
-    input.dataset.uploadedUrl = url;
-    toast('File uploaded ✅');
-  } catch(e) {
-    if (labelEl) {
-      labelEl.textContent = file.name.substring(0,25);
-      labelEl.style.color = '#1a1a1a';
-    }
-    // Store file locally even if upload fails — will retry on submit
-    input.dataset.localFile = 'pending';
-    toast('File saved locally. Will upload on submit.');
-  }
-}
-
-
-// ============================================================
-// SUBMIT DEFECT — wire to API
-// ============================================================
+// ── Submit Defect ─────────────────────────────────────────
 async function submitDefectForm() {
   if (!driverData) return;
-  const catEl  = document.querySelector('#def-form .sel');
-  const descEl = document.querySelector('#def-form .textarea');
+  const catEl   = document.querySelector('#def-form .sel');
+  const descEl  = document.querySelector('#def-form .textarea');
   const photoInput = document.querySelector('#def-form input[type="file"]');
-
-  if (!descEl || !descEl.value) { toast('Please describe the defect'); return; }
-
+  if (!descEl?.value) { toast('Please describe the defect'); return; }
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST', redirect: 'follow',
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
-        action:      'submitDefect',
-        driver:      driverData.driverName,
-        email:       driverData.email,
-        van:         driverData.assignedVan,
-        category:    catEl ? catEl.value : 'Other',
-        description: descEl.value,
-        photoUrl:    photoInput?.dataset?.uploadedUrl || ''
+        action:'submitDefect', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
+        category: catEl?catEl.value:'Other', description:descEl.value, photoUrl:photoInput?.dataset?.uploadedUrl||''
       })
     });
-    const data = await resp.json();
-    if (data.success) {
-      toast('Defect reported ✅ Manager notified via WhatsApp.');
-      descEl.value = '';
-      toggleDef();
-    } else {
-      toast('Error: ' + (data.message || 'Try again'));
-    }
-  } catch(e) {
-    toast('Connection error. Please try again.');
-  }
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Defect reported ✅ Manager notified.'); descEl.value=''; toggleDef(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
 }
 
-
-// ============================================================
-// SUBMIT INSPECTION — wire to API
-// ============================================================
+// ── Submit Inspection ─────────────────────────────────────
 async function submitInspectionForm() {
   if (!driverData) return;
-  const checks = {};
-  ['Tyres','Lights','Wipers','Brakes','Interior'].forEach(item => {
-    const btns = document.querySelectorAll(`#insp-form .insp-row[data-item="${item}"] button`);
-    btns.forEach(btn => {
-      if (btn.classList.contains('active') || btn.classList.contains('selected')) {
-        checks[item.toLowerCase()] = btn.textContent.trim();
-      }
-    });
-    if (!checks[item.toLowerCase()]) checks[item.toLowerCase()] = 'Good';
+  const items = {};
+  ['Tyres','Lights','Wipers','Brakes','Interior'].forEach(k => {
+    const active = document.querySelector(`#insp-form [data-item="${k}"] .active`);
+    items[k.toLowerCase()] = active ? active.textContent.trim() : 'Good';
   });
-
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST', redirect: 'follow',
-      body: JSON.stringify({
-        action:   'submitInspection',
-        driver:   driverData.driverName,
-        email:    driverData.email,
-        van:      driverData.assignedVan,
-        tyres:    checks.tyres || 'Good',
-        lights:   checks.lights || 'Good',
-        wipers:   checks.wipers || 'Good',
-        brakes:   checks.brakes || 'Good',
-        interior: checks.interior || 'Good',
-        notes:    document.querySelector('#insp-form .textarea')?.value || ''
-      })
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'submitInspection', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan, ...items })
     });
-    const data = await resp.json();
-    if (data.success) {
-      toast('Inspection submitted ✅ Status: ' + data.overallStatus);
-      toggleInsp();
-    } else {
-      toast('Error: ' + (data.message || 'Try again'));
-    }
-  } catch(e) {
-    toast('Connection error. Please try again.');
-  }
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Inspection submitted ✅ Status: ' + data.overallStatus); toggleInsp(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
 }
 
-
-// ============================================================
-// SUBMIT EMERGENCY — wire to API
-// ============================================================
+// ── Submit Emergency ──────────────────────────────────────
 async function submitEmergencyReport() {
   if (!driverData) return;
-  const typeEl = document.querySelector('#screen-emergency .incident-type.active, #screen-emergency .type-btn.active');
+  const typeEl = document.querySelector('#screen-emergency .incident-type.active');
   const descEl = document.querySelector('#screen-emergency .textarea');
-  const photoInput = document.querySelector('#screen-emergency input[type="file"]');
-
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST', redirect: 'follow',
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
-        action:      'submitEmergency',
-        driver:      driverData.driverName,
-        email:       driverData.email,
-        van:         driverData.assignedVan,
-        type:        typeEl?.textContent?.trim() || 'Emergency',
-        lat:         currentGPS?.lat || '',
-        lng:         currentGPS?.lng || '',
-        address:     currentGPS?.address || '',
-        description: descEl?.value || '',
-        photoUrl:    photoInput?.dataset?.uploadedUrl || ''
+        action:'submitEmergency', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
+        type: typeEl?typeEl.textContent.trim():'Emergency',
+        lat:currentGPS.lat||'', lng:currentGPS.lng||'', address:currentGPS.address||'',
+        description: descEl?descEl.value:''
       })
     });
-    const data = await resp.json();
-    if (data.success) {
-      toast('Emergency reported ✅ Manager notified immediately.');
-    } else {
-      toast('Reported. Manager being contacted.');
-    }
-  } catch(e) {
-    toast('Manager being contacted via WhatsApp.');
-  }
+    JSON.parse(await resp.text());
+    toast('Emergency reported ✅ Manager notified immediately.');
+  } catch(e) { toast('Manager being contacted. Stay safe.'); }
 }
 
-
-// ============================================================
-// LOAD DEFECTS FOR VAN — used on vehicle screen
-// ============================================================
-async function loadDefectsForVan(van) {
-  if (!van) return;
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getDefectsByVan&van=' + encodeURIComponent(van);
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const data = await resp.json();
-    if (!data.success || !data.defects || data.defects.length === 0) return;
-
-    // Update damage & defects history
-    const histEl = document.querySelector('.damage-history-list');
-    if (!histEl) return;
-
-    histEl.innerHTML = data.defects.slice(0,5).map(d => `
-      <div style="padding:6px 0;border-bottom:1px solid var(--bor)">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px">
-          <div style="display:flex;align-items:center;gap:5px">
-            <div style="width:22px;height:22px;background:${d.status==='Open'?'var(--rl)':'var(--gl)'};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${d.status==='Open'?'⚠️':'✅'}</div>
-            <div>
-              <div style="font-size:9px;font-weight:700;color:#1a1a1a">${d.date} · ${d.driver}</div>
-              <div style="font-size:8px;color:var(--t2)">${d.category}</div>
-            </div>
-          </div>
-          <span style="font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;background:${d.status==='Open'?'var(--rl)':'var(--gl)'};color:${d.status==='Open'?'var(--red)':'var(--gt)'}">${d.status}</span>
-        </div>
-        <div style="font-size:9px;color:var(--t2);background:var(--bg2);border-radius:5px;padding:4px 6px;margin-left:27px">${d.description}</div>
-      </div>`).join('');
-  } catch(e) { /* use dummy data */ }
-}
-
-
-// ── Sign In condition buttons ─────────────────────────────
-function siSelectCond(type) {
-  const good = document.getElementById('si-cond-good');
-  const dmg  = document.getElementById('si-cond-dmg');
-  const sec  = document.getElementById('si-damage-section');
-  if (type === 'good') {
-    good.classList.add('active'); dmg.classList.remove('active');
-    sec.style.display = 'none';
-  } else {
-    dmg.classList.add('active'); good.classList.remove('active');
-    sec.style.display = 'block';
-  }
-}
-
-// ── Sign In fuel buttons ──────────────────────────────────
-function siSelectFuel(type) {
-  ['full','half','low','empty'].forEach(f => {
-    const el = document.getElementById('si-fuel-' + f);
-    if (el) el.classList.toggle('active', f === type);
+// ── Condition & Fuel Selectors ────────────────────────────
+function siSelCond(v) {
+  ['si-cond-good','si-cond-dmg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id.endsWith(v));
   });
+  const sec = document.getElementById('si-damage-section');
+  if (sec) sec.style.display = v==='dmg' ? 'block' : 'none';
 }
-
-// ── Sign Off condition buttons ────────────────────────────
-function soSelectCond(type) {
-  const good = document.getElementById('so-cond-good');
-  const dmg  = document.getElementById('so-cond-dmg');
-  const sec  = document.getElementById('so-damage-section');
-  if (type === 'good') {
-    good.classList.add('active'); dmg.classList.remove('active');
-    sec.style.display = 'none';
-  } else {
-    dmg.classList.add('active'); good.classList.remove('active');
-    sec.style.display = 'block';
-  }
-}
-
-// ── Sign Off fuel buttons ─────────────────────────────────
-function soSelectFuel(type) {
-  ['full','half','low','empty'].forEach(f => {
-    const el = document.getElementById('so-fuel-' + f);
-    if (el) el.classList.toggle('active', f === type);
+function soSelCond(v) {
+  ['so-cond-good','so-cond-dmg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id.endsWith(v));
   });
+  const sec = document.getElementById('so-damage-section');
+  if (sec) sec.style.display = v==='dmg' ? 'block' : 'none';
 }
-
-// ── PIN Login ─────────────────────────────────────────────
-async function loginWithPin() {
-  const phone = document.getElementById('login-phone').value.trim().replace(/\s/g,'');
-  const pin   = document.getElementById('login-pin').value.trim();
-  const errEl = document.getElementById('login-error');
-  const btn   = document.getElementById('login-btn');
-
-  errEl.style.display = 'none';
-
-  if (!phone || phone.length < 8) { showLoginError('Please enter your mobile number'); return; }
-  if (!pin || pin.length !== 4)   { showLoginError('Please enter your 4-digit PIN'); return; }
-
-  btn.textContent = 'Signing in...';
-  btn.disabled = true;
-
-  // Normalize: strip spaces, dashes, keep last 9 digits for matching
-  const cleanPhone = phone.replace(/[\s\-]/g, '');
-  const formattedPhone = cleanPhone.replace(/^(\+61|61|0)/, '');
-
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(formattedPhone) + '&pin=' + encodeURIComponent(pin);
-    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
-    const text = await resp.text();
-    const data = JSON.parse(text);
-
-    if (data.success) {
-      localStorage.setItem('fv_driver_email', data.email);
-      localStorage.setItem('fv_driver_data',  JSON.stringify(data));
-      driverData = data;
-      setupDashboard();
-      showScreen('home');
-    } else {
-      showLoginError(data.message || 'Incorrect phone number or PIN');
-    }
-  } catch (e) {
-    // Offline fallback for testing
-    showLoginError('Connection error. Please check your internet and try again.');
-  }
-
-  btn.textContent = 'Sign in';
-  btn.disabled = false;
+function siSelFuel(v) { ['full','half','low','empty'].forEach(f => { const el=document.getElementById('si-fuel-'+f); if(el) el.classList.toggle('active',f===v); }); }
+function soSelFuel(v) { ['full','half','low','empty'].forEach(f => { const el=document.getElementById('so-fuel-'+f); if(el) el.classList.toggle('active',f===v); }); }
+function toggleInsp() {
+  inspOpen = !inspOpen;
+  const f = document.getElementById('insp-form');
+  const b = document.getElementById('insp-btn');
+  if (f) f.style.display = inspOpen ? 'block' : 'none';
+  if (b) b.textContent  = inspOpen ? 'Close' : 'Start';
 }
-
-function showLoginError(msg) {
-  const errEl = document.getElementById('login-error');
-  if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+function toggleDef() {
+  defOpen = !defOpen;
+  const f = document.getElementById('def-form');
+  const b = document.getElementById('def-btn');
+  if (f) f.style.display = defOpen ? 'block' : 'none';
+  if (b) b.textContent  = defOpen ? 'Close' : 'Report new';
 }
+let inspOpen = false, defOpen = false;
 
-// ── Select payout period ──────────────────────────────────
-function selectPeriod(el) {
-  el.closest('.pay-pills').querySelectorAll('.ppill').forEach(p => p.classList.remove('active','on'));
+function selectType(el) {
+  el.closest('.type-grid').querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  toast('Showing ' + el.textContent + ' earnings');
+}
+function selectPeriod(el) {
+  el.closest('.pay-pills').querySelectorAll('.ppill,.pay-pill').forEach(p => p.classList.remove('active','on'));
+  el.classList.add('active');
+  toast('Showing ' + el.textContent.trim() + ' earnings');
 }
 
-// ── Handle file select (camera/video) ─────────────────────
-function handleFileSelect(input, labelId) {
-  if (input.files && input.files[0]) {
-    const file  = input.files[0];
-    const label = document.getElementById(labelId);
-    if (label) {
-      label.textContent = '✅ ' + file.name.substring(0,30);
-      label.style.color = 'var(--gt)';
+// ── Toast ─────────────────────────────────────────────────
+function useCurrentLocation() {
+  const addrEl = document.getElementById('so-dropoff-address');
+  if (!addrEl) return;
+  if (currentGPS && currentGPS.address) {
+    addrEl.value = currentGPS.address;
+    toast('📍 Location set to current GPS');
+  } else {
+    addrEl.value = 'Getting location...';
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        currentGPS.lat = lat; currentGPS.lng = lng;
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
+          .then(r => r.json())
+          .then(d => {
+            const addr = d.display_name ? d.display_name.split(',').slice(0,4).join(',').trim() : lat + ',' + lng;
+            currentGPS.address = addr;
+            addrEl.value = addr;
+            toast('📍 Location captured');
+          }).catch(() => {
+            addrEl.value = lat + ', ' + lng;
+            toast('📍 GPS coordinates captured');
+          });
+      }, () => toast('Could not get GPS. Please type the address manually.'));
     }
-    toast('File selected: ' + file.name.substring(0,20));
   }
 }
 
-// ── Submit leave with confirmation ────────────────────────
-function submitLeave() {
-  const type = document.querySelector('.type-btn.active p');
-  const typeName = type ? type.textContent : 'Leave';
-  toast(typeName + ' request submitted! Manager will review shortly.');
+function updateMapFromAddress(addr) {
+  // Update GPS address as user types
+  if (addr && addr.length > 5) currentGPS.address = addr;
 }
 
-// ── Submit ticket with confirmation ──────────────────────
-function submitTicket() {
-  toast('Response submitted! Manager has been notified.');
-}
-
-// ── Submit fuel with validation ───────────────────────────
-async function submitFuel() {
-  const amount = document.getElementById('fuel-amount');
-  if (amount && (!amount.value || parseFloat(amount.value) <= 0)) {
-    toast('Please enter the fuel amount');
-    return;
-  }
-  toast('Reimbursement submitted! Will be paid on Wednesday.');
-}
-
-let toastTimer;
 function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  let el = document.getElementById('toast-el');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast-el';
+    el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:30px;font-size:12px;font-weight:600;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.25s;white-space:nowrap;max-width:90vw;text-align:center;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => { el.style.opacity = '0'; }, 2800);
 }
+
+// ── Toggle PIN visibility ─────────────────────────────────
+function togglePin() {
+  const el = document.getElementById('pin-val');
+  if (!el) return;
+  el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
+}
+
 </script>
 </body>
 </html>
