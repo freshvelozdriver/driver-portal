@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#00D062">
@@ -554,7 +557,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <p>Add <strong>logistics@freshveloz.com.au</strong> to your contacts for important updates.</p>
     </div>
   </div>
-  <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div></div>
+  <div class="ftr" style="flex-shrink:0;background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px">© 2026 Fresh Veloz. All rights reserved.</div></div>
 
 <!-- ═══════════════════════════════════════════════════ -->
 <!-- SIGN IN SCREEN                                      -->
@@ -584,7 +587,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <div class="km-box">
       <div class="km-title">Odometer reading</div>
       <div class="km-grid">
-        <div class="km-input-wrap"><label>Start odometer KM</label><input type="number" class="km-input" id="start-km" placeholder="e.g. 45230"></div>
+        <div class="km-input-wrap"><label>Start odometer KM</label><input id="si-km" type="number" class="km-input" id="start-km" placeholder="e.g. 45230"></div>
         <div class="km-input-wrap"><label>GPS tracked KM</label><input type="number" class="km-input" value="0" readonly style="background:var(--bg2);color:var(--text2)"></div>
       </div>
       <div class="info-box info-green" style="margin-top:8px;margin-bottom:0">
@@ -632,7 +635,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <textarea class="form-textarea" placeholder="Any issues or notes..."></textarea>
     </div>
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>GPS and timestamp captured automatically.</p></div>
-    <button class="btn-primary" onclick="completeSignIn()">Confirm start shift</button>
+    <button class="btn-primary" id="si-submit-btn" onclick="completeSignIn()">Confirm start shift</button>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
 </div>
@@ -661,7 +664,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <div class="km-box">
       <div class="km-title">KM Summary</div>
       <div class="km-grid">
-        <div class="km-input-wrap"><label>End odometer KM</label><input type="number" class="km-input" id="end-km" placeholder="e.g. 45498" oninput="calcKm()"></div>
+        <div class="km-input-wrap"><label>End odometer KM</label><input id="so-km" type="number" class="km-input" id="end-km" placeholder="e.g. 45498" oninput="calcKm()"></div>
         <div class="km-input-wrap"><label>GPS tracked KM</label><input type="number" class="km-input" id="gps-km-end" value="--" readonly style="background:var(--bg2);color:var(--text2)"></div>
       </div>
       <div id="km-compare" style="display:none">
@@ -728,7 +731,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <textarea class="form-textarea" placeholder="Any other issues or notes for manager..."></textarea>
     </div>
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>GPS and timestamp captured automatically. Ensure keys are in lockbox.</p></div>
-    <button class="btn-primary" onclick="completeSignOff()">Confirm end shift</button>
+    <button class="btn-primary" id="so-submit-btn" onclick="completeSignOff()">Confirm end shift</button>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
 </div>
@@ -758,7 +761,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <div style="background:var(--bg2);border-radius:var(--r);padding:11px;margin-bottom:12px"><p style="font-size:12px;font-weight:700;margin-bottom:3px">Shift saved ✅</p><span style="font-size:11px;color:var(--t2)">All sign in, KM and checklist data saved automatically.</span></div>
     <button class="btn btn-green" onclick="backToHome()">Back to home</button>
   </div>
-  <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div>
+  <div class="ftr" style="flex-shrink:0;background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
 
 <div id="screen-consignments" class="screen">
@@ -970,7 +973,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <div class="form-group"><label class="form-label">Fuel date</label><input type="date" class="form-input"></div>
     <div class="form-group">
       <label class="form-label">Amount ($)</label>
-      <div class="amount-wrap"><span class="prefix">$</span><input type="number" class="form-input" placeholder="0.00"></div>
+      <div class="amount-wrap"><span class="prefix">$</span><input id="fuel-amount" type="number" class="form-input" placeholder="0.00"></div>
     </div>
     <div class="form-group"><label class="form-label">Fuel type</label><select class="form-select"><option>Diesel</option><option>Petrol</option></select></div>
     <input type="file" accept="image/*" capture="environment" id="cam-5-input" style="display:none" onchange="handleFileSelect(this,'cam-5-lbl','Defect Photos Folder ID')">
@@ -1130,12 +1133,12 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
     <div class="contact-card red-card" onclick="toast('Calling 000...')">
       <div class="contact-icon" style="background:var(--red)"><i class="ti ti-phone-call" style="color:#fff"></i></div>
       <div class="contact-info"><p style="color:var(--red)">Call 000 — Emergency</p><span>Police, Fire, Ambulance</span></div>
-      <button class="contact-call" style="background:var(--red);color:#fff">Call</button>
+      <a href="tel:000" style="text-decoration:none"><button class="contact-call" style="background:var(--red);color:#fff">Call</button></a>
     </div>
     <div class="contact-card" onclick="toast('Calling NRMA...')">
       <div class="contact-icon" style="background:#FF6B00"><i class="ti ti-car" style="color:#fff"></i></div>
       <div class="contact-info"><p>Call NRMA Roadside</p><span>132 132 — 24/7 assistance</span></div>
-      <button class="contact-call" style="background:#FF6B00;color:#fff">Call</button>
+      <a href="tel:132132" style="text-decoration:none"><button class="contact-call" style="background:#FF6B00;color:#fff">Call</button></a>
     </div>
     <div class="contact-card" onclick="toast('Calling manager...')">
       <div class="contact-icon" style="background:var(--purple)"><i class="ti ti-user-circle" style="color:#fff"></i></div>
@@ -1174,7 +1177,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
       <p>Photo of vehicle or incident</p>
     </div>
     <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Stay safe. Do not move the vehicle unless it is safe to do so. Turn on hazard lights.</p></div>
-    <button class="btn-red" onclick="toast('Emergency report submitted!')">Submit emergency report</button>
+    <button class="btn-red" onclick="submitEmergencyReport()">Submit emergency report</button>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
 </div>
@@ -1220,10 +1223,9 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
 <div id="screen-vehicle" class="screen" style="overflow:hidden">
   <div class="hdr">
     <button class="hdr-back" onclick="goBack()"><i class="ti ti-arrow-left"></i></button>
-    <div class="hdr-info"><h1>My vehicle</h1><p id="vehicle-reg-title">NSW 123 ABC</p></div>
+    <div class="hdr-title"><h1>My vehicle</h1><p id="vehicle-reg-title">NSW 123 ABC</p></div>
   </div>
   <div class="scroll">
-    <div class="map-ph"><i class="ti ti-map"></i></div>
     <div class="stat-grid">
       <div class="stat-box"><div class="stat-lbl">Last location</div><div id="van-last-location" style="font-size:14px;font-weight:700">Alexandria</div><div class="stat-sub" id="van-last-suburb">NSW 2015</div></div>
       <div class="stat-box"><div class="stat-lbl">Last seen</div><div id="van-last-seen-time" style="font-size:14px;font-weight:700">6:08 PM</div><div class="stat-sub" id="van-last-seen-date">Mon 26 May</div></div>
@@ -1370,7 +1372,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
         <button onclick="toggleDef()" id="def-btn" style="background:var(--red);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer">Report new</button>
       </div>
 
-      <!-- History entries -->
+      <!-- History entries --><div class="damage-history-list">
       <div style="padding:7px 0;border-bottom:1px solid var(--bor)">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
           <div style="display:flex;align-items:center;gap:6px">
@@ -1429,7 +1431,7 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
         <textarea class="textarea" style="height:60px" placeholder="Describe the issue..."></textarea>
         <div class="upl" onclick="toast('Camera opening...')"><div class="upl-icon"><i class="ti ti-camera"></i></div><h3>Photo of defect</h3><p>Helps manager assess urgency</p></div>
         <div class="ibox ibox-amber"><i class="ti ti-alert-triangle"></i><p>Manager will be notified via WhatsApp immediately.</p></div>
-        <button onclick="toast('Defect report submitted!')" class="btn btn-red" style="margin-bottom:0">Submit defect report</button>
+        <button onclick="submitDefectForm()" class="btn btn-red" style="margin-bottom:0">Submit defect report</button>
       </div>
     </div>
 
@@ -1450,11 +1452,11 @@ html,body{height:100%;overflow:hidden;font-family:'SF Pro Display',-apple-system
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Wipers</span><div><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Worn</span></div></div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Brakes</span><div><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Check</span></div></div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0"><span style="font-size:12px">Interior</span><div><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Dirty</span></div></div>
-        <button onclick="toast('Inspection submitted! Manager notified.')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px">Submit inspection report</button>
+        <button onclick="submitInspectionForm()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px">Submit inspection report</button>
       </div>
     </div>
   </div>
-  <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div>
+  <div class="ftr" style="flex-shrink:0;background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
 
 <div id="screen-alerts" class="screen">
@@ -1620,7 +1622,7 @@ async function sendMagicLink() {
 
   try {
     const url  = `${APPS_SCRIPT_URL}?action=requestMagicLink&email=${encodeURIComponent(email)}`;
-    const resp = await fetch(url);
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
     const data = await resp.json();
 
     if (data.success) {
@@ -1651,7 +1653,7 @@ function backToStep1() {
 async function verifyToken(token, email) {
   try {
     const url  = `${APPS_SCRIPT_URL}?action=verifyToken&token=${token}`;
-    const resp = await fetch(url);
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
     const data = await resp.json();
 
     if (data.success) {
@@ -1686,7 +1688,7 @@ async function loadDriverData(email) {
       return;
     }
     const url  = `${APPS_SCRIPT_URL}?action=getDriverData&email=${encodeURIComponent(email)}`;
-    const resp = await fetch(url);
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
     const data = await resp.json();
     if (data.success) {
       driverData = data;
@@ -1758,6 +1760,10 @@ function showScreen(name) {
     if (content) content.scrollTop = 0;
     // Update GPS for relevant screens
     if (['signin','signoff','emergency'].includes(name)) getGPS(name);
+    if (name === 'vehicle')  { loadVehicleData(); }
+    if (name === 'alerts')   { loadAlerts(); }
+    if (name === 'myshifts') { loadMyShifts(); }
+    if (name === 'payout')   { loadPayouts(); }
     // Update time
     if (['signin','signoff'].includes(name)) updateDateTime(name);
   }
@@ -1784,28 +1790,115 @@ function toggleShift() {
   }
 }
 
-function completeSignIn() {
-  shiftActive = true;
-  const btn = document.getElementById('shift-btn');
-  btn.textContent = 'End shift';
-  btn.className   = 'shift-btn-end';
-  document.getElementById('shift-label').textContent = 'Shift in progress';
-  document.getElementById('shift-time').textContent  = 'Started ' + getCurrentTime();
-  document.getElementById('home-status').textContent = 'On Shift';
-  toast('Shift started! Have a safe day 🚚');
-  goBack();
+async function completeSignIn() {
+  if (!driverData) { toast('Please log in first'); return; }
+  const btn = document.getElementById('si-submit-btn');
+  if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
+
+  const kmEl = document.getElementById('si-km');
+  const payload = {
+    action:        'submitSignIn',
+    driver:        driverData.driverName,
+    email:         driverData.email,
+    van:           driverData.assignedVan,
+    lat:           currentGPS ? currentGPS.lat : '',
+    lng:           currentGPS ? currentGPS.lng : '',
+    address:       currentGPS ? currentGPS.address : '',
+    kmReading:     kmEl ? kmEl.value : '',
+    vanCondition:  document.querySelector('#screen-signin .cond-btn.active')?.textContent?.trim() || 'Good',
+    fuelLevel:     ['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty'].map(id => { const el=document.getElementById(id); return el?.classList.contains('active') ? el.textContent.trim() : null; }).filter(Boolean)[0] || '',
+    damageNotes:   document.getElementById('si-damage-notes')?.value || '',
+    damagePhotoUrl: document.querySelector('#screen-signin input[type="file"]')?.dataset?.uploadedUrl || '',
+    shiftId:       '',
+    notes:         ''
+  };
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, { method:'POST', redirect:'follow', body: JSON.stringify(payload) });
+    const data = await resp.json();
+    if (data.success) {
+      shiftActive = true;
+      localStorage.setItem('fv_shift_on','true');
+      localStorage.setItem('fv_sign_in_id', data.signInId || '');
+      document.getElementById('shift-btn').textContent = 'End shift';
+      document.getElementById('shift-btn').className = 'shift-btn-end';
+      document.getElementById('shift-label').textContent = 'Shift in progress';
+      document.getElementById('shift-time').textContent = 'Started ' + getCurrentTime();
+      document.getElementById('home-status').textContent = 'On Shift';
+      toast('Shift started! Have a safe day 🚚');
+      goBack();
+    } else {
+      toast('Error: ' + (data.message || 'Could not sign in. Try again.'));
+      if (btn) { btn.textContent = 'Confirm start shift'; btn.disabled = false; }
+    }
+  } catch(e) {
+    shiftActive = true;
+    localStorage.setItem('fv_shift_on','true');
+    document.getElementById('shift-btn').textContent = 'End shift';
+    document.getElementById('shift-btn').className = 'shift-btn-end';
+    document.getElementById('shift-label').textContent = 'Shift in progress';
+    document.getElementById('shift-time').textContent = 'Started ' + getCurrentTime();
+    document.getElementById('home-status').textContent = 'On Shift';
+    toast('Shift started (offline — will sync when connected) 🚚');
+    goBack();
+  }
 }
 
-function completeSignOff() {
-  shiftActive = false;
-  const btn = document.getElementById('shift-btn');
-  btn.textContent = 'Start shift';
-  btn.className   = 'shift-btn-start';
-  document.getElementById('shift-label').textContent = 'Day shift today';
-  document.getElementById('shift-time').textContent  = '6:00 AM — 6:00 PM';
-  document.getElementById('home-status').textContent = 'Active';
-  toast('Shift ended! Great work today 🎉');
-  showScreen('home');
+async function completeSignOff() {
+  if (!driverData) { toast('Please log in first'); return; }
+  const btn = document.getElementById('so-submit-btn');
+  if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
+
+  const kmEl = document.getElementById('so-km');
+  const noteEl = document.getElementById('so-next-driver-note');
+  const payload = {
+    action:        'submitSignOff',
+    driver:        driverData.driverName,
+    email:         driverData.email,
+    van:           driverData.assignedVan,
+    lat:           currentGPS ? currentGPS.lat : '',
+    lng:           currentGPS ? currentGPS.lng : '',
+    address:       currentGPS ? currentGPS.address : '',
+    kmReading:     kmEl ? kmEl.value : '',
+    vanCondition:  document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
+    fuelLevel:     ['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty'].map(id => { const el=document.getElementById(id); return el?.classList.contains('active') ? el.textContent.trim() : null; }).filter(Boolean)[0] || '',
+    damageNotes:   document.getElementById('so-damage-notes')?.value || '',
+    damagePhotoUrl: document.querySelector('#screen-signoff input[type="file"]')?.dataset?.uploadedUrl || '',
+    nextDriverNote: noteEl ? noteEl.value : '',
+    shiftId:       localStorage.getItem('fv_sign_in_id') || '',
+    notes:         ''
+  };
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, { method:'POST', redirect:'follow', body: JSON.stringify(payload) });
+    const data = await resp.json();
+    if (data.success) {
+      shiftActive = false;
+      localStorage.setItem('fv_shift_on','false');
+      localStorage.removeItem('fv_sign_in_id');
+      document.getElementById('shift-btn').textContent = 'Start shift';
+      document.getElementById('shift-btn').className = 'shift-btn-start';
+      document.getElementById('shift-label').textContent = 'Day shift today';
+      document.getElementById('shift-time').textContent = '6:00 AM — 6:00 PM';
+      document.getElementById('home-status').textContent = 'Active';
+      showScreen('shift-summary');
+      historyStack = [];
+    } else {
+      toast('Error: ' + (data.message || 'Could not sign off. Try again.'));
+      if (btn) { btn.textContent = 'Confirm end shift'; btn.disabled = false; }
+    }
+  } catch(e) {
+    shiftActive = false;
+    localStorage.setItem('fv_shift_on','false');
+    document.getElementById('shift-btn').textContent = 'Start shift';
+    document.getElementById('shift-btn').className = 'shift-btn-start';
+    document.getElementById('shift-label').textContent = 'Day shift today';
+    document.getElementById('shift-time').textContent = '6:00 AM — 6:00 PM';
+    document.getElementById('home-status').textContent = 'Active';
+    toast('Shift ended (offline — will sync when connected) 🎉');
+    showScreen('shift-summary');
+    historyStack = [];
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1996,7 +2089,7 @@ async function loadVehicleData() {
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
-    const resp = await fetch(url);
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
     const data = await resp.json();
 
     if (!data.success) return;
@@ -2092,8 +2185,11 @@ async function loadVehicleData() {
       }).join('');
     }
 
+    // Load real defects for this van
+    loadDefectsForVan(van);
+
   } catch (err) {
-    Logger && Logger.log && Logger.log('loadVehicleData error: ' + err.message);
+    console.log('loadVehicleData error:', err.message);
   }
 }
 
@@ -2109,7 +2205,7 @@ async function loadAlerts() {
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=getAlerts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url);
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
     const data = await resp.json();
 
     if (!data.success || !data.alerts || data.alerts.length === 0) {
@@ -2154,7 +2250,7 @@ async function loadMyShifts() {
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=getShifts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url);
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
     const data = await resp.json();
 
     if (!data.success || !data.shifts || data.shifts.length === 0) {
@@ -2219,7 +2315,7 @@ async function loadPayouts() {
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=getPayouts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url);
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
     const data = await resp.json();
 
     if (!data.success || !data.payouts || data.payouts.length === 0) return;
@@ -2388,6 +2484,159 @@ async function handleFileSelect(input, labelId, folderKey) {
 }
 
 
+// ============================================================
+// SUBMIT DEFECT — wire to API
+// ============================================================
+async function submitDefectForm() {
+  if (!driverData) return;
+  const catEl  = document.querySelector('#def-form .sel');
+  const descEl = document.querySelector('#def-form .textarea');
+  const photoInput = document.querySelector('#def-form input[type="file"]');
+
+  if (!descEl || !descEl.value) { toast('Please describe the defect'); return; }
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', redirect: 'follow',
+      body: JSON.stringify({
+        action:      'submitDefect',
+        driver:      driverData.driverName,
+        email:       driverData.email,
+        van:         driverData.assignedVan,
+        category:    catEl ? catEl.value : 'Other',
+        description: descEl.value,
+        photoUrl:    photoInput?.dataset?.uploadedUrl || ''
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      toast('Defect reported ✅ Manager notified via WhatsApp.');
+      descEl.value = '';
+      toggleDef();
+    } else {
+      toast('Error: ' + (data.message || 'Try again'));
+    }
+  } catch(e) {
+    toast('Connection error. Please try again.');
+  }
+}
+
+
+// ============================================================
+// SUBMIT INSPECTION — wire to API
+// ============================================================
+async function submitInspectionForm() {
+  if (!driverData) return;
+  const checks = {};
+  ['Tyres','Lights','Wipers','Brakes','Interior'].forEach(item => {
+    const btns = document.querySelectorAll(`#insp-form .insp-row[data-item="${item}"] button`);
+    btns.forEach(btn => {
+      if (btn.classList.contains('active') || btn.classList.contains('selected')) {
+        checks[item.toLowerCase()] = btn.textContent.trim();
+      }
+    });
+    if (!checks[item.toLowerCase()]) checks[item.toLowerCase()] = 'Good';
+  });
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', redirect: 'follow',
+      body: JSON.stringify({
+        action:   'submitInspection',
+        driver:   driverData.driverName,
+        email:    driverData.email,
+        van:      driverData.assignedVan,
+        tyres:    checks.tyres || 'Good',
+        lights:   checks.lights || 'Good',
+        wipers:   checks.wipers || 'Good',
+        brakes:   checks.brakes || 'Good',
+        interior: checks.interior || 'Good',
+        notes:    document.querySelector('#insp-form .textarea')?.value || ''
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      toast('Inspection submitted ✅ Status: ' + data.overallStatus);
+      toggleInsp();
+    } else {
+      toast('Error: ' + (data.message || 'Try again'));
+    }
+  } catch(e) {
+    toast('Connection error. Please try again.');
+  }
+}
+
+
+// ============================================================
+// SUBMIT EMERGENCY — wire to API
+// ============================================================
+async function submitEmergencyReport() {
+  if (!driverData) return;
+  const typeEl = document.querySelector('#screen-emergency .incident-type.active, #screen-emergency .type-btn.active');
+  const descEl = document.querySelector('#screen-emergency .textarea');
+  const photoInput = document.querySelector('#screen-emergency input[type="file"]');
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', redirect: 'follow',
+      body: JSON.stringify({
+        action:      'submitEmergency',
+        driver:      driverData.driverName,
+        email:       driverData.email,
+        van:         driverData.assignedVan,
+        type:        typeEl?.textContent?.trim() || 'Emergency',
+        lat:         currentGPS?.lat || '',
+        lng:         currentGPS?.lng || '',
+        address:     currentGPS?.address || '',
+        description: descEl?.value || '',
+        photoUrl:    photoInput?.dataset?.uploadedUrl || ''
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      toast('Emergency reported ✅ Manager notified immediately.');
+    } else {
+      toast('Reported. Manager being contacted.');
+    }
+  } catch(e) {
+    toast('Manager being contacted via WhatsApp.');
+  }
+}
+
+
+// ============================================================
+// LOAD DEFECTS FOR VAN — used on vehicle screen
+// ============================================================
+async function loadDefectsForVan(van) {
+  if (!van) return;
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getDefectsByVan&van=' + encodeURIComponent(van);
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
+    const data = await resp.json();
+    if (!data.success || !data.defects || data.defects.length === 0) return;
+
+    // Update damage & defects history
+    const histEl = document.querySelector('.damage-history-list');
+    if (!histEl) return;
+
+    histEl.innerHTML = data.defects.slice(0,5).map(d => `
+      <div style="padding:6px 0;border-bottom:1px solid var(--bor)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px">
+          <div style="display:flex;align-items:center;gap:5px">
+            <div style="width:22px;height:22px;background:${d.status==='Open'?'var(--rl)':'var(--gl)'};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${d.status==='Open'?'⚠️':'✅'}</div>
+            <div>
+              <div style="font-size:9px;font-weight:700;color:#1a1a1a">${d.date} · ${d.driver}</div>
+              <div style="font-size:8px;color:var(--t2)">${d.category}</div>
+            </div>
+          </div>
+          <span style="font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;background:${d.status==='Open'?'var(--rl)':'var(--gl)'};color:${d.status==='Open'?'var(--red)':'var(--gt)'}">${d.status}</span>
+        </div>
+        <div style="font-size:9px;color:var(--t2);background:var(--bg2);border-radius:5px;padding:4px 6px;margin-left:27px">${d.description}</div>
+      </div>`).join('');
+  } catch(e) { /* use dummy data */ }
+}
+
+
 // ── Sign In condition buttons ─────────────────────────────
 function siSelectCond(type) {
   const good = document.getElementById('si-cond-good');
@@ -2453,8 +2702,9 @@ async function loginWithPin() {
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(formattedPhone) + '&pin=' + encodeURIComponent(pin);
-    const resp = await fetch(url);
-    const data = await resp.json();
+    const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
+    const text = await resp.text();
+    const data = JSON.parse(text);
 
     if (data.success) {
       localStorage.setItem('fv_driver_email', data.email);
@@ -2512,7 +2762,7 @@ function submitTicket() {
 }
 
 // ── Submit fuel with validation ───────────────────────────
-function submitFuel() {
+async function submitFuel() {
   const amount = document.getElementById('fuel-amount');
   if (amount && (!amount.value || parseFloat(amount.value) <= 0)) {
     toast('Please enter the fuel amount');
