@@ -44,7 +44,7 @@
 html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
 
 /* APP SHELL */
-#app{width:100%;max-width:420px;height:100vh;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:var(--shadow-lg);}
+#app{width:100%;max-width:420px;height:100%;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:var(--shadow-lg);}
 
 /* SCREENS */
 .screen{display:none;flex-direction:column;width:100%;height:100%;overflow:hidden;position:absolute;top:0;left:0;right:0;bottom:0;background:#fff;}
@@ -52,76 +52,77 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 
 /* SCROLLABLE CONTENT */
 .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;height:0;min-height:0;padding:16px;}
+  .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;height:0;min-height:0;padding:14px;}
 .content::-webkit-scrollbar{display:none;}
 
 /* HEADER */
-.hdr{background:var(--green);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.hdr{background:var(--g);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .hdr-back{background:rgba(255,255,255,0.2);border:none;border-radius:var(--radius-sm);width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;}
 .hdr-title h1{color:#fff;font-size:16px;font-weight:600;}
 .hdr-title p{color:rgba(255,255,255,0.8);font-size:11px;margin-top:1px;}
 
 /* BRAND FOOTER */
-.brand-footer{background:var(--green);padding:10px;text-align:center;flex-shrink:0;}
+.brand-footer{background:var(--g);padding:10px;text-align:center;flex-shrink:0;}
 .brand-footer p{font-size:10px;color:rgba(255,255,255,0.8);letter-spacing:0.5px;}
 
 /* BUTTONS */
-.btn-primary{width:100%;background:var(--green);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
+.btn-primary{width:100%;background:var(--g);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;transition:background 0.2s;}
 .btn-primary:hover{background:var(--green-dark);}
 .btn-primary:active{background:var(--green-dark);transform:scale(0.99);}
-.btn-secondary{width:100%;background:var(--bg);color:var(--text2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:14px;cursor:pointer;margin-bottom:10px;}
+.btn-secondary{width:100%;background:var(--bg);color:var(--t2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:14px;cursor:pointer;margin-bottom:10px;}
 .btn-danger{width:100%;background:var(--bg);color:var(--red);border:1px solid var(--red);border-radius:var(--radius);padding:12px;font-size:14px;cursor:pointer;margin-bottom:10px;}
 .btn-red{width:100%;background:var(--red);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;}
 
 /* FORMS */
 .form-group{margin-bottom:14px;}
-.form-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;display:block;}
+.form-label{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;display:block;}
 .form-input{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--bg);margin-bottom:0;transition:border-color 0.2s;}
-.form-input:focus{outline:none;border-color:var(--green);}
+.form-input:focus{outline:none;border-color:var(--g);}
 .form-select{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--bg);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
 .form-textarea{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--bg);resize:none;height:80px;font-family:inherit;}
 
 /* CARDS */
 .card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;}
-.card:hover{border-color:var(--green);}
+.card:hover{border-color:var(--g);}
 
 /* GRID */
 .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;}
 .menu-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:border-color 0.2s,transform 0.1s;}
-.menu-card:hover{border-color:var(--green);}
+.menu-card:hover{border-color:var(--g);}
 .menu-card:active{transform:scale(0.98);}
 .menu-card.danger{border-color:var(--red);background:var(--red-light);}
 .menu-card .icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:16px;}
 .menu-card h3{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.menu-card p{font-size:10px;color:var(--text2);line-height:1.4;}
+.menu-card p{font-size:10px;color:var(--t2);line-height:1.4;}
 .menu-card.danger h3{color:var(--red);}
 .menu-card.danger p{color:var(--red);opacity:0.7;}
 
 /* BADGES */
 .badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;}
-.badge-green{background:var(--green-light);color:var(--green-text);}
-.badge-amber{background:var(--amber-light);color:var(--amber);}
+.badge-green{background:var(--gl);color:var(--green-text);}
+.badge-amber{background:var(--al);color:var(--amber);}
 .badge-red{background:var(--red-light);color:var(--red);}
-.badge-blue{background:var(--blue-light);color:var(--blue);}
+.badge-blue{background:var(--bl);color:var(--blue);}
 .badge-purple{background:var(--purple-light);color:var(--purple);}
 
 /* INFO BOXES */
 .info-box{border-radius:var(--radius-sm);padding:10px 12px;display:flex;gap:8px;margin-bottom:12px;}
 .info-box i{font-size:14px;flex-shrink:0;margin-top:1px;}
 .info-box p{font-size:11px;line-height:1.5;}
-.info-green{background:var(--green-light);}
+.info-green{background:var(--gl);}
 .info-green i,.info-green p{color:var(--green-text);}
-.info-amber{background:var(--amber-light);}
+.info-amber{background:var(--al);}
 .info-amber i,.info-amber p{color:var(--amber);}
 .info-red{background:var(--red-light);}
 .info-red i,.info-red p{color:var(--red);}
 
 /* UPLOAD AREA */
 .upload-area{border:2px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center;background:var(--bg2);cursor:pointer;margin-bottom:12px;}
-.upload-area:hover{border-color:var(--green);}
-.upload-icon{width:36px;height:36px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
-.upload-icon i{color:var(--green);font-size:16px;}
+.upload-area:hover{border-color:var(--g);}
+.upload-icon{width:36px;height:36px;background:var(--gl);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
+.upload-icon i{color:var(--g);font-size:16px;}
 .upload-area h3{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.upload-area p{font-size:11px;color:var(--text2);}
+.upload-area p{font-size:11px;color:var(--t2);}
 
 /* LIST ITEMS */
 .list-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
@@ -129,7 +130,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .list-icon{width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
 .list-info{flex:1;}
 .list-info p{font-size:13px;font-weight:500;color:var(--text);}
-.list-info span{font-size:11px;color:var(--text2);}
+.list-info span{font-size:11px;color:var(--t2);}
 
 /* PROFILE ROWS */
 .prof-sec{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
@@ -139,64 +140,64 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .prof-icon{width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
 .prof-info{flex:1;}
 .prof-info p{font-size:13px;font-weight:500;color:var(--text);}
-.prof-info span{font-size:11px;color:var(--text2);}
+.prof-info span{font-size:11px;color:var(--t2);}
 
 /* GPS BOX */
 .gps-box{background:var(--bg2);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.gps-icon{width:34px;height:34px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.gps-icon i{color:var(--green);font-size:16px;}
-.gps-dot{width:8px;height:8px;background:var(--green);border-radius:50%;margin-left:auto;animation:pulse 2s infinite;}
+.gps-icon{width:34px;height:34px;background:var(--gl);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.gps-icon i{color:var(--g);font-size:16px;}
+.gps-dot{width:8px;height:8px;background:var(--g);border-radius:50%;margin-left:auto;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
 
 /* TIME BOX */
 .time-box{background:var(--bg2);border-radius:var(--radius-sm);padding:10px 12px;display:flex;justify-content:space-between;margin-bottom:12px;}
-.time-box div span{font-size:10px;color:var(--text2);}
+.time-box div span{font-size:10px;color:var(--t2);}
 .time-box div p{font-size:13px;font-weight:600;color:var(--text);}
 
 /* CHECKLIST */
 .chk-list{margin-bottom:14px;}
 .chk-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;}
-.chk-item:hover{background:var(--green-light);}
+.chk-item:hover{background:var(--gl);}
 .chk-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg);transition:all 0.15s;}
-.chk-box.checked{background:var(--green);border-color:var(--green);}
+.chk-box.checked{background:var(--g);border-color:var(--g);}
 .chk-box.checked i{color:#fff;font-size:13px;}
 .chk-label{font-size:13px;color:var(--text);font-weight:500;}
 
 /* STAT GRID */
 .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
 .stat-box{background:var(--bg2);border-radius:var(--radius-sm);padding:10px 12px;}
-.stat-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;}
+.stat-label{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;}
 .stat-value{font-size:18px;font-weight:700;color:var(--text);}
-.stat-sub{font-size:10px;color:var(--green);margin-top:2px;}
+.stat-sub{font-size:10px;color:var(--g);margin-top:2px;}
 
 /* KM BOX */
 .km-box{background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px;}
-.km-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.km-title{font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
 .km-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.km-input-wrap label{font-size:10px;color:var(--text2);display:block;margin-bottom:4px;}
+.km-input-wrap label{font-size:10px;color:var(--t2);display:block;margin-bottom:4px;}
 .km-input{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-weight:600;color:var(--text);background:var(--bg);}
 .km-result{margin-top:8px;padding:8px 10px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;display:none;}
 
 /* FILTER TABS */
 .filter-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;scrollbar-width:none;}
 .filter-tabs::-webkit-scrollbar{display:none;}
-.ftab{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid var(--border);background:var(--bg);color:var(--text2);transition:all 0.15s;}
-.ftab.active{background:var(--green);color:#fff;border-color:var(--green);}
+.ftab{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid var(--border);background:var(--bg);color:var(--t2);transition:all 0.15s;}
+.ftab.active{background:var(--g);color:#fff;border-color:var(--g);}
 
 /* DIVIDER */
 .divider{height:1px;background:var(--border);margin:14px 0;}
 
 /* SECTION LABEL */
-.section-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2);padding:10px 0 7px;font-weight:600;}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--t2);padding:10px 0 7px;font-weight:600;}
 
 /* ALERT ITEMS */
 .alert-item{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
 .alert-item:last-child{border-bottom:none;}
 .alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.alert-dot.unread{background:var(--green);}
+.alert-dot.unread{background:var(--g);}
 .alert-dot.read{background:var(--border);}
 .alert-info p{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.alert-info span{font-size:11px;color:var(--text2);line-height:1.4;display:block;}
+.alert-info span{font-size:11px;color:var(--t2);line-height:1.4;display:block;}
 .alert-time{font-size:10px;color:var(--text3);margin-top:3px;}
 
 /* SHIFT BANNER */
@@ -204,33 +205,33 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .shift-left{display:flex;align-items:center;gap:8px;}
 .shift-left i{font-size:18px;}
 .shift-left p{font-size:13px;font-weight:600;color:var(--text);}
-.shift-left span{font-size:10px;color:var(--text2);}
-.shift-btn-start{background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+.shift-left span{font-size:10px;color:var(--t2);}
+.shift-btn-start{background:var(--g);color:#fff;border:none;border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;}
 .shift-btn-end{background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;}
 
 /* CONDITION BUTTONS */
 .cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
-.cond-btn{padding:9px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);cursor:pointer;text-align:center;font-size:11px;color:var(--text2);transition:all 0.15s;}
-.cond-btn.active{border-color:var(--green);background:var(--green-light);color:var(--green-text);font-weight:700;}
-.cond-btn.active{border-color:var(--green);background:var(--green-light);color:var(--green-text);font-weight:600;}
+.cond-btn{padding:9px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);cursor:pointer;text-align:center;font-size:11px;color:var(--t2);transition:all 0.15s;}
+.cond-btn.active{border-color:#00D062;background:#e6f9f0;color:#00704A;font-weight:700;}
+.cond-btn.active{border-color:#00D062;background:#e6f9f0;color:#00704A;font-weight:600;}
 
 /* EMERGENCY BUTTONS */
 .em-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .em-btn{padding:12px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);cursor:pointer;text-align:center;}
-.em-btn i{font-size:22px;display:block;margin-bottom:6px;color:var(--text2);}
+.em-btn i{font-size:22px;display:block;margin-bottom:6px;color:var(--t2);}
 .em-btn p{font-size:11px;font-weight:600;color:var(--text);}
 .em-btn.active{border-color:var(--red);background:var(--red-light);}
 .em-btn.active i{color:var(--red);}
 
 /* CONTACT CARDS */
 .contact-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;}
-.contact-card:hover{border-color:var(--green);}
+.contact-card:hover{border-color:var(--g);}
 .contact-card.red-card{border-color:var(--red);background:var(--red-light);}
 .contact-icon{width:42px;height:42px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .contact-icon i{font-size:20px;}
 .contact-info{flex:1;}
 .contact-info p{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.contact-info span{font-size:11px;color:var(--text2);}
+.contact-info span{font-size:11px;color:var(--t2);}
 .contact-call{border:none;border-radius:var(--radius-sm);padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;}
 
 /* NRMA CARD */
@@ -240,46 +241,46 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .nrma-logo i{color:#fff;font-size:20px;}
 .nrma-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
 .nrma-row:last-child{border-bottom:none;}
-.nrma-row span{font-size:11px;color:var(--text2);}
+.nrma-row span{font-size:11px;color:var(--t2);}
 .nrma-row p{font-size:12px;font-weight:600;color:var(--text);}
 
 /* PAYOUT CARDS */
 .pay-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
 .pay-card-header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
 .pay-card-header h3{font-size:13px;font-weight:600;color:var(--text);}
-.pay-card-header span{font-size:11px;color:var(--text2);}
+.pay-card-header span{font-size:11px;color:var(--t2);}
 .pay-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;}
 .pay-row-left{display:flex;align-items:center;gap:8px;}
 .pay-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pay-icon i{font-size:13px;}
 .pay-info p{font-size:12px;font-weight:500;color:var(--text);}
-.pay-info span{font-size:10px;color:var(--text2);}
+.pay-info span{font-size:10px;color:var(--t2);}
 .pay-amount{font-size:13px;font-weight:600;}
 .pay-total{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg2);}
 .pay-total p{font-size:12px;font-weight:600;color:var(--text);}
-.pay-total span{font-size:16px;font-weight:700;color:var(--green);}
-.pos{color:var(--green);}
+.pay-total span{font-size:16px;font-weight:700;color:var(--g);}
+.pos{color:var(--g);}
 .neg{color:var(--red);}
 
 /* CON CARDS */
 .con-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;cursor:pointer;}
-.con-card:hover{border-color:var(--green);}
+.con-card:hover{border-color:var(--g);}
 .con-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .con-header i{font-size:14px;}
 .con-header h3{font-size:13px;font-weight:600;color:var(--text);flex:1;}
 .con-detail-box{background:var(--bg2);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px;}
 .con-detail-row{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;}
 .con-detail-row:last-child{margin-bottom:0;}
-.con-detail-row i{font-size:13px;color:var(--text2);flex-shrink:0;margin-top:1px;}
+.con-detail-row i{font-size:13px;color:var(--t2);flex-shrink:0;margin-top:1px;}
 .con-detail-row p{font-size:12px;color:var(--text);}
-.con-detail-row span{font-size:11px;color:var(--text2);}
+.con-detail-row span{font-size:11px;color:var(--t2);}
 .con-tags{display:flex;gap:6px;flex-wrap:wrap;}
 .tag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;}
-.tag-green{background:var(--green-light);color:var(--green-text);}
-.tag-amber{background:var(--amber-light);color:var(--amber);}
+.tag-green{background:var(--gl);color:var(--green-text);}
+.tag-amber{background:var(--al);color:var(--amber);}
 .tag-purple{background:var(--purple-light);color:var(--purple);}
 .tag-red{background:var(--red-light);color:var(--red);}
-.tag-gray{background:var(--bg2);color:var(--text2);}
+.tag-gray{background:var(--bg2);color:var(--t2);}
 
 /* SHIFT ITEMS */
 .shift-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px;}
@@ -288,19 +289,19 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .shift-item-header h3{font-size:13px;font-weight:600;color:var(--text);flex:1;}
 .shift-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .shift-meta-box{background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px;}
-.shift-meta-box span{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;display:block;}
+.shift-meta-box span{font-size:9px;color:var(--t2);text-transform:uppercase;letter-spacing:0.8px;display:block;}
 .shift-meta-box p{font-size:12px;font-weight:600;color:var(--text);}
 
 /* NOTIFY SENT */
-.notify-sent{background:var(--green-light);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
-.notify-sent i{color:var(--green);font-size:16px;flex-shrink:0;}
+.notify-sent{background:var(--gl);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.notify-sent i{color:var(--g);font-size:16px;flex-shrink:0;}
 .notify-sent p{font-size:11px;color:var(--green-text);font-weight:600;}
 
 /* VAN CARD */
 .van-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;margin-bottom:8px;}
 .van-row{display:flex;align-items:center;gap:10px;}
-.van-icon{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--green-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.van-icon i{color:var(--green);font-size:16px;}
+.van-icon{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--gl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.van-icon i{color:var(--g);font-size:16px;}
 
 /* MAP PLACEHOLDER */
 .map-ph{background:var(--bg2);border-radius:var(--radius);height:130px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;border:1px solid var(--border);}
@@ -308,45 +309,45 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 
 /* SUPPORT OPTIONS */
 .support-opt{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;}
-.support-opt:hover{border-color:var(--green);}
+.support-opt:hover{border-color:var(--g);}
 .support-icon{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .support-icon i{font-size:18px;}
 .support-info p{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.support-info span{font-size:11px;color:var(--text2);}
+.support-info span{font-size:11px;color:var(--t2);}
 
 /* LOGIN SCREEN */
-#screen-login .top{background:var(--green);padding:60px 32px 48px;text-align:center;flex-shrink:0;}
+#screen-login .top{background:var(--g);padding:60px 32px 48px;text-align:center;flex-shrink:0;}
 #screen-login .logo{width:72px;height:72px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
-#screen-login .logo i{color:var(--green);font-size:32px;}
+#screen-login .logo i{color:var(--g);font-size:32px;}
 #screen-login .top h1{color:#fff;font-size:24px;font-weight:700;margin-bottom:4px;}
 #screen-login .top p{color:rgba(255,255,255,0.85);font-size:11px;text-transform:uppercase;letter-spacing:2px;}
 .login-body{flex:1;padding:28px 24px;display:flex;flex-direction:column;justify-content:center;}
 .login-welcome{text-align:center;margin-bottom:24px;}
 .login-welcome h2{font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px;}
-.login-welcome p{font-size:13px;color:var(--text2);line-height:1.6;}
+.login-welcome p{font-size:13px;color:var(--t2);line-height:1.6;}
 .login-step{display:none;}
 .login-step.active{display:block;}
-.success-box{background:var(--green-light);border-radius:var(--radius);padding:24px 20px;text-align:center;margin-bottom:20px;}
-.success-icon{width:56px;height:56px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.success-box{background:var(--gl);border-radius:var(--radius);padding:24px 20px;text-align:center;margin-bottom:20px;}
+.success-icon{width:56px;height:56px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
 .success-icon i{color:#fff;font-size:24px;}
 .success-box h3{font-size:16px;font-weight:700;color:var(--green-text);margin-bottom:6px;}
 .success-box p{font-size:13px;color:var(--green-text);line-height:1.5;}
-.email-tag{font-size:13px;font-weight:700;color:var(--green);background:#fff;border-radius:var(--radius-sm);padding:5px 12px;display:inline-block;margin:8px 0;}
+.email-tag{font-size:13px;font-weight:700;color:var(--g);background:#fff;border-radius:var(--radius-sm);padding:5px 12px;display:inline-block;margin:8px 0;}
 .dots{display:flex;justify-content:center;gap:8px;margin-bottom:22px;}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--border);}
-.dot.active{background:var(--green);width:20px;border-radius:4px;}
+.dot.active{background:var(--g);width:20px;border-radius:4px;}
 .login-footer{text-align:center;padding:16px;border-top:1px solid var(--border);flex-shrink:0;}
-.login-footer p{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;}
+.login-footer p{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:1.5px;}
 
 /* HOME HEADER */
-.home-header{background:var(--green);padding:12px 14px 18px;flex-shrink:0;}
+.home-header{background:var(--g);padding:12px 14px 18px;flex-shrink:0;}
 .home-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .home-top-left p{color:#fff;font-size:18px;font-weight:700;}
 .home-top-left span{color:rgba(255,255,255,0.8);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;}
 .home-icons{display:flex;gap:7px;align-items:center;}
 .home-icon-btn{width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;position:relative;}
 .home-icon-btn i{color:#fff;font-size:16px;}
-.notif-dot{width:9px;height:9px;background:#FF3B30;border-radius:50%;position:absolute;top:-2px;right:-2px;border:2px solid var(--green);}
+.notif-dot{width:9px;height:9px;background:#FF3B30;border-radius:50%;position:absolute;top:-2px;right:-2px;border:2px solid var(--g);}
 .driver-bar{background:rgba(255,255,255,0.15);border-radius:var(--radius);padding:10px 12px;display:flex;align-items:center;gap:10px;}
 .avatar{background:var(--green-dark);color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
 .driver-info{flex:1;}
@@ -355,18 +356,18 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .status-pill{background:rgba(255,255,255,0.25);color:#fff;font-size:10px;padding:3px 10px;border-radius:20px;font-weight:700;}
 
 /* PAYOUT HERO */
-.pay-hero{background:var(--green);padding:0 16px 18px;text-align:center;flex-shrink:0;}
+.pay-hero{background:var(--g);padding:0 16px 18px;text-align:center;flex-shrink:0;}
 .pay-hero-label{color:rgba(255,255,255,0.8);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;}
 .pay-hero-amount{color:#fff;font-size:32px;font-weight:800;}
 .pay-hero-sub{color:rgba(255,255,255,0.8);font-size:11px;margin-top:3px;}
 .pay-pills{display:flex;justify-content:center;gap:6px;margin-top:10px;}
 .ppill{background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;}
-.ppill.active{background:#fff;color:var(--green);font-weight:700;}
+.ppill.active{background:#fff;color:var(--g);font-weight:700;}
 
 /* LOADING */
-#loading{position:fixed;inset:0;background:var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;}
+#loading{position:fixed;inset:0;background:var(--g);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;}
 #loading .logo{width:80px;height:80px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
-#loading .logo i{color:var(--green);font-size:36px;}
+#loading .logo i{color:var(--g);font-size:36px;}
 #loading h1{color:#fff;font-size:24px;font-weight:800;margin-bottom:4px;}
 #loading p{color:rgba(255,255,255,0.8);font-size:12px;text-transform:uppercase;letter-spacing:2px;}
 .spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;margin-top:30px;}
@@ -377,22 +378,22 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* VAN CARD IN DASHBOARD */
-.notice{background:var(--green-light);border-radius:var(--radius-sm);padding:10px 12px;display:flex;gap:8px;margin-bottom:10px;}
-.notice i{color:var(--green);font-size:13px;flex-shrink:0;margin-top:1px;}
+.notice{background:var(--gl);border-radius:var(--radius-sm);padding:10px 12px;display:flex;gap:8px;margin-bottom:10px;}
+.notice i{color:var(--g);font-size:13px;flex-shrink:0;margin-top:1px;}
 .notice p{font-size:11px;color:var(--green-text);line-height:1.5;}
 
 /* TYPE BUTTONS */
 .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
 .type-btn{padding:10px 8px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);cursor:pointer;text-align:center;}
-.type-btn i{font-size:18px;display:block;margin-bottom:5px;color:var(--text2);}
+.type-btn i{font-size:18px;display:block;margin-bottom:5px;color:var(--t2);}
 .type-btn p{font-size:11px;font-weight:600;color:var(--text);}
-.type-btn span{font-size:10px;color:var(--text2);}
-.type-btn.active{border-color:var(--blue);background:var(--blue-light);}
+.type-btn span{font-size:10px;color:var(--t2);}
+.type-btn.active{border-color:var(--blue);background:var(--bl);}
 .type-btn.active i{color:var(--blue);}
 
 /* AMOUNT WRAP */
 .amount-wrap{position:relative;}
-.amount-wrap .prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text2);}
+.amount-wrap .prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--t2);}
 .amount-wrap input{padding-left:22px;}
 </style>
 </head>
@@ -499,7 +500,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
   <div class="content">
     <div class="shift-banner">
       <div class="shift-left">
-        <i class="ti ti-sun" style="color:var(--green)"></i>
+        <i class="ti ti-sun" style="color:var(--g)"></i>
         <div>
           <p id="shift-label">Day shift today</p>
           <span id="shift-time">6:00 AM — 6:00 PM</span>
@@ -512,14 +513,14 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
         <div class="van-icon"><i class="ti ti-truck"></i></div>
         <div style="flex:1;margin-left:8px">
           <p style="font-size:13px;font-weight:600;color:var(--text)" id="van-reg">NSW 123 ABC</p>
-          <p style="font-size:11px;color:var(--text2)">Toyota HiAce · Last seen: Alexandria</p>
+          <p style="font-size:11px;color:var(--t2)">Toyota HiAce · Last seen: Alexandria</p>
         </div>
-        <i class="ti ti-chevron-right" style="color:var(--text2);font-size:14px"></i>
+        <i class="ti ti-chevron-right" style="color:var(--t2);font-size:14px"></i>
       </div>
     </div>
     <div class="grid2">
       <div class="menu-card" onclick="navigate('consignments')">
-        <div class="icon" style="background:var(--blue-light);color:var(--blue)"><i class="ti ti-package"></i></div>
+        <div class="icon" style="background:var(--bl);color:var(--blue)"><i class="ti ti-package"></i></div>
         <h3>Consignments</h3><p>Today's deliveries</p>
       </div>
       <div class="menu-card" onclick="navigate('myshifts')">
@@ -527,7 +528,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
         <h3>My shifts</h3><p>Schedule & requests</p>
       </div>
       <div class="menu-card" onclick="navigate('fuel')">
-        <div class="icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-gas-station"></i></div>
+        <div class="icon" style="background:var(--al);color:var(--amber)"><i class="ti ti-gas-station"></i></div>
         <h3>Fuel reimbursement</h3><p>Upload receipt</p>
       </div>
       <div class="menu-card" onclick="navigate('payout')">
@@ -535,7 +536,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
         <h3>Payout</h3><p>Weekly earnings</p>
       </div>
       <div class="menu-card" onclick="navigate('leave')">
-        <div class="icon" style="background:var(--blue-light);color:var(--blue)"><i class="ti ti-calendar-off"></i></div>
+        <div class="icon" style="background:var(--bl);color:var(--blue)"><i class="ti ti-calendar-off"></i></div>
         <h3>Leave request</h3><p>Leave, absence, emergency</p>
       </div>
       <div class="menu-card" onclick="navigate('tickets')">
@@ -543,7 +544,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
         <h3>Tickets</h3><p>Respond to issues</p>
       </div>
       <div class="menu-card" onclick="navigate('team')">
-        <div class="icon" style="background:var(--bg2);color:var(--text2)"><i class="ti ti-headset"></i></div>
+        <div class="icon" style="background:var(--bg2);color:var(--t2)"><i class="ti ti-headset"></i></div>
         <h3>Contact team</h3><p>Get help</p>
       </div>
       <div class="menu-card danger" onclick="navigate('emergency')">
@@ -572,7 +573,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       <div class="gps-icon"><i class="ti ti-map-pin"></i></div>
       <div style="flex:1">
         <p style="font-size:13px;font-weight:600;color:var(--text)" id="signin-gps">Detecting location...</p>
-        <span style="font-size:11px;color:var(--text2)" id="signin-address">Please wait</span>
+        <span style="font-size:11px;color:var(--t2)" id="signin-address">Please wait</span>
       </div>
       <div class="gps-dot"></div>
     </div>
@@ -588,7 +589,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       <div class="km-title">Odometer reading</div>
       <div class="km-grid">
         <div class="km-input-wrap"><label>Start odometer KM</label><input id="si-km" type="number" class="km-input" id="start-km" placeholder="e.g. 45230"></div>
-        <div class="km-input-wrap"><label>GPS tracked KM</label><input type="number" class="km-input" value="0" readonly style="background:var(--bg2);color:var(--text2)"></div>
+        <div class="km-input-wrap"><label>GPS tracked KM</label><input type="number" class="km-input" value="0" readonly style="background:var(--bg2);color:var(--t2)"></div>
       </div>
       <div class="info-box info-green" style="margin-top:8px;margin-bottom:0">
         <i class="ti ti-info-circle"></i>
@@ -653,7 +654,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       <div class="gps-icon"><i class="ti ti-map-pin"></i></div>
       <div style="flex:1">
         <p style="font-size:13px;font-weight:600;color:var(--text)" id="signoff-gps">Detecting location...</p>
-        <span style="font-size:11px;color:var(--text2)" id="signoff-address">Please wait</span>
+        <span style="font-size:11px;color:var(--t2)" id="signoff-address">Please wait</span>
       </div>
       <div class="gps-dot"></div>
     </div>
@@ -665,16 +666,16 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       <div class="km-title">KM Summary</div>
       <div class="km-grid">
         <div class="km-input-wrap"><label>End odometer KM</label><input id="so-km" type="number" class="km-input" id="end-km" placeholder="e.g. 45498" oninput="calcKm()"></div>
-        <div class="km-input-wrap"><label>GPS tracked KM</label><input type="number" class="km-input" id="gps-km-end" value="--" readonly style="background:var(--bg2);color:var(--text2)"></div>
+        <div class="km-input-wrap"><label>GPS tracked KM</label><input type="number" class="km-input" id="gps-km-end" value="--" readonly style="background:var(--bg2);color:var(--t2)"></div>
       </div>
       <div id="km-compare" style="display:none">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
           <div id="odo-box" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;text-align:center">
-            <span style="font-size:10px;color:var(--text2);display:block">Odometer KM</span>
+            <span style="font-size:10px;color:var(--t2);display:block">Odometer KM</span>
             <p id="odo-val" style="font-size:15px;font-weight:700;color:var(--text)">—</p>
           </div>
           <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;text-align:center">
-            <span style="font-size:10px;color:var(--text2);display:block">GPS KM</span>
+            <span style="font-size:10px;color:var(--t2);display:block">GPS KM</span>
             <p id="gps-val" style="font-size:15px;font-weight:700;color:var(--text)">—</p>
           </div>
         </div>
@@ -724,11 +725,11 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       <p>Photo of van at drop-off location</p>
     </div>
     <div class="form-group">
-      <label class="form-label" style="color:var(--green);border-left:3px solid var(--green);padding-left:8px">📝 Note for next driver <span style="font-size:9px;font-weight:400;color:var(--text2);text-transform:none;letter-spacing:0">(optional)</span></label>
-      <textarea class="form-textarea" id="so-next-driver-note" style="height:72px;border-color:var(--green)" placeholder="e.g. Low on fuel, rear left tyre feels soft, back door sticks, customer at stop 3 is home after 7pm..."></textarea>
+      <label class="form-label" style="color:var(--g);border-left:3px solid var(--g);padding-left:8px">📝 Note for next driver <span style="font-size:9px;font-weight:400;color:var(--t2);text-transform:none;letter-spacing:0">(optional)</span></label>
+      <textarea class="form-textarea" id="so-next-driver-note" style="height:72px;border-color:var(--g)" placeholder="e.g. Low on fuel, rear left tyre feels soft, back door sticks, customer at stop 3 is home after 7pm..."></textarea>
     </div>
     <div class="form-group">
-      <label class="form-label">Other notes <span style="font-size:9px;font-weight:400;color:var(--text2);text-transform:none;letter-spacing:0">(optional)</span></label>
+      <label class="form-label">Other notes <span style="font-size:9px;font-weight:400;color:var(--t2);text-transform:none;letter-spacing:0">(optional)</span></label>
       <textarea class="form-textarea" placeholder="Any other issues or notes for manager..."></textarea>
     </div>
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>GPS and timestamp captured automatically. Ensure keys are in lockbox.</p></div>
@@ -826,12 +827,12 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       </div>
       <div class="divider"></div>
       <div class="list-item">
-        <div class="list-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-check"></i></div>
+        <div class="list-icon" style="background:var(--gl);color:var(--g)"><i class="ti ti-check"></i></div>
         <div class="list-info"><p>D-LIME-030626-005</p><span>Delivered 8:45 AM · 42 King St</span></div>
         <span class="badge badge-green">Done</span>
       </div>
       <div class="list-item">
-        <div class="list-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-check"></i></div>
+        <div class="list-icon" style="background:var(--gl);color:var(--g)"><i class="ti ti-check"></i></div>
         <div class="list-info"><p>D-LIME-030626-006</p><span>Delivered 9:20 AM · 7 Hunter St</span></div>
         <span class="badge badge-green">Done</span>
       </div>
@@ -869,7 +870,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     </div>
     <div class="gps-box">
       <div class="gps-icon"><i class="ti ti-map-pin"></i></div>
-      <div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--text)">GPS auto-captured</p><span style="font-size:11px;color:var(--text2)">George St, Sydney 2000</span></div>
+      <div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--text)">GPS auto-captured</p><span style="font-size:11px;color:var(--t2)">George St, Sydney 2000</span></div>
       <div class="gps-dot"></div>
     </div>
     <input type="file" accept="image/*" capture="environment" id="cam-4-input" style="display:none" onchange="handleFileSelect(this,'cam-4-lbl','Inspection Photos Folder ID')">
@@ -897,7 +898,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
   </div>
   <div class="content" id="myshifts-list">
     <div class="shift-item">
-      <div class="shift-item-header"><i class="ti ti-sun" style="color:var(--green)"></i><h3>Day shift — Today</h3><span class="badge badge-green">Active</span></div>
+      <div class="shift-item-header"><i class="ti ti-sun" style="color:var(--g)"></i><h3>Day shift — Today</h3><span class="badge badge-green">Active</span></div>
       <div class="shift-meta">
         <div class="shift-meta-box"><span>Time</span><p>6AM–6PM</p></div>
         <div class="shift-meta-box"><span>Van</span><p>NSW 123 ABC</p></div>
@@ -915,7 +916,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       </div>
     </div>
     <div class="shift-item">
-      <div class="shift-item-header"><i class="ti ti-sun" style="color:var(--green)"></i><h3>Day shift — Fri 6 Jun</h3><span class="badge badge-blue">Confirmed</span></div>
+      <div class="shift-item-header"><i class="ti ti-sun" style="color:var(--g)"></i><h3>Day shift — Fri 6 Jun</h3><span class="badge badge-blue">Confirmed</span></div>
       <div class="shift-meta">
         <div class="shift-meta-box"><span>Time</span><p>6AM–6PM</p></div>
         <div class="shift-meta-box"><span>Van</span><p>NSW 123 ABC</p></div>
@@ -952,7 +953,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       <span class="badge badge-green">Approved</span>
     </div>
     <div class="list-item">
-      <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-calendar-plus"></i></div>
+      <div class="list-icon" style="background:var(--al);color:var(--amber)"><i class="ti ti-calendar-plus"></i></div>
       <div class="list-info"><p>Extra shift — 15 May</p><span>Day shift request</span></div>
       <span class="badge badge-amber">Pending</span>
     </div>
@@ -987,12 +988,12 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     <button class="btn-primary" onclick="submitFuel()">Submit reimbursement</button>
     <div class="divider"></div>
     <div class="list-item">
-      <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-receipt"></i></div>
+      <div class="list-icon" style="background:var(--al);color:var(--amber)"><i class="ti ti-receipt"></i></div>
       <div class="list-info"><p>NSW 123 ABC · Mon 26 May</p><span>$85.40</span></div>
       <span class="badge badge-amber">Pending</span>
     </div>
     <div class="list-item">
-      <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-receipt"></i></div>
+      <div class="list-icon" style="background:var(--al);color:var(--amber)"><i class="ti ti-receipt"></i></div>
       <div class="list-info"><p>NSW 123 ABC · Mon 19 May</p><span>$92.15</span></div>
       <span class="badge badge-green">Paid</span>
     </div>
@@ -1022,13 +1023,13 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>Pay week: Mon 00:01 to Sun 23:59. Paid every Wednesday.</p></div>
     <div class="pay-card">
       <div class="pay-card-header"><div><h3>19–25 May 2026</h3><span>Wed 21 May</span></div><span class="badge badge-green">Paid</span></div>
-      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-package" style="color:var(--green)"></i></div><div class="pay-info"><p>Deliveries</p><span>412 consignments</span></div></div><div class="pay-amount pos">+$1,481.00</div></div>
-      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-gas-station" style="color:var(--green)"></i></div><div class="pay-info"><p>Fuel rebate</p><span>Receipt submitted</span></div></div><div class="pay-amount pos">+$92.15</div></div>
+      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--gl)"><i class="ti ti-package" style="color:var(--g)"></i></div><div class="pay-info"><p>Deliveries</p><span>412 consignments</span></div></div><div class="pay-amount pos">+$1,481.00</div></div>
+      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--gl)"><i class="ti ti-gas-station" style="color:var(--g)"></i></div><div class="pay-info"><p>Fuel rebate</p><span>Receipt submitted</span></div></div><div class="pay-amount pos">+$92.15</div></div>
       <div style="padding:0 12px 10px"><div class="pay-total"><p>Total paid</p><span>$1,573.15</span></div></div>
     </div>
     <div class="pay-card">
       <div class="pay-card-header"><div><h3>12–18 May 2026</h3><span>Wed 14 May</span></div><span class="badge badge-green">Paid</span></div>
-      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-package" style="color:var(--green)"></i></div><div class="pay-info"><p>Deliveries</p><span>389 consignments</span></div></div><div class="pay-amount pos">+$1,340.50</div></div>
+      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--gl)"><i class="ti ti-package" style="color:var(--g)"></i></div><div class="pay-info"><p>Deliveries</p><span>389 consignments</span></div></div><div class="pay-amount pos">+$1,340.50</div></div>
       <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--red-light)"><i class="ti ti-receipt-tax" style="color:var(--red)"></i></div><div class="pay-info"><p>Toll deduction</p><span>1 toll incurred</span></div></div><div class="pay-amount neg">-$8.50</div></div>
       <div style="padding:0 12px 10px"><div class="pay-total"><p>Total paid</p><span>$1,410.90</span></div></div>
     </div>
@@ -1054,8 +1055,8 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     <div class="form-group">
       <label class="form-label">Date range</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div><label style="font-size:10px;color:var(--text2);margin-bottom:3px;display:block">From</label><input type="date" class="form-input"></div>
-        <div><label style="font-size:10px;color:var(--text2);margin-bottom:3px;display:block">To</label><input type="date" class="form-input"></div>
+        <div><label style="font-size:10px;color:var(--t2);margin-bottom:3px;display:block">From</label><input type="date" class="form-input"></div>
+        <div><label style="font-size:10px;color:var(--t2);margin-bottom:3px;display:block">To</label><input type="date" class="form-input"></div>
       </div>
     </div>
     <div class="form-group"><label class="form-label">Shift affected</label><select class="form-select"><option>Day shift</option><option>Night shift</option><option>Both</option></select></div>
@@ -1064,7 +1065,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     <button class="btn-primary" onclick="submitLeave()">Submit request</button>
     <div class="divider"></div>
     <div class="list-item">
-      <div class="list-icon" style="background:var(--blue-light);color:var(--blue)"><i class="ti ti-beach"></i></div>
+      <div class="list-icon" style="background:var(--bl);color:var(--blue)"><i class="ti ti-beach"></i></div>
       <div class="list-info"><p>Leave — 2–4 Jun 2026</p><span>Submitted 26 May</span></div>
       <span class="badge badge-amber">Pending</span>
     </div>
@@ -1091,14 +1092,14 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
         <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--red-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-alert-circle" style="color:var(--red);font-size:15px"></i></div>
         <div style="flex:1">
           <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Missed delivery — D-LIME-030626-001</p>
-          <span style="font-size:11px;color:var(--text2)">Assigned 26 May · 2:30 PM</span>
+          <span style="font-size:11px;color:var(--t2)">Assigned 26 May · 2:30 PM</span>
         </div>
         <span class="badge badge-red">Open</span>
       </div>
-      <div style="font-size:11px;color:var(--text2);line-height:1.6;padding:8px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:10px">Customer reported delivery was marked complete but not received. Please provide your explanation and supporting evidence.</div>
+      <div style="font-size:11px;color:var(--t2);line-height:1.6;padding:8px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:10px">Customer reported delivery was marked complete but not received. Please provide your explanation and supporting evidence.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
-        <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px"><span style="font-size:9px;color:var(--text2);text-transform:uppercase;display:block">Type</span><p style="font-size:12px;font-weight:600;color:var(--text)">Missed delivery</p></div>
-        <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px"><span style="font-size:9px;color:var(--text2);text-transform:uppercase;display:block">Due by</span><p style="font-size:12px;font-weight:600;color:var(--text)">5 Jun 2026</p></div>
+        <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px"><span style="font-size:9px;color:var(--t2);text-transform:uppercase;display:block">Type</span><p style="font-size:12px;font-weight:600;color:var(--text)">Missed delivery</p></div>
+        <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px"><span style="font-size:9px;color:var(--t2);text-transform:uppercase;display:block">Due by</span><p style="font-size:12px;font-weight:600;color:var(--text)">5 Jun 2026</p></div>
       </div>
     </div>
     <div class="form-group"><label class="form-label">Response type</label><select class="form-select"><option>I delivered successfully</option><option>Customer not present</option><option>Left in safe location</option><option>Other</option></select></div>
@@ -1113,7 +1114,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     <button class="btn-primary" onclick="submitTicket()">Submit response</button>
     <div class="divider"></div>
     <div class="list-item">
-      <div class="list-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-check"></i></div>
+      <div class="list-icon" style="background:var(--gl);color:var(--g)"><i class="ti ti-check"></i></div>
       <div class="list-info"><p>Missed delivery — D-LIME-030626-008</p><span>15 May 2026</span></div>
       <span class="badge badge-green">Resolved</span>
     </div>
@@ -1150,7 +1151,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     <div class="nrma-card">
       <div class="nrma-header">
         <div class="nrma-logo"><i class="ti ti-shield-check"></i></div>
-        <div><p style="font-size:13px;font-weight:700;color:var(--text)">NRMA Roadside Assistance</p><span style="font-size:11px;color:var(--text2)">Fresh Veloz fleet membership</span></div>
+        <div><p style="font-size:13px;font-weight:700;color:var(--text)">NRMA Roadside Assistance</p><span style="font-size:11px;color:var(--t2)">Fresh Veloz fleet membership</span></div>
       </div>
       <div class="nrma-row"><span>Membership number</span><p>NRMA-FV-2024-8821</p></div>
       <div class="nrma-row"><span>Roadside number</span><p>132 132</p></div>
@@ -1167,7 +1168,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     </div>
     <div class="gps-box">
       <div class="gps-icon"><i class="ti ti-map-pin"></i></div>
-      <div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--text)">GPS location captured</p><span style="font-size:11px;color:var(--text2)" id="em-gps">Detecting...</span></div>
+      <div style="flex:1"><p style="font-size:13px;font-weight:600;color:var(--text)">GPS location captured</p><span style="font-size:11px;color:var(--t2)" id="em-gps">Detecting...</span></div>
       <div class="gps-dot"></div>
     </div>
     <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="height:90px" placeholder="Describe what happened..."></textarea></div>
@@ -1194,21 +1195,21 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
   <div class="content">
     <a href="mailto:logistics@freshveloz.com.au" style="text-decoration:none;display:block">
     <div class="support-opt">
-      <div class="support-icon" style="background:var(--green-light)"><i class="ti ti-mail" style="color:var(--green)"></i></div>
+      <div class="support-icon" style="background:var(--gl)"><i class="ti ti-mail" style="color:var(--g)"></i></div>
       <div class="support-info"><p>Email</p><span>logistics@freshveloz.com.au</span></div>
-      <i class="ti ti-chevron-right" style="color:var(--text2)"></i>
+      <i class="ti ti-chevron-right" style="color:var(--t2)"></i>
     </div></a>
     <a href="tel:+61416941977" style="text-decoration:none;display:block">
     <div class="support-opt">
-      <div class="support-icon" style="background:var(--blue-light)"><i class="ti ti-phone" style="color:var(--blue)"></i></div>
+      <div class="support-icon" style="background:var(--bl)"><i class="ti ti-phone" style="color:var(--blue)"></i></div>
       <div class="support-info"><p>Call manager</p><span>Available during business hours</span></div>
-      <i class="ti ti-chevron-right" style="color:var(--text2)"></i>
+      <i class="ti ti-chevron-right" style="color:var(--t2)"></i>
     </div></a>
     <a href="https://wa.me/61416941977" target="_blank" style="text-decoration:none;display:block">
     <div class="support-opt">
-      <div class="support-icon" style="background:var(--amber-light)"><i class="ti ti-brand-whatsapp" style="color:var(--amber)"></i></div>
+      <div class="support-icon" style="background:var(--al)"><i class="ti ti-brand-whatsapp" style="color:var(--amber)"></i></div>
       <div class="support-info"><p>WhatsApp</p><span>Quick questions and updates</span></div>
-      <i class="ti ti-chevron-right" style="color:var(--text2)"></i>
+      <i class="ti ti-chevron-right" style="color:var(--t2)"></i>
     </div></a>
     <div class="divider"></div>
     <div class="form-group"><label class="form-label">Subject</label><select class="form-select"><option>General enquiry</option><option>Payment issue</option><option>Van problem</option><option>App issue</option><option>Other</option></select></div>
@@ -1520,19 +1521,19 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
   </div>
   <div class="content">
     <div style="text-align:center;padding:16px 0 20px">
-      <div id="profile-avatar" style="width:64px;height:64px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:22px;font-weight:800;color:#fff">JD</div>
+      <div id="profile-avatar" style="width:64px;height:64px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:22px;font-weight:800;color:#fff">JD</div>
       <p style="font-size:17px;font-weight:700;color:var(--text)" id="profile-name">John Driver</p>
-      <p style="font-size:12px;color:var(--text2)" id="profile-email">john@email.com</p>
+      <p style="font-size:12px;color:var(--t2)" id="profile-email">john@email.com</p>
       <span class="badge badge-green" style="margin-top:6px;display:inline-block" id="profile-unit">Lime · Active</span>
     </div>
     <div class="prof-sec">
-      <div class="prof-row"><div class="prof-icon" style="background:var(--green-light)"><i class="ti ti-user" style="color:var(--green)"></i></div><div class="prof-info"><p>Personal details</p><span>Name, phone, address</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--blue-light)"><i class="ti ti-id-badge" style="color:var(--blue)"></i></div><div class="prof-info"><p>Licence & ABN</p><span>Driver licence, ABN number</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--purple-light)"><i class="ti ti-phone" style="color:var(--purple)"></i></div><div class="prof-info"><p>Emergency contact</p><span>Add emergency contact</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
+      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)"><i class="ti ti-user" style="color:var(--g)"></i></div><div class="prof-info"><p>Personal details</p><span>Name, phone, address</span></div><i class="ti ti-chevron-right" style="color:var(--t2)"></i></div>
+      <div class="prof-row"><div class="prof-icon" style="background:var(--bl)"><i class="ti ti-id-badge" style="color:var(--blue)"></i></div><div class="prof-info"><p>Licence & ABN</p><span>Driver licence, ABN number</span></div><i class="ti ti-chevron-right" style="color:var(--t2)"></i></div>
+      <div class="prof-row"><div class="prof-icon" style="background:var(--purple-light)"><i class="ti ti-phone" style="color:var(--purple)"></i></div><div class="prof-info"><p>Emergency contact</p><span>Add emergency contact</span></div><i class="ti ti-chevron-right" style="color:var(--t2)"></i></div>
     </div>
     <div class="prof-sec">
-      <div class="prof-row" onclick="navigate('team')"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-headset" style="color:var(--text2)"></i></div><div class="prof-info"><p>Contact team</p><span>Get help</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-file-text" style="color:var(--text2)"></i></div><div class="prof-info"><p>Terms & conditions</p><span>Driver agreement</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
+      <div class="prof-row" onclick="navigate('team')"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-headset" style="color:var(--t2)"></i></div><div class="prof-info"><p>Contact team</p><span>Get help</span></div><i class="ti ti-chevron-right" style="color:var(--t2)"></i></div>
+      <div class="prof-row"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-file-text" style="color:var(--t2)"></i></div><div class="prof-info"><p>Terms & conditions</p><span>Driver agreement</span></div><i class="ti ti-chevron-right" style="color:var(--t2)"></i></div>
     </div>
     <button class="btn-danger" onclick="logout()">Sign out</button>
   </div>
@@ -1824,13 +1825,23 @@ async function completeSignIn() {
   };
 
   try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    let data;
+    try {
+      const resp = await fetch(APPS_SCRIPT_URL, {
+        method:'POST', redirect:'follow', signal:controller.signal,
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(payload)
+      });
+      clearTimeout(timeout);
+      data = JSON.parse(await resp.text());
+    } catch(fetchErr) {
+      clearTimeout(timeout);
+      // Timeout or network error - proceed offline
+      data = { success: false, offline: true };
+    }
+    if (data.success || data.offline) {
       shiftActive = true;
       localStorage.setItem('fv_shift_on','true');
       localStorage.setItem('fv_sign_in_id', data.signInId || '');
@@ -1892,13 +1903,19 @@ async function completeSignOff() {
   };
 
   try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) {
+    let data;
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 6000);
+      const resp = await fetch(APPS_SCRIPT_URL, {
+        method:'POST', redirect:'follow', signal:ctrl.signal,
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(payload)
+      });
+      clearTimeout(t);
+      data = JSON.parse(await resp.text());
+    } catch(fe) { data = { success:false, message: fe.name==='AbortError' ? 'Request timed out' : 'Connection error' }; }
+    if (data.success || data.offline) {
       shiftActive = false;
       localStorage.setItem('fv_shift_on','false');
       localStorage.removeItem('fv_sign_in_id');
@@ -2339,6 +2356,40 @@ function toggleDef() {
   if (b) b.textContent  = defOpen ? 'Close' : 'Report new';
 }
 let inspOpen = false, defOpen = false;
+
+// Aliases — HTML uses these names
+function siSelectCond(v) { siSelCond(v); }
+function soSelectCond(v) { soSelCond(v); }
+function siSelectFuel(v) { siSelFuel(v); }
+function soSelectFuel(v) { soSelFuel(v); }
+
+async function sendContactMessage() {
+  const subjectEl = document.querySelector('#screen-team .sel');
+  const msgEl     = document.querySelector('#screen-team .textarea');
+  if (!msgEl?.value) { toast('Please write a message first'); return; }
+  const subject = subjectEl ? subjectEl.value : 'General enquiry';
+  const message = msgEl.value;
+  // Open WhatsApp with pre-filled message
+  const waMsg = encodeURIComponent('*' + subject + '*
+
+' + message + '
+
+From: ' + (driverData?.driverName || 'Driver'));
+  window.open('https://wa.me/61416941977?text=' + waMsg, '_blank');
+  toast('Opening WhatsApp ✅');
+  msgEl.value = '';
+}
+
+function toggleChk(el) {
+  el.classList.toggle('checked');
+  const box = el.querySelector('.chk-box');
+  if (box) {
+    box.style.background   = el.classList.contains('checked') ? 'var(--g)' : '#fff';
+    box.style.borderColor  = el.classList.contains('checked') ? 'var(--g)' : 'var(--bor)';
+    box.innerHTML          = el.classList.contains('checked') ? '✓' : '';
+    box.style.color        = '#fff';
+  }
+}
 
 function selectType(el) {
   el.closest('.type-grid').querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
