@@ -597,8 +597,8 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     </div>
     <label class="form-label">Van condition</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
-      <div class="cond-btn active" id="si-cond-good" onclick="siSelectCond('good')">✅ Good</div>
-      <div class="cond-btn" id="si-cond-dmg" onclick="siSelectCond('dmg')">⚠️ Has damage</div>
+      <div class="cond-btn active" id="si-cond-good" onclick="siSelCond('good')">✅ Good</div>
+      <div class="cond-btn" id="si-cond-dmg" onclick="siSelCond('dmg')">⚠️ Has damage</div>
     </div>
     <div id="si-damage-section" style="display:none">
       <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Photograph and describe the damage before starting your shift.</p></div>
@@ -613,10 +613,10 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     </div>
     <label class="form-label">Fuel level</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
-      <div class="cond-btn active" id="si-fuel-full" onclick="siSelectFuel('full')">⛽ Full tank</div>
-      <div class="cond-btn" id="si-fuel-half" onclick="siSelectFuel('half')">🔋 Half tank</div>
-      <div class="cond-btn" id="si-fuel-low" onclick="siSelectFuel('low')">⚠️ Low fuel</div>
-      <div class="cond-btn" id="si-fuel-empty" onclick="siSelectFuel('empty')">🚨 Empty</div>
+      <div class="cond-btn active" id="si-fuel-full" onclick="siSelFuel('full')">⛽ Full tank</div>
+      <div class="cond-btn" id="si-fuel-half" onclick="siSelFuel('half')">🔋 Half tank</div>
+      <div class="cond-btn" id="si-fuel-low" onclick="siSelFuel('low')">⚠️ Low fuel</div>
+      <div class="cond-btn" id="si-fuel-empty" onclick="siSelFuel('empty')">🚨 Empty</div>
     </div>
     <label class="form-label">Pre-shift checklist</label>
     <div class="chk-list">
@@ -696,8 +696,8 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     </div>
     <label class="form-label">Van condition</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
-      <div class="cond-btn active" id="so-cond-good" onclick="soSelectCond('good')">✅ Good</div>
-      <div class="cond-btn" id="so-cond-dmg" onclick="soSelectCond('dmg')">⚠️ Has damage</div>
+      <div class="cond-btn active" id="so-cond-good" onclick="soSelCond('good')">✅ Good</div>
+      <div class="cond-btn" id="so-cond-dmg" onclick="soSelCond('dmg')">⚠️ Has damage</div>
     </div>
     <div id="so-damage-section" style="display:none">
       <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Photograph and describe the damage before signing off.</p></div>
@@ -712,10 +712,10 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     </div>
     <label class="form-label">Fuel level</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
-      <div class="cond-btn" id="so-fuel-full" onclick="soSelectFuel('full')">⛽ Full tank</div>
-      <div class="cond-btn active" id="so-fuel-half" onclick="soSelectFuel('half')">🔋 Half tank</div>
-      <div class="cond-btn" id="so-fuel-low" onclick="soSelectFuel('low')">⚠️ Low fuel</div>
-      <div class="cond-btn" id="so-fuel-empty" onclick="soSelectFuel('empty')">🚨 Empty</div>
+      <div class="cond-btn" id="so-fuel-full" onclick="soSelFuel('full')">⛽ Full tank</div>
+      <div class="cond-btn active" id="so-fuel-half" onclick="soSelFuel('half')">🔋 Half tank</div>
+      <div class="cond-btn" id="so-fuel-low" onclick="soSelFuel('low')">⚠️ Low fuel</div>
+      <div class="cond-btn" id="so-fuel-empty" onclick="soSelFuel('empty')">🚨 Empty</div>
     </div>
     <input type="file" accept="image/*" capture="environment" id="cam-3-input" style="display:none" onchange="handleFileSelect(this,'cam-3-lbl','Emergency Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-3-input').click()">
@@ -1221,7 +1221,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 <!-- ═══════════════════════════════════════════════════ -->
 <!-- MY VEHICLE                                          -->
 <!-- ═══════════════════════════════════════════════════ -->
-<div id="screen-vehicle" class="screen" style="overflow:hidden">
+<div id="screen-vehicle" class="screen">
   <div class="hdr">
     <button class="hdr-back" onclick="goBack()"><i class="ti ti-arrow-left"></i></button>
     <div class="hdr-title"><h1>My vehicle</h1><p id="vehicle-reg-title">NSW 123 ABC</p></div>
@@ -1776,12 +1776,18 @@ function getGPS(screen) {
 }
 
 // ── Date/Time ─────────────────────────────────────────────
+let _dateTimeTicker = null;
 function updateDateTime(screen) {
-  const now    = new Date();
-  const dateEl = document.querySelector('#screen-' + screen + ' .current-date');
-  const timeEl = document.querySelector('#screen-' + screen + ' .current-time');
-  if (dateEl) dateEl.textContent = now.toLocaleDateString('en-AU', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
-  if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+  if (_dateTimeTicker) clearInterval(_dateTimeTicker);
+  function tick() {
+    const now    = new Date();
+    const dateEl = document.getElementById(screen + '-date');
+    const timeEl = document.getElementById(screen + '-time');
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-AU', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+  }
+  tick();
+  _dateTimeTicker = setInterval(tick, 1000);
 }
 
 function getCurrentTime() {
@@ -1808,6 +1814,8 @@ async function completeSignIn() {
     fuelLevel:     (['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:   document.getElementById('si-damage-notes')?.value || '',
     damagePhotoUrl: document.querySelector('#screen-signin input[type="file"]')?.dataset?.uploadedUrl || '',
+    startTime:     document.getElementById('signin-time')?.textContent || new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
+    startDate:     document.getElementById('signin-date')?.textContent || new Date().toLocaleDateString('en-AU'),
     shiftId:       '',
     notes:         document.querySelector('#screen-signin textarea.inp')?.value || ''
   };
@@ -1876,6 +1884,8 @@ async function completeSignOff() {
     damageNotes:     document.getElementById('so-damage-notes')?.value || '',
     damagePhotoUrl:  document.querySelector('#screen-signoff input[type="file"]')?.dataset?.uploadedUrl || '',
     nextDriverNote:  noteEl ? noteEl.value : '',
+    endTime:         document.getElementById('signoff-time')?.textContent || new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
+    endDate:         document.getElementById('signoff-date')?.textContent || new Date().toLocaleDateString('en-AU'),
     shiftId:         localStorage.getItem('fv_sign_in_id') || '',
     notes:           ''
   };
