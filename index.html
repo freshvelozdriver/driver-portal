@@ -53,6 +53,8 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 /* SCROLLABLE CONTENT */
 .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;height:0;min-height:0;padding:16px;}
 .content::-webkit-scrollbar{display:none;}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;height:0;min-height:0;padding:16px;}
+.scroll::-webkit-scrollbar{display:none;}
 
 /* HEADER */
 .hdr{background:var(--green);padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
@@ -701,7 +703,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     </div>
     <div id="so-damage-section" style="display:none">
       <div class="info-box info-red"><i class="ti ti-alert-triangle"></i><p>Photograph and describe the damage before signing off.</p></div>
-      <input type="file" accept="image/*" capture="environment" id="cam-2-input" style="display:none" onchange="handleFileSelect(this,'cam-2-lbl','Delivery Photos Folder ID')">
+      <input type="file" accept="image/*" capture="environment" id="cam-2-input" style="display:none" onchange="handleFileSelect(this,'cam-2-lbl','Handover Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-2-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-2-lbl">Photo of damage</h3>
@@ -1250,195 +1252,102 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     </div>
     <!-- Van details -->
     <div class="prof-sec">
-      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">🚐</div><div class="prof-info"><p>NSW 123 ABC</p><span id="vehicle-details">Toyota HiAce · White · Lime team</span></div></div>
+      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">🚐</div><div class="prof-info"><p id="vehicle-reg-display">NSW 123 ABC</p><span id="vehicle-details">Toyota HiAce · White · Lime team</span></div></div>
       <div class="prof-row"><div class="prof-icon" style="background:var(--al)">⛽</div><div class="prof-info"><p>Fuel type</p><span>Diesel only</span></div></div>
       <div class="prof-row" onclick="togglePin()"><div class="prof-icon" style="background:var(--pl)">🔒</div><div class="prof-info"><p>Lock box PIN</p><span id="pin-val">● ● ● ●</span></div><i class="ti ti-eye" style="color:var(--t2)"></i></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">✅</div><div class="prof-info"><p>Condition</p><span>Good — checked Mon 26 May</span></div></div>
+      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">✅</div><div class="prof-info"><p>Condition</p><span id="vehicle-condition-text">Good — checked recently</span></div></div>
       <div class="prof-row"><div class="prof-icon" style="background:var(--bl)">📡</div><div class="prof-info"><p>GPS tracking</p><span>Active — every 5 mins</span></div></div>
     </div>
-    <!-- Van Activity -->
-    <div class="card">
-      <p style="font-size:12px;font-weight:700;margin-bottom:10px">🗓️ Van activity</p>
+    <!-- Van Activity Button -->
+    <button onclick="navigate('vanactivity')" style="width:100%;background:var(--green);color:#fff;border:none;border-radius:var(--radius);padding:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px">
+      <i class="ti ti-calendar-stats" style="font-size:16px"></i> Van Activity &amp; Upcoming Shifts
+    </button>
+  </div>
+  <div class="ftr" style="flex-shrink:0;background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px">© 2026 Fresh Veloz. All rights reserved.</div>
 
-      <!-- ACTIVE DRIVER -->
-      <div style="background:var(--gl);border:1px solid var(--g);border-radius:9px;padding:9px 10px;margin-bottom:9px">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
-          <div style="width:8px;height:8px;background:var(--g);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0"></div>
-          <span style="font-size:9px;font-weight:700;color:var(--gt);text-transform:uppercase;letter-spacing:1px">Now — Active</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-          <div style="width:30px;height:30px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0">JD</div>
-          <div style="flex:1"><p id="van-active-name" style="font-size:12px;font-weight:700">John Driver</p><span id="van-active-info" style="font-size:9px;color:var(--gt)">Day shift · Started 6:02 AM · 268 km so far</span></div>
-        </div>
-        <div style="display:flex;gap:6px;margin-bottom:7px">
-          <button style="flex:1;background:#fff;color:var(--gt);border:1px solid var(--g);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">📞 Call</button>
-          <button style="flex:1;background:#fff;color:var(--gt);border:1px solid var(--g);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">💬 SMS</button>
-        </div>
-        <!-- No note yet — John is still on shift -->
-        <div style="background:rgba(255,255,255,0.6);border-radius:7px;padding:7px 9px;border:1px dashed var(--g);display:flex;align-items:center;gap:7px">
-          <span style="font-size:13px">⏳</span>
-          <div>
-            <p style="font-size:9px;font-weight:700;color:var(--gt);margin:0 0 1px">Note not available yet</p>
-            <span style="font-size:9px;color:var(--gt);opacity:0.8">John is still on shift. Note will appear after sign off.</span>
-          </div>
-        </div>
-      </div>
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- VAN ACTIVITY SCREEN                                 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="screen-vanactivity" class="screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack()"><i class="ti ti-arrow-left"></i></button>
+    <div class="hdr-title"><h1>Van Activity</h1><p id="vanactivity-reg-title">NSW 123 ABC</p></div>
+  </div>
+  <div class="content">
 
-      <!-- LAST SHIFT — Jane signed off, note available -->
-      <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:9px;padding:9px 10px;margin-bottom:9px">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
-          <div style="width:8px;height:8px;background:var(--t3);border-radius:50%;flex-shrink:0"></div>
-          <span style="font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px">Last shift — Signed off</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-          <div style="width:30px;height:30px;background:var(--t3);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0">JN</div>
-          <div style="flex:1"><p style="font-size:12px;font-weight:700">Jane Driver</p><span style="font-size:9px;color:var(--t2)">Night shift · Signed off 6:02 AM</span></div>
-        </div>
-        <div style="display:flex;gap:6px;margin-bottom:7px">
-          <button style="flex:1;background:#fff;color:var(--t2);border:1px solid var(--bor);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">📞 Call</button>
-          <button style="flex:1;background:#fff;color:var(--t2);border:1px solid var(--bor);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">💬 SMS</button>
-        </div>
-        <div style="background:#fff;border-radius:7px;padding:7px 9px;border:1px solid var(--bor)">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-            <p style="font-size:9px;font-weight:700;color:var(--t);margin:0">📝 Note from Jane Driver</p>
-            <span style="font-size:8px;color:var(--t2)">Sign off · 6:02 AM</span>
-          </div>
-          <p style="font-size:10px;color:var(--t2);line-height:1.5;margin:0">Van is clean and full tank. Left keys in lockbox. Back door handle is a little stiff.</p>
+    <!-- LAST PARKED PHOTO -->
+    <div style="margin-bottom:11px">
+      <p style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Last park photo</p>
+      <div id="van-last-photo-box" style="background:var(--bg2);border:1px solid var(--bor);border-radius:var(--radius);height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer">
+        <div style="text-align:center">
+          <i class="ti ti-camera" style="font-size:28px;color:var(--t3);display:block;margin-bottom:6px"></i>
+          <p style="font-size:11px;color:var(--t3)">No photo yet</p>
         </div>
       </div>
+      <span id="van-last-photo-credit" style="font-size:9px;color:var(--t3);display:block;margin-top:3px;text-align:center"></span>
+    </div>
 
-      <!-- DIVIDER -->
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">
-        <div style="height:1px;background:var(--bor);flex:1"></div>
-        <span style="font-size:9px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:1px">Up next</span>
-        <div style="height:1px;background:var(--bor);flex:1"></div>
+    <!-- ACTIVE DRIVER -->
+    <p style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Now</p>
+    <div id="van-active-box" style="background:var(--gl);border:1px solid var(--g);border-radius:9px;padding:9px 10px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
+        <div style="width:8px;height:8px;background:var(--g);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0"></div>
+        <span style="font-size:9px;font-weight:700;color:var(--gt);text-transform:uppercase;letter-spacing:1px">Active on shift</span>
       </div>
-
-      <!-- UPCOMING SHIFTS -->
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
-        <div style="width:32px;height:32px;background:var(--bl);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:7px;color:var(--blu)">Today</span><span style="font-size:9px;font-weight:800;color:var(--blu)">6PM</span></div>
-        <div style="flex:1"><p style="font-size:11px;font-weight:600">Jane Driver</p><span style="font-size:9px;color:var(--t2)">Night shift · Starts 6:00 PM</span></div>
-        <div style="display:flex;gap:4px">
-          <button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">📞</button>
-          <button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">💬</button>
-        </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+        <div id="van-active-avatar" style="width:30px;height:30px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0">—</div>
+        <div style="flex:1"><p id="van-active-name" style="font-size:12px;font-weight:700">No active driver</p><span id="van-active-info" style="font-size:9px;color:var(--gt)">Van is available</span></div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
-        <div style="width:32px;height:32px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:7px;color:var(--t2)">Tomorrow</span><span style="font-size:9px;font-weight:800">6AM</span></div>
-        <div style="flex:1"><p style="font-size:11px;font-weight:600">John Driver</p><span style="font-size:9px;color:var(--t2)">Day shift · Starts 6:00 AM</span></div>
-        <div style="display:flex;gap:4px">
-          <button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">📞</button>
-          <button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">💬</button>
-        </div>
-      </div>
-
-      <!-- DIVIDER -->
-      <div style="display:flex;align-items:center;gap:7px;margin:9px 0">
-        <div style="height:1px;background:var(--bor);flex:1"></div>
-        <span style="font-size:9px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:1px">History</span>
-        <div style="height:1px;background:var(--bor);flex:1"></div>
-      </div>
-
-      <!-- PAST SHIFTS -->
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
-        <div style="width:32px;height:32px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:7px;color:var(--t2)">Jun</span><span style="font-size:12px;font-weight:800">02</span></div>
-        <div style="flex:1"><p style="font-size:11px;font-weight:600">Jane Driver</p><span style="font-size:9px;color:var(--t2)">Night · 241 km</span></div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <span class="badge bg-purple">Night</span>
-          <button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;font-weight:700;cursor:pointer">📞</button>
-          <button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;font-weight:700;cursor:pointer">💬</button>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 0">
-        <div style="width:32px;height:32px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:7px;color:var(--t2)">Jun</span><span style="font-size:12px;font-weight:800">01</span></div>
-        <div style="flex:1"><p style="font-size:11px;font-weight:600">John Driver</p><span style="font-size:9px;color:var(--t2)">Day · 295 km</span></div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <span class="badge bg-amber">Day</span>
-          <button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;font-weight:700;cursor:pointer">📞</button>
-          <button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;font-weight:700;cursor:pointer">💬</button>
-        </div>
+      <div style="display:flex;gap:6px">
+        <a id="van-active-call" href="#" style="flex:1;text-decoration:none"><button style="width:100%;background:#fff;color:var(--gt);border:1px solid var(--g);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">📞 Call</button></a>
+        <a id="van-active-sms" href="#" style="flex:1;text-decoration:none"><button style="width:100%;background:#fff;color:var(--gt);border:1px solid var(--g);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">💬 SMS</button></a>
       </div>
     </div>
-    <!-- Unified Damage & Defect card -->
+
+    <!-- UPCOMING SHIFTS -->
+    <p style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Up next</p>
+    <div id="van-upcoming-list" style="margin-bottom:12px">
+      <div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">Loading...</div>
+    </div>
+
+    <!-- SHIFT HISTORY -->
+    <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
+      <div style="height:1px;background:var(--bor);flex:1"></div>
+      <span style="font-size:9px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:1px">History</span>
+      <div style="height:1px;background:var(--bor);flex:1"></div>
+    </div>
+    <div id="van-history-list" style="margin-bottom:12px">
+      <div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">Loading...</div>
+    </div>
+
+    <!-- DAMAGE & DEFECTS -->
     <div class="card">
-      <!-- Header row with toggle -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:16px">🔧</span>
           <div>
             <p style="font-size:12px;font-weight:700">Damage &amp; Defects</p>
-            <span style="font-size:9px;color:var(--t2)">NSW 123 ABC — all assigned drivers</span>
+            <span id="va-defect-van" style="font-size:9px;color:var(--t2)">This van</span>
           </div>
         </div>
         <button onclick="toggleDef()" id="def-btn" style="background:var(--red);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer">Report new</button>
       </div>
-
-      <!-- History entries --><div class="damage-history-list">
-      <div style="padding:7px 0;border-bottom:1px solid var(--bor)">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <div style="width:24px;height:24px;background:var(--rl);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">⚠️</div>
-            <div>
-              <p style="font-size:10px;font-weight:700">26 May 2026</p>
-              <span style="font-size:9px;color:var(--t2)">John Driver · 6:08 PM · Body damage</span>
-            </div>
-          </div>
-          <span class="badge bg-red">Open</span>
-        </div>
-        <div style="font-size:10px;color:var(--t2);background:var(--bg2);border-radius:6px;padding:5px 7px;margin-left:30px">Scratch on rear left bumper, approx 15cm</div>
-      </div>
-
-      <div style="padding:7px 0;border-bottom:1px solid var(--bor)">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <div style="width:24px;height:24px;background:var(--gl);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">✅</div>
-            <div>
-              <p style="font-size:10px;font-weight:700">14 May 2026</p>
-              <span style="font-size:9px;color:var(--t2)">Jane Driver · 7:22 AM · Body damage</span>
-            </div>
-          </div>
-          <span class="badge bg-green">Fixed</span>
-        </div>
-        <div style="font-size:10px;color:var(--t2);background:var(--bg2);border-radius:6px;padding:5px 7px;margin-left:30px">Small dent on front passenger door</div>
-      </div>
-
-      <div style="padding:7px 0;border-bottom:1px solid var(--bor)">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <div style="width:24px;height:24px;background:var(--gl);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">✅</div>
-            <div>
-              <p style="font-size:10px;font-weight:700">2 May 2026</p>
-              <span style="font-size:9px;color:var(--t2)">John Driver · 5:55 PM · Lights</span>
-            </div>
-          </div>
-          <span class="badge bg-green">Fixed</span>
-        </div>
-        <div style="font-size:10px;color:var(--t2);background:var(--bg2);border-radius:6px;padding:5px 7px;margin-left:30px">Cracked windscreen lower corner</div>
-      </div>
-
-      <!-- Tip -->
-      <div style="padding:7px 0;border-bottom:1px solid var(--bor);display:flex;gap:6px;align-items:flex-start">
-        <i class="ti ti-alert-triangle" style="color:var(--amb);font-size:11px;flex-shrink:0;margin-top:1px"></i>
-        <span style="font-size:9px;color:var(--t2);line-height:1.5">Check above before reporting — avoid duplicate reports.</span>
-      </div>
-
-      <!-- Report form (hidden by default) -->
+      <div class="damage-history-list"><div style="text-align:center;padding:10px;color:var(--t3);font-size:11px">No defects logged</div></div>
       <div id="def-form" style="display:none;margin-top:10px">
         <div style="height:1px;background:var(--bor);margin-bottom:10px"></div>
         <p style="font-size:11px;font-weight:700;margin-bottom:8px;color:var(--red)">🔧 New defect report</p>
         <label class="lbl">What is wrong?</label>
-        <select class="sel"><option>Body damage</option><option>Tyre issue</option><option>Engine warning light</option><option>Brakes</option><option>Lights</option><option>Other</option></select>
+        <select class="sel" id="def-category"><option>Body damage</option><option>Tyre issue</option><option>Engine warning light</option><option>Brakes</option><option>Lights</option><option>Other</option></select>
         <label class="lbl">Description</label>
-        <textarea class="textarea" style="height:60px" placeholder="Describe the issue..."></textarea>
-        <div class="upl" onclick="toast('Camera opening...')"><div class="upl-icon"><i class="ti ti-camera"></i></div><h3>Photo of defect</h3><p>Helps manager assess urgency</p></div>
+        <textarea class="textarea" id="def-description" style="height:60px" placeholder="Describe the issue..."></textarea>
+        <input type="file" accept="image/*" capture="environment" id="cam-5-input-def" style="display:none" onchange="handleFileSelect(this,'cam-5-lbl-def','Defect Photos Folder ID')">
+        <div class="upl" onclick="document.getElementById('cam-5-input-def').click()"><div class="upl-icon"><i class="ti ti-camera"></i></div><h3 id="cam-5-lbl-def">Photo of defect</h3><p>Helps manager assess urgency</p></div>
         <div class="ibox ibox-amber"><i class="ti ti-alert-triangle"></i><p>Manager will be notified via WhatsApp immediately.</p></div>
         <button onclick="submitDefectForm()" class="btn btn-red" style="margin-bottom:0">Submit defect report</button>
       </div>
     </div>
 
-    <div class="ibox ibox-green"><i class="ti ti-info-circle"></i><p>At end of shift: refuel to full tank, clean cabin, keys in lockbox, share parking location with next driver.</p></div>
-
-    <!-- Monthly inspection -->
+    <!-- MONTHLY INSPECTION -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:8px">
@@ -1448,16 +1357,17 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
         <button onclick="toggleInsp()" id="insp-btn" style="background:var(--g);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer">Start</button>
       </div>
       <div id="insp-form" style="display:none;margin-top:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Tyres</span><div><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Worn</span></div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Lights</span><div><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Faulty</span></div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Wipers</span><div><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Worn</span></div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Brakes</span><div><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Check</span></div></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0"><span style="font-size:12px">Interior</span><div><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Dirty</span></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Tyres</span><div data-item="Tyres"><span class="active" onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Worn</span></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Lights</span><div data-item="Lights"><span class="active" onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Faulty</span></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Wipers</span><div data-item="Wipers"><span class="active" onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Worn</span></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bor)"><span style="font-size:12px">Brakes</span><div data-item="Brakes"><span class="active" onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Check</span></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0"><span style="font-size:12px">Interior</span><div data-item="Interior"><span class="active" onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--gl);color:var(--gt);border:1px solid var(--g);cursor:pointer">Good</span><span onclick="this.closest('[data-item]').querySelectorAll('span').forEach(s=>s.classList.remove('active'));this.classList.add('active')" style="padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;background:var(--bg2);color:var(--t2);border:1px solid var(--bor);cursor:pointer;margin-left:4px">Dirty</span></div></div>
         <button onclick="submitInspectionForm()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px">Submit inspection report</button>
       </div>
     </div>
+
+    <div class="ibox ibox-green"><i class="ti ti-info-circle"></i><p>At end of shift: refuel to full tank, clean cabin, keys in lockbox, share parking location with next driver.</p></div>
   </div>
-  <div class="ftr" style="flex-shrink:0;background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
 
 <div id="screen-alerts" class="screen">
@@ -1600,6 +1510,7 @@ function showScreen(name) {
     if (['signin','signoff','emergency'].includes(name)) getGPS(name);
     if (['signin','signoff'].includes(name)) updateDateTime(name);
     if (name === 'vehicle')  loadVehicleData();
+    if (name === 'vanactivity') loadVanActivity();
     if (name === 'alerts')   loadAlerts();
     if (name === 'myshifts') loadMyShifts();
     if (name === 'payout')   loadPayouts();
@@ -1685,6 +1596,8 @@ async function loginWithPin() {
       localStorage.setItem('fv_driver_data',  JSON.stringify(data));
       setupDashboard();
       showScreen('home');
+      // Re-run after screen is visible to ensure DOM is ready
+      setTimeout(setupDashboard, 50);
     } else {
       showLoginError(data.message || 'Incorrect phone number or PIN');
     }
@@ -1712,14 +1625,15 @@ function signOut() {
 // ── Setup Dashboard ───────────────────────────────────────
 function setupDashboard() {
   if (!driverData) return;
-  const nameEl   = document.getElementById('driver-name');
-  const subEl    = document.getElementById('driver-subtitle');
-  const avatarEl = document.getElementById('driver-avatar');
+  // Home screen IDs
+  const nameEl   = document.getElementById('home-name');
+  const unitEl   = document.getElementById('home-unit');
+  const avatarEl = document.getElementById('home-avatar');
   const statusEl = document.getElementById('home-status');
   const vanEl    = document.getElementById('van-reg');
 
   if (nameEl)   nameEl.textContent   = driverData.driverName  || '';
-  if (subEl)    subEl.textContent    = (driverData.businessUnit || '') + ' · ' + (driverData.suburb || '');
+  if (unitEl)   unitEl.textContent   = (driverData.businessUnit || '') + ' · ' + (driverData.suburb || '');
   if (statusEl) statusEl.textContent = shiftActive ? 'On Shift' : 'Active';
   if (vanEl)    vanEl.textContent    = driverData.assignedVan  || 'No van assigned';
 
@@ -1799,6 +1713,7 @@ async function completeSignIn() {
   if (!driverData) { toast('Please log in first'); return; }
   const btn = document.getElementById('si-submit-btn');
   if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
+  // Note: shiftId auto-resolved server-side by matching today's Scheduled shift
 
   const kmEl = document.getElementById('si-km');
   const payload = {
@@ -1813,7 +1728,7 @@ async function completeSignIn() {
     vanCondition:  document.querySelector('#screen-signin .cond-btn.active')?.textContent?.trim() || 'Good',
     fuelLevel:     (['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:   document.getElementById('si-damage-notes')?.value || '',
-    damagePhotoUrl: document.querySelector('#screen-signin input[type="file"]')?.dataset?.uploadedUrl || '',
+    damagePhotoUrl: document.getElementById('cam-1-input')?.dataset?.uploadedUrl || '',
     checklist:     Array.from(document.querySelectorAll('#screen-signin .chk-item')).map(el => {
                      const lbl = el.querySelector('.chk-label')?.textContent || '';
                      const checked = el.querySelector('.chk-box')?.classList.contains('checked');
@@ -1887,7 +1802,8 @@ async function completeSignOff() {
     vanCondition:    document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
     fuelLevel:       (['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:     document.getElementById('so-damage-notes')?.value || '',
-    damagePhotoUrl:  document.querySelector('#screen-signoff input[type="file"]')?.dataset?.uploadedUrl || '',
+    damagePhotoUrl:  document.getElementById('cam-2-input')?.dataset?.uploadedUrl || '',
+    handoverPhotoUrl: document.getElementById('cam-2-input')?.dataset?.uploadedUrl || '',
     checklist:       Array.from(document.querySelectorAll('#screen-signoff .chk-item')).map(el => {
                        const lbl = el.querySelector('.chk-label')?.textContent || '';
                        const checked = el.querySelector('.chk-box')?.classList.contains('checked');
@@ -1986,12 +1902,14 @@ async function uploadFileToDrive(file, folderKey, filename) {
   });
 }
 
-// ── Load Vehicle Data ─────────────────────────────────────
+// ── Load Vehicle Data (My Vehicle screen) ────────────────
 async function loadVehicleData() {
   if (!driverData || !driverData.assignedVan) return;
   const van = driverData.assignedVan;
   const titleEl = document.getElementById('vehicle-reg-title');
+  const displayEl = document.getElementById('vehicle-reg-display');
   if (titleEl) titleEl.textContent = van;
+  if (displayEl) displayEl.textContent = van;
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
@@ -2011,84 +1929,125 @@ async function loadVehicleData() {
       if (locEl)  locEl.textContent  = addr.split(',')[0] || addr;
       if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
     }
+  } catch(e) {}
+}
 
+// ── Load Van Activity (sub-screen) ───────────────────────
+async function loadVanActivity() {
+  if (!driverData || !driverData.assignedVan) return;
+  const van = driverData.assignedVan;
+  const titleEl = document.getElementById('vanactivity-reg-title');
+  if (titleEl) titleEl.textContent = van;
+  const defSpan = document.getElementById('va-defect-van');
+  if (defSpan) defSpan.textContent = van + ' — all assigned drivers';
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    if (!data.success) return;
+
+    // Last park photo from most recent sign-off
+    // Last parked address
+    if (data.lastParked && data.lastParked.address) {
+      const addrEl = document.getElementById('van-parked-addr');
+      const byEl   = document.getElementById('van-parked-by');
+      const mapsEl = document.getElementById('van-maps-link');
+      if (addrEl) addrEl.textContent = data.lastParked.address;
+      if (byEl)   byEl.textContent   = 'Last updated: ' + (data.lastParked.time || '');
+      if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(data.lastParked.address);
+    }
+
+    // Last park photo
+    if (data.history && data.history.length > 0) {
+      const last = data.history[0];
+      const photoBox    = document.getElementById('van-last-photo-box');
+      const photoCredit = document.getElementById('van-last-photo-credit');
+      if (last.handoverPhotoUrl && photoBox) {
+        photoBox.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)">';
+        photoBox.onclick = () => window.open(last.handoverPhotoUrl, '_blank');
+      }
+      if (photoCredit) photoCredit.textContent = last.handoverPhotoUrl
+        ? 'Taken by ' + last.driver + ' · ' + last.date
+        : 'No photo from last driver';
+    }
+
+    // Active driver
+    const nameEl   = document.getElementById('van-active-name');
+    const infoEl   = document.getElementById('van-active-info');
+    const callEl   = document.getElementById('van-active-call');
+    const smsEl    = document.getElementById('van-active-sms');
+    const avatarEl = document.getElementById('van-active-avatar');
     if (data.activeDriver) {
-      const nameEl = document.getElementById('van-active-name');
-      const infoEl = document.getElementById('van-active-info');
-      const callEl = document.getElementById('van-active-call');
-      const smsEl  = document.getElementById('van-active-sms');
-      if (nameEl) nameEl.textContent = data.activeDriver.name;
-      if (infoEl) infoEl.textContent = 'Currently on shift';
-      if (callEl && data.activeDriver.phone) callEl.href = 'tel:+61' + data.activeDriver.phone.replace(/^0/,'');
-      if (smsEl  && data.activeDriver.phone) smsEl.href  = 'sms:+61' + data.activeDriver.phone.replace(/^0/,'');
+      if (nameEl)   nameEl.textContent = data.activeDriver.name;
+      if (infoEl)   infoEl.textContent = 'Currently on shift';
+      if (avatarEl) {
+        const parts = data.activeDriver.name.split(' ');
+        avatarEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+      }
+      const phone = data.activeDriver.phone ? data.activeDriver.phone.replace(/^0/, '') : '';
+      if (callEl && phone) callEl.href = 'tel:+61' + phone;
+      if (smsEl  && phone) smsEl.href  = 'sms:+61' + phone;
+    } else {
+      if (nameEl)   nameEl.textContent = 'No active driver';
+      if (infoEl)   infoEl.textContent = 'Van is available';
+      if (avatarEl) avatarEl.textContent = '—';
     }
 
-    if (data.lastNote) {
-      const fromEl = document.getElementById('van-note-from');
-      const textEl = document.getElementById('van-note-text');
-      if (fromEl) fromEl.textContent = '📝 Note from ' + data.lastNote.driver;
-      if (textEl) textEl.textContent = data.lastNote.note;
-    }
-
-    if (data.upcoming && data.upcoming.length > 0) {
-      const u1 = data.upcoming[0];
-      const d1 = document.getElementById('up1-day');
-      const t1 = document.getElementById('up1-time');
-      const n1 = document.getElementById('up1-name');
-      const i1 = document.getElementById('up1-info');
-      if (d1) d1.textContent = u1.date || 'Next';
-      if (t1) t1.textContent = u1.startTime || '';
-      if (n1) n1.textContent = u1.driver || '';
-      if (i1) i1.textContent = u1.type + ' shift · Starts ' + u1.startTime;
-    }
-
-    if (data.history) {
-      const histEl = document.getElementById('van-history-list');
-      if (histEl && data.history.length > 0) {
-        histEl.innerHTML = data.history.map((s,i) => {
-          const isDay = s.type==='Day';
-          const bg    = isDay ? 'var(--al)' : 'var(--pl)';
-          const c     = isDay ? 'var(--amb)' : 'var(--pur)';
-          const bd    = i < data.history.length-1 ? '1px solid var(--bor)' : 'none';
-          const d     = s.date ? s.date.substring(0,5) : '—';
-          return `<div style="display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:${bd}">
-            <div style="width:30px;height:30px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-              <span style="font-size:6px;color:var(--t2)">${d.split('/')[1]||''}</span>
-              <span style="font-size:11px;font-weight:800">${d.split('/')[0]||''}</span>
+    // Upcoming shifts
+    const upEl = document.getElementById('van-upcoming-list');
+    if (upEl) {
+      if (!data.upcoming || data.upcoming.length === 0) {
+        upEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">No upcoming shifts scheduled</div>';
+      } else {
+        upEl.innerHTML = data.upcoming.map(u => {
+          const phone = u.phone ? u.phone.replace(/^0/, '') : '';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
+            <div style="width:32px;height:32px;background:var(--bl);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:7px;color:var(--blu)">${u.date||''}</span>
+              <span style="font-size:9px;font-weight:800;color:var(--blu)">${u.startTime||''}</span>
             </div>
-            <div style="flex:1"><p style="font-size:11px;font-weight:600;margin:0">${s.driver||'—'}</p>
-            <span style="font-size:9px;color:var(--t2)">${s.type} · ${s.endKm&&s.startKm?(parseFloat(s.endKm)-parseFloat(s.startKm)).toFixed(0)+' km':'—'}</span></div>
-            <span style="font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;background:${bg};color:${c}">${s.type}</span>
+            <div style="flex:1"><p style="font-size:11px;font-weight:600">${u.driver||''}</p><span style="font-size:9px;color:var(--t2)">${u.type||''} shift · ${u.status||''}</span></div>
+            <div style="display:flex;gap:4px">
+              ${phone ? `<a href="tel:+61${phone}"><button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">📞</button></a>` : ''}
+              ${phone ? `<a href="sms:+61${phone}"><button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">💬</button></a>` : ''}
+            </div>
           </div>`;
         }).join('');
       }
     }
 
+    // History
+    const histEl = document.getElementById('van-history-list');
+    if (histEl) {
+      if (!data.history || data.history.length === 0) {
+        histEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">No shift history yet</div>';
+      } else {
+        histEl.innerHTML = data.history.map(h => {
+          const phone = h.phone ? h.phone.replace(/^0/, '') : '';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
+            <div style="width:32px;height:32px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:9px;font-weight:800">${h.date||''}</span>
+            </div>
+            <div style="flex:1">
+              <p style="font-size:11px;font-weight:600">${h.driver||''}</p>
+              <span style="font-size:9px;color:var(--t2)">${h.type||''} · ${h.hoursWorked ? h.hoursWorked + ' hrs' : ''} ${h.startKm && h.endKm ? '· ' + (parseFloat(h.endKm)-parseFloat(h.startKm)).toFixed(0) + ' km' : ''}</span>
+              ${h.note ? `<div style="font-size:9px;color:var(--t2);background:var(--bg2);border-radius:5px;padding:4px 6px;margin-top:3px">📝 ${h.note}</div>` : ''}
+            </div>
+            <div style="display:flex;gap:4px">
+              ${phone ? `<a href="tel:+61${phone}"><button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;cursor:pointer">📞</button></a>` : ''}
+              ${phone ? `<a href="sms:+61${phone}"><button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;cursor:pointer">💬</button></a>` : ''}
+            </div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    // Defects
     loadDefectsForVan(van);
-  } catch(e) { console.log('loadVehicleData error:', e); }
+  } catch(e) { console.error('loadVanActivity error', e); }
 }
 
-async function loadDefectsForVan(van) {
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getDefectsByVan&van=' + encodeURIComponent(van);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
-    if (!data.success || !data.defects || data.defects.length === 0) return;
-    const histEl = document.querySelector('.damage-history-list');
-    if (!histEl) return;
-    histEl.innerHTML = data.defects.slice(0,5).map(d => `
-      <div style="padding:6px 0;border-bottom:1px solid var(--bor)">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px">
-          <div style="display:flex;align-items:center;gap:5px">
-            <div style="width:22px;height:22px;background:${d.status==='Open'?'var(--rl)':'var(--gl)'};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${d.status==='Open'?'⚠️':'✅'}</div>
-            <div><div style="font-size:9px;font-weight:700">${d.date} · ${d.driver}</div><div style="font-size:8px;color:var(--t2)">${d.category}</div></div>
-          </div>
-          <span style="font-size:9px;padding:2px 6px;border-radius:20px;font-weight:700;background:${d.status==='Open'?'var(--rl)':'var(--gl)'};color:${d.status==='Open'?'var(--red)':'var(--gt)'}">${d.status}</span>
-        </div>
-        <div style="font-size:9px;color:var(--t2);background:var(--bg2);border-radius:5px;padding:4px 6px;margin-left:27px">${d.description}</div>
-      </div>`).join('');
-  } catch(e) {}
-}
 
 // ── Load Alerts ───────────────────────────────────────────
 async function loadAlerts() {
@@ -2254,9 +2213,9 @@ async function submitTicket() {
 // ── Submit Defect ─────────────────────────────────────────
 async function submitDefectForm() {
   if (!driverData) return;
-  const catEl   = document.querySelector('#def-form .sel');
-  const descEl  = document.querySelector('#def-form .textarea');
-  const photoInput = document.querySelector('#def-form input[type="file"]');
+  const catEl   = document.getElementById('def-category');
+  const descEl  = document.getElementById('def-description');
+  const photoInput = document.getElementById('cam-5-input-def');
   if (!descEl?.value) { toast('Please describe the defect'); return; }
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
@@ -2278,7 +2237,8 @@ async function submitInspectionForm() {
   if (!driverData) return;
   const items = {};
   ['Tyres','Lights','Wipers','Brakes','Interior'].forEach(k => {
-    const active = document.querySelector(`#insp-form [data-item="${k}"] .active`);
+    const container = document.querySelector(`#insp-form [data-item="${k}"]`);
+    const active = container ? container.querySelector('.active') : null;
     items[k.toLowerCase()] = active ? active.textContent.trim() : 'Good';
   });
   try {
