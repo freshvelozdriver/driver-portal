@@ -38,6 +38,20 @@
   --radius-sm:8px;
   --shadow:0 2px 12px rgba(0,0,0,0.08);
   --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  /* Shorthand aliases used in dynamic content */
+  --g:#00D062;
+  --gl:#e6f9f0;
+  --gt:#00704A;
+  --r:12px;
+  --t2:#666666;
+  --t3:#999999;
+  --bor:#e0e0e0;
+  --blu:#185FA5;
+  --bl:#E6F1FB;
+  --pur:#534AB7;
+  --pl:#EEEDFE;
+  --al:#FAEEDA;
+  --rl:#FCEBEB;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -54,6 +68,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;height:0;min-height:0;padding:16px;}
 .content::-webkit-scrollbar{display:none;}
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;height:0;min-height:0;padding:16px;}
+.ftr{background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px;flex-shrink:0;letter-spacing:0.5px;}
 .scroll::-webkit-scrollbar{display:none;}
 
 /* HEADER */
@@ -1247,6 +1262,13 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
               <i class="ti ti-map-2" style="font-size:14px"></i> Open in Google Maps
             </button>
           </a>
+          <!-- Last park photo inline preview -->
+          <div id="vehicle-park-photo-wrap" style="margin-top:9px;display:none">
+            <div id="vehicle-park-photo-box" onclick="openParkPhoto()" style="border-radius:9px;overflow:hidden;height:140px;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border)">
+              <div style="text-align:center"><i class="ti ti-camera" style="font-size:24px;color:var(--text3);display:block;margin-bottom:4px"></i><p style="font-size:11px;color:var(--text3)">Loading photo...</p></div>
+            </div>
+            <p id="vehicle-park-photo-credit" style="font-size:9px;color:var(--text3);text-align:center;margin-top:3px"></p>
+          </div>
         </div>
       </div>
     </div>
@@ -1444,7 +1466,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       <div class="prof-row" onclick="navigate('team')"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-headset" style="color:var(--text2)"></i></div><div class="prof-info"><p>Contact team</p><span>Get help</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
       <div class="prof-row"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-file-text" style="color:var(--text2)"></i></div><div class="prof-info"><p>Terms & conditions</p><span>Driver agreement</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
     </div>
-    <button class="btn-danger" onclick="logout()">Sign out</button>
+    <button class="btn-danger" onclick="signOut()">Sign out</button>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
 </div>
@@ -1509,12 +1531,13 @@ function showScreen(name) {
     if (c) c.scrollTop = 0;
     if (['signin','signoff','emergency'].includes(name)) getGPS(name);
     if (['signin','signoff'].includes(name)) updateDateTime(name);
-    if (name === 'vehicle')  loadVehicleData();
+    if (name === 'vehicle')    loadVehicleData();
     if (name === 'vanactivity') loadVanActivity();
-    if (name === 'alerts')   loadAlerts();
-    if (name === 'myshifts') loadMyShifts();
-    if (name === 'payout')   loadPayouts();
-    if (name === 'profile')  loadProfile();
+    if (name === 'alerts')     loadAlerts();
+    if (name === 'myshifts')   loadMyShifts();
+    if (name === 'payout')     loadPayouts();
+    if (name === 'profile')    loadProfile();
+    if (name === 'settings')   loadProfile();
   }
 }
 
@@ -1649,7 +1672,7 @@ function loadProfile() {
   const n = document.getElementById('profile-name');
   const e = document.getElementById('profile-email');
   const a = document.getElementById('profile-avatar');
-  const b = document.getElementById('profile-badge');
+  const b = document.getElementById('profile-unit') || document.getElementById('profile-badge');
   if (n) n.textContent = driverData.driverName || '';
   if (e) e.textContent = driverData.email || '';
   if (b) b.textContent = (driverData.businessUnit || '') + ' · Active';
@@ -1657,6 +1680,9 @@ function loadProfile() {
     const parts = (driverData.driverName || 'D').split(' ');
     a.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
   }
+  // Also populate Van PIN display from driver data
+  const pinEl = document.getElementById('pin-val');
+  if (pinEl && driverData.vanPin) pinEl.textContent = '● ● ● ●';
 }
 
 // ── GPS ───────────────────────────────────────────────────
@@ -1903,6 +1929,9 @@ async function uploadFileToDrive(file, folderKey, filename) {
 }
 
 // ── Load Vehicle Data (My Vehicle screen) ────────────────
+let _lastParkPhotoUrl = '';
+function openParkPhoto() { if (_lastParkPhotoUrl) window.open(_lastParkPhotoUrl, '_blank'); }
+
 async function loadVehicleData() {
   if (!driverData || !driverData.assignedVan) return;
   const van = driverData.assignedVan;
@@ -2045,7 +2074,14 @@ async function loadVanActivity() {
 
     // Defects
     loadDefectsForVan(van);
-  } catch(e) { console.error('loadVanActivity error', e); }
+  } catch(e) {
+    console.error('loadVanActivity error', e);
+    const upEl   = document.getElementById('van-upcoming-list');
+    const histEl = document.getElementById('van-history-list');
+    const errMsg = '<div style="padding:14px;color:var(--red);font-size:12px;text-align:center">Could not load data. Check connection.</div>';
+    if (upEl)   upEl.innerHTML   = errMsg;
+    if (histEl) histEl.innerHTML = errMsg;
+  }
 }
 
 
@@ -2090,9 +2126,15 @@ async function loadMyShifts() {
       return;
     }
     const cards = data.shifts.map(s => {
-      const isDay   = s.type==='Day';
-      const statusBg = s.status==='In Progress'?'var(--gl)':s.status==='Completed'?'var(--bg2)':'var(--bl)';
-      const statusC  = s.status==='In Progress'?'var(--gt)':s.status==='Completed'?'var(--t2)':'var(--blu)';
+      const isDay    = s.type === 'Day';
+      const statusBg = s.status==='In Progress' ? 'var(--gl)' : s.status==='Completed' ? 'var(--bg2)' : 'var(--bl)';
+      const statusC  = s.status==='In Progress' ? 'var(--gt)' : s.status==='Completed' ? 'var(--t2)'  : 'var(--blu)';
+      // Show actual times if available, fall back to scheduled
+      const displayStart = s.actualStart || s.startTime || '—';
+      const displayEnd   = s.actualEnd   || s.endTime   || '—';
+      const kmInfo = (s.startKm && s.endKm)
+        ? `${s.startKm} → ${s.endKm} km (${(parseFloat(s.endKm)-parseFloat(s.startKm)).toFixed(0)} km)`
+        : (s.startKm ? `Start: ${s.startKm} km` : '');
       return `<div class="shift-item">
         <div class="shift-item-header">
           <i class="ti ${isDay?'ti-sun':'ti-moon'}" style="color:${isDay?'var(--g)':'var(--pur)'}"></i>
@@ -2100,8 +2142,11 @@ async function loadMyShifts() {
           <span style="font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;background:${statusBg};color:${statusC}">${s.status||'Scheduled'}</span>
         </div>
         <div class="shift-meta">
-          <div class="shift-meta-item"><span>Time</span><p>${s.startTime||'—'} – ${s.endTime||'—'}</p></div>
+          <div class="shift-meta-item"><span>Scheduled</span><p>${s.startTime||'—'} – ${s.endTime||'—'}</p></div>
+          <div class="shift-meta-item"><span>Actual</span><p>${displayStart} – ${displayEnd}</p></div>
           <div class="shift-meta-item"><span>Van</span><p>${s.van||'—'}</p></div>
+          ${s.hoursWorked ? `<div class="shift-meta-item"><span>Hours</span><p>${s.hoursWorked} hrs</p></div>` : ''}
+          ${kmInfo ? `<div class="shift-meta-item" style="grid-column:1/-1"><span>Odometer</span><p>${kmInfo}</p></div>` : ''}
         </div>
       </div>`;
     }).join('');
