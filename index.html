@@ -764,20 +764,19 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
     <div class="hdr-info" style="margin-left:0"><h1>Shift complete 🎉</h1><p>Great work today</p></div>
   </div>
   <div class="scroll">
-    <div style="text-align:center;padding:16px 0 20px">
-      <div style="width:62px;height:62px;background:var(--gl);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px">🏆</div>
-      <p style="font-size:17px;font-weight:700;margin-bottom:3px" id="summary-name">Great work John!</p>
-      <span style="font-size:11px;color:var(--t2)">Day shift · Tue 3 Jun 2026</span>
+    <div style="text-align:center;padding:24px 0 28px">
+      <div style="width:72px;height:72px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:32px">🏆</div>
+      <p style="font-size:20px;font-weight:700;margin-bottom:6px" id="summary-name">Great work!</p>
+      <p style="font-size:13px;color:var(--text2)" id="summary-date">Shift complete</p>
     </div>
-    <div class="stat-grid">
-      <div class="stat-box" style="text-align:center"><div style="font-size:20px;margin-bottom:4px">⏱️</div><div class="stat-lbl">Duration</div><div class="stat-val" style="font-size:15px">12h 8m</div></div>
-      <div class="stat-box" style="text-align:center"><div style="font-size:20px;margin-bottom:4px">📦</div><div class="stat-lbl">Delivered</div><div class="stat-val" style="font-size:15px">14 / 14</div></div>
-      <div class="stat-box" style="text-align:center"><div style="font-size:20px;margin-bottom:4px">🛣️</div><div class="stat-lbl">KM driven</div><div class="stat-val" style="font-size:15px">268 km</div></div>
-      <div class="stat-box" style="text-align:center"><div style="font-size:20px;margin-bottom:4px">⛽</div><div class="stat-lbl">Fuel level</div><div class="stat-val" style="font-size:15px">Half tank</div></div>
+    <div style="background:var(--green-light);border-radius:var(--radius);padding:16px;margin-bottom:16px;text-align:center">
+      <p style="font-size:14px;font-weight:700;color:var(--green-text);margin-bottom:4px">✅ Shift saved</p>
+      <p style="font-size:12px;color:var(--green-text)">All data recorded. Keys in lockbox. See you next shift!</p>
     </div>
-    <div class="ibox ibox-green"><i class="ti ti-check"></i><p><strong>100% delivery rate today!</strong> All consignments delivered.</p></div>
-    <div style="background:var(--bg2);border-radius:var(--r);padding:11px;margin-bottom:12px"><p style="font-size:12px;font-weight:700;margin-bottom:3px">Shift saved ✅</p><span style="font-size:11px;color:var(--t2)">All sign in, KM and checklist data saved automatically.</span></div>
-    <button class="btn btn-green" onclick="backToHome()">Back to home</button>
+    <div style="background:var(--bg2);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+      <p style="font-size:12px;color:var(--text2);line-height:1.6">Your sign-off, KM reading, van condition, checklist, and any photos have been saved to the system. Your manager can review everything in the dashboard.</p>
+    </div>
+    <button class="btn-primary" onclick="backToHome()">Back to home</button>
   </div>
   <div class="ftr" style="flex-shrink:0;background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
@@ -1531,12 +1530,13 @@ function showScreen(name) {
     if (c) c.scrollTop = 0;
     if (['signin','signoff','emergency'].includes(name)) getGPS(name);
     if (['signin','signoff'].includes(name)) updateDateTime(name);
-    if (name === 'vehicle')    loadVehicleData();
+    if (name === 'vehicle')     loadVehicleData();
     if (name === 'vanactivity') loadVanActivity();
-    if (name === 'alerts')     loadAlerts();
-    if (name === 'myshifts')   loadMyShifts();
-    if (name === 'payout')     loadPayouts();
-    if (name === 'profile')    loadProfile();
+    if (name === 'alerts')      loadAlerts();
+    if (name === 'myshifts')    loadMyShifts();
+    if (name === 'payout')      loadPayouts();
+    if (name === 'profile')     loadProfile();
+    if (name === 'settings')    loadProfile();
     if (name === 'settings')   loadProfile();
   }
 }
@@ -1738,7 +1738,9 @@ function getCurrentTime() {
 async function completeSignIn() {
   if (!driverData) { toast('Please log in first'); return; }
   const btn = document.getElementById('si-submit-btn');
-  if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
+  await waitForUploads('signin');
+  if (btn) btn.textContent = 'Submitting...';
   // Note: shiftId auto-resolved server-side by matching today's Scheduled shift
 
   const kmEl = document.getElementById('si-km');
@@ -1755,6 +1757,7 @@ async function completeSignIn() {
     fuelLevel:     (['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:   document.getElementById('si-damage-notes')?.value || '',
     damagePhotoUrl: document.getElementById('cam-1-input')?.dataset?.uploadedUrl || '',
+    videoUrl:       document.getElementById('si-video-input')?.dataset?.uploadedUrl || '',
     checklist:     Array.from(document.querySelectorAll('#screen-signin .chk-item')).map(el => {
                      const lbl = el.querySelector('.chk-label')?.textContent || '';
                      const checked = el.querySelector('.chk-box')?.classList.contains('checked');
@@ -1813,7 +1816,9 @@ async function completeSignOff() {
   if (!addrEl?.value) { toast('Please enter the drop-off address'); addrEl?.focus(); return; }
 
   const btn = document.getElementById('so-submit-btn');
-  if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
+  await waitForUploads('signoff');
+  if (btn) btn.textContent = 'Submitting...';
 
   const noteEl = document.getElementById('so-next-driver-note');
   const payload = {
@@ -1829,7 +1834,7 @@ async function completeSignOff() {
     fuelLevel:       (['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:     document.getElementById('so-damage-notes')?.value || '',
     damagePhotoUrl:  document.getElementById('cam-2-input')?.dataset?.uploadedUrl || '',
-    handoverPhotoUrl: document.getElementById('cam-2-input')?.dataset?.uploadedUrl || '',
+    handoverPhotoUrl: document.getElementById('cam-3-input')?.dataset?.uploadedUrl || '',
     checklist:       Array.from(document.querySelectorAll('#screen-signoff .chk-item')).map(el => {
                        const lbl = el.querySelector('.chk-label')?.textContent || '';
                        const checked = el.querySelector('.chk-box')?.classList.contains('checked');
@@ -1859,6 +1864,10 @@ async function completeSignOff() {
       document.getElementById('shift-time').textContent  = '6:00 AM — 6:00 PM';
       document.getElementById('home-status').textContent = 'Active';
       screenHistory = [];
+      const snEl = document.getElementById('summary-name');
+      const sdEl = document.getElementById('summary-date');
+      if (snEl) snEl.textContent = 'Great work, ' + (driverData.driverName.split(' ')[0]) + '!';
+      if (sdEl) sdEl.textContent = new Date().toLocaleDateString('en-AU', {weekday:'long', day:'numeric', month:'long'}) + ' shift complete';
       showScreen('shift-summary');
     } else {
       toast('Error: ' + (data.message || 'Could not sign off.'));
@@ -1907,6 +1916,21 @@ async function uploadFileInBackground(input, file, folderKey) {
   }
 }
 
+// Wait for all pending uploads on a screen before submitting
+async function waitForUploads(screenId) {
+  const inputs = document.querySelectorAll('#screen-' + screenId + ' input[type="file"]');
+  const pending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected');
+  if (pending.length === 0) return true;
+  let waited = 0;
+  while (waited < 15000) {
+    await new Promise(r => setTimeout(r, 500));
+    waited += 500;
+    const stillPending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected');
+    if (stillPending.length === 0) return true;
+  }
+  return false; // timeout — submit anyway
+}
+
 async function uploadFileToDrive(file, folderKey, filename) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1948,7 +1972,7 @@ async function loadVehicleData() {
 
     if (data.history && data.history.length > 0) {
       const last   = data.history[0];
-      const addr   = last.endLocation || last.address || '';
+      const addr   = last.endLocation || data.lastParked?.address || last.address || '';
       const addrEl = document.getElementById('van-parked-addr');
       const byEl   = document.getElementById('van-parked-by');
       const mapsEl = document.getElementById('van-maps-link');
@@ -1957,9 +1981,19 @@ async function loadVehicleData() {
       if (byEl)   byEl.textContent   = 'Parked by ' + last.driver + ' · ' + last.date;
       if (locEl)  locEl.textContent  = addr.split(',')[0] || addr;
       if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+
+      // Last park photo — show inline
+      if (last.handoverPhotoUrl) {
+        _lastParkPhotoUrl = last.handoverPhotoUrl;
+        const wrap   = document.getElementById('vehicle-park-photo-wrap');
+        const box    = document.getElementById('vehicle-park-photo-box');
+        const credit = document.getElementById('vehicle-park-photo-credit');
+        if (wrap)   wrap.style.display = 'block';
+        if (box)    box.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover">';
+        if (credit) credit.textContent = 'Parked by ' + last.driver + ' · ' + last.date;
+      }
     }
-  } catch(e) {}
-}
+  } catch(e) { console.error('loadVehicleData error', e); }
 
 // ── Load Van Activity (sub-screen) ───────────────────────
 async function loadVanActivity() {
