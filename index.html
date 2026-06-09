@@ -1593,7 +1593,15 @@ async function loginWithPin() {
   try {
     const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(cleanPhone) + '&pin=' + encodeURIComponent(pin);
     const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch(parseErr) {
+      // Apps Script returned HTML (not deployed correctly or needs re-auth)
+      showLoginError('Server configuration error. Please contact your manager or check the Apps Script deployment.');
+      btn.textContent = 'Sign in'; btn.disabled = false;
+      return;
+    }
 
     if (data.success) {
       driverData = data;
@@ -1601,13 +1609,13 @@ async function loginWithPin() {
       localStorage.setItem('fv_driver_data',  JSON.stringify(data));
       setupDashboard();
       showScreen('home');
-      // Re-run after screen is visible to ensure DOM is ready
       setTimeout(setupDashboard, 50);
     } else {
       showLoginError(data.message || 'Incorrect phone number or PIN');
     }
   } catch(e) {
-    showLoginError('Connection error. Check your internet and try again.');
+    // Network/CORS failure — show specific message
+    showLoginError('Cannot reach server. Check your internet connection and try again. (Error: ' + e.message + ')');
   }
 
   btn.textContent = 'Sign in';
