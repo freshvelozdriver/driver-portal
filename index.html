@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#00D062">
 <title>Fresh Veloz — Driver Portal</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" onerror="console.warn('Icon font failed to load')">
 <style>
 :root {
   --green:#00D062;
@@ -465,7 +465,26 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 
 </style>
 </head>
-<body>
+<body style="margin:0;padding:0;background:#fff;overflow:hidden;width:100%;height:100%;height:-webkit-fill-available;">
+<style>
+/* EMERGENCY OVERRIDE - Ensure page is visible immediately */
+html, body { visibility: visible !important; opacity: 1 !important; margin:0; padding:0; background:#fff; width:100%; height:100%; height:-webkit-fill-available; }
+body { display: block !important; overflow: hidden; }
+#app { visibility: visible !important; opacity: 1 !important; display: flex !important; flex-direction: column; }
+#screen-login { display: flex !important; visibility: visible !important; opacity: 1 !important; position: absolute !important; flex-direction: column; }
+</style>
+
+<!-- DEBUG INFO -->
+<div id="debug-info" style="display:none;position:fixed;top:0;left:0;right:0;background:#333;color:#fff;z-index:99999;padding:10px;font-size:10px;max-height:100px;overflow:auto;font-family:monospace;">Ready</div>
+
+<script>
+window.DEBUG = function(msg) {
+  const d = document.getElementById('debug-info');
+  if (d) { d.style.display = 'block'; d.textContent = d.textContent + '\n' + msg; }
+  console.log(msg);
+};
+DEBUG('Page loading...');
+</script>
 
 <!-- Loading screen removed — app goes directly to login or home -->
 
@@ -1554,6 +1573,31 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
   <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
 
+<!-- IMMEDIATE RENDER FORCE -->
+<script>
+(function() {
+  const app = document.getElementById('app');
+  const login = document.getElementById('screen-login');
+  if (app) { 
+    app.style.visibility = 'visible'; 
+    app.style.display = 'flex'; 
+    app.style.opacity = '1';
+    app.style.height = window.innerHeight + 'px';
+  }
+  if (login) { 
+    login.style.display = 'flex'; 
+    login.style.visibility = 'visible'; 
+    login.style.opacity = '1';
+    login.classList.add('active');
+  }
+  // Hide all other screens
+  document.querySelectorAll('.screen').forEach(s => {
+    if (s.id !== 'screen-login') s.style.display = 'none';
+  });
+  console.log('📱 Immediate render forced');
+})();
+</script>
+
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFBDMpRlxOgHU51FCcdISdGza0g5EVOQZIhOPrF7SmWfhb471UbgjUSzXHv5l4FDrq/exec';
 
@@ -1604,12 +1648,21 @@ function backToHome() {
 // ── App Init ──────────────────────────────────────────────
 window.addEventListener('load', () => {
   try {
+    console.log('🚀 App loading...');
+    
     // Fix height for mobile browsers
     const setHeight = () => {
-      document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
-      const app = document.getElementById('app');
-      if (app) app.style.height = window.innerHeight + 'px';
+      try {
+        document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+        const app = document.getElementById('app');
+        if (app) {
+          app.style.height = window.innerHeight + 'px';
+          app.style.visibility = 'visible';
+          app.style.opacity = '1';
+        }
+      } catch(e) { console.error('setHeight error:', e); }
     };
+    
     setHeight();
     window.addEventListener('resize', setHeight);
 
@@ -1618,32 +1671,40 @@ window.addEventListener('load', () => {
     if (saved) {
       try {
         driverData = JSON.parse(saved);
-        setupDashboard();
-        const wasOnShift = localStorage.getItem('fv_shift_on') === 'true';
-        shiftActive = wasOnShift;
-        if (wasOnShift) {
-          const btn = document.getElementById('shift-btn');
-          const lbl = document.getElementById('shift-label');
-          const status = document.getElementById('home-status');
-          if (btn) { btn.textContent = 'End shift'; btn.className = 'shift-btn-end'; }
-          if (lbl) lbl.textContent = 'Shift in progress';
-          if (status) status.textContent = 'On Shift';
+        if (driverData && driverData.email) {
+          console.log('✅ Session restored for: ' + driverData.driverName);
+          setupDashboard();
+          const wasOnShift = localStorage.getItem('fv_shift_on') === 'true';
+          shiftActive = wasOnShift;
+          if (wasOnShift) {
+            const btn = document.getElementById('shift-btn');
+            const lbl = document.getElementById('shift-label');
+            const status = document.getElementById('home-status');
+            if (btn) { btn.textContent = 'End shift'; btn.className = 'shift-btn-end'; }
+            if (lbl) lbl.textContent = 'Shift in progress';
+            if (status) status.textContent = 'On Shift';
+          }
+          showScreen('home');
+          return;
         }
-        showScreen('home');
-        return;
       } catch(e) { 
-        console.error('Login restore error:', e);
+        console.error('Session restore failed:', e);
         localStorage.clear();
       }
     }
+    
+    console.log('📱 Showing login screen');
     showScreen('login');
   } catch(err) {
     console.error('App init error:', err);
-    // Fallback: ensure login is visible even if there's an error
+    // Force login visible even if there's an error
     setTimeout(() => { 
-      if (document.getElementById('screen-login')) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('screen-login').classList.add('active');
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const loginEl = document.getElementById('screen-login');
+      if (loginEl) {
+        loginEl.classList.add('active');
+        loginEl.style.display = 'flex';
+        console.log('⚠️ Fallback: Login forced visible');
       }
     }, 100);
   }
@@ -2592,6 +2653,43 @@ function togglePin() {
   el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
 }
 
+</script>
+
+<script>
+// IMMEDIATE INITIALIZATION - Runs synchronously before page fully renders
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    try {
+      // Force login screen visible
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const loginScreen = document.getElementById('screen-login');
+      if (loginScreen) {
+        loginScreen.classList.add('active');
+        console.log('✅ Login screen forced visible');
+      }
+      
+      // Check for saved session
+      const saved = localStorage.getItem('fv_driver_data');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          if (data && data.email && data.driverName) {
+            // User already logged in
+            if (typeof showScreen === 'function') {
+              showScreen('home');
+              console.log('✅ Showing home for ' + data.driverName);
+            }
+          }
+        } catch(e) {
+          console.warn('Could not restore session:', e);
+          localStorage.clear();
+        }
+      }
+    } catch(e) {
+      console.error('DOMContentLoaded error:', e);
+    }
+  }, 10);
+});
 </script>
 </body>
 </html>
