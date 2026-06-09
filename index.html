@@ -455,7 +455,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
           style="display:block;width:100%;box-sizing:border-box;padding:11px 13px;border:1px solid #e0e0e0;border-radius:8px;font-size:22px;letter-spacing:8px;text-align:center;color:#1a1a1a;background:#fff;outline:none;-webkit-appearance:none">
       </div>
 
-      <div id="login-error" style="display:none;background:#FCEBEB;color:#A32D2D;border-radius:8px;padding:9px 12px;font-size:11px;margin-bottom:10px;text-align:center;font-weight:600;width:100%;box-sizing:border-box"></div>
+      <div id="login-error" style="display:none;background:#FCEBEB;color:#A32D2D;border-radius:8px;padding:9px 12px;font-size:12px;margin-bottom:10px;text-align:left;font-weight:600;width:100%;box-sizing:border-box;word-break:break-word;line-height:1.5"></div>
 
       <button onclick="loginWithPin()" id="login-btn"
         style="display:block;width:100%;box-sizing:border-box;background:#00D062;color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">
@@ -1592,13 +1592,14 @@ async function loginWithPin() {
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(cleanPhone) + '&pin=' + encodeURIComponent(pin);
+    showLoginError('DEBUG: Calling server...');
     const resp = await fetch(url, { method:'GET', redirect:'follow' });
     const text = await resp.text();
+    showLoginError('DEBUG: Got response: ' + text.substring(0, 120));
     let data;
     try { data = JSON.parse(text); }
     catch(parseErr) {
-      // Apps Script returned HTML (not deployed correctly or needs re-auth)
-      showLoginError('Server configuration error. Please contact your manager or check the Apps Script deployment.');
+      showLoginError('Server error — script not deployed as "Anyone". Response: ' + text.substring(0, 200));
       btn.textContent = 'Sign in'; btn.disabled = false;
       return;
     }
@@ -1614,8 +1615,7 @@ async function loginWithPin() {
       showLoginError(data.message || 'Incorrect phone number or PIN');
     }
   } catch(e) {
-    // Network/CORS failure — show specific message
-    showLoginError('Cannot reach server. Check your internet connection and try again. (Error: ' + e.message + ')');
+    showLoginError('Network error: ' + e.message + ' | URL tried: ' + APPS_SCRIPT_URL.substring(0,60) + '...');
   }
 
   btn.textContent = 'Sign in';
