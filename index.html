@@ -1723,27 +1723,71 @@ async function loginWithPin() {
 
   btn.textContent = 'Signing in...';
   btn.disabled    = true;
+  
+  DEBUG('Login attempt with phone: ' + phone);
 
   const cleanPhone = phone.replace(/[\s\-]/g,'').replace(/^(\+61|61|0)/,'');
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(cleanPhone) + '&pin=' + encodeURIComponent(pin);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
+    DEBUG('Calling: ' + url.substring(0, 80) + '...');
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    const resp = await fetch(url, { 
+      method:'GET', 
+      redirect:'follow',
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    DEBUG('Response status: ' + resp.status);
+    
+    const text = await resp.text();
+    DEBUG('Response length: ' + text.length);
+    
+    if (!text || text.trim() === '') {
+      showLoginError('Empty response from server. Check your connection.');
+      DEBUG('ERROR: Empty response');
+      return;
+    }
+    
+    DEBUG('Response text: ' + text.substring(0, 100));
+    
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch(parseErr) {
+      showLoginError('Invalid response from server. Please try again.');
+      DEBUG('ERROR: Parse failed - ' + parseErr.message);
+      console.error('Response was:', text);
+      return;
+    }
+
+    DEBUG('Parsed response: success=' + data.success);
 
     if (data.success) {
       driverData = data;
       localStorage.setItem('fv_driver_email', data.email);
       localStorage.setItem('fv_driver_data',  JSON.stringify(data));
+      DEBUG('✅ Login successful');
       setupDashboard();
       showScreen('home');
-      // Re-run after screen is visible to ensure DOM is ready
       setTimeout(setupDashboard, 50);
     } else {
       showLoginError(data.message || 'Incorrect phone number or PIN');
+      DEBUG('❌ Login failed: ' + (data.message || 'Unknown error'));
     }
   } catch(e) {
-    showLoginError('Connection error. Check your internet and try again.');
+    if (e.name === 'AbortError') {
+      showLoginError('Request timed out. Check your connection.');
+      DEBUG('ERROR: Timeout after 10s');
+    } else {
+      showLoginError('Connection error. Check your internet and try again.');
+      DEBUG('ERROR: ' + e.message);
+    }
+    console.error('Login error:', e);
   }
 
   btn.textContent = 'Sign in';
@@ -2658,35 +2702,39 @@ function togglePin() {
 <script>
 // IMMEDIATE INITIALIZATION - Runs synchronously before page fully renders
 document.addEventListener('DOMContentLoaded', () => {
+  DEBUG('DOM ready');
   setTimeout(() => {
     try {
       // Force login screen visible
+      DEBUG('Forcing login screen...');
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       const loginScreen = document.getElementById('screen-login');
       if (loginScreen) {
         loginScreen.classList.add('active');
-        console.log('✅ Login screen forced visible');
+        DEBUG('✅ Login screen visible');
       }
       
       // Check for saved session
       const saved = localStorage.getItem('fv_driver_data');
       if (saved) {
+        DEBUG('Found saved session');
         try {
           const data = JSON.parse(saved);
           if (data && data.email && data.driverName) {
             // User already logged in
+            DEBUG('Restoring session for: ' + data.driverName);
             if (typeof showScreen === 'function') {
               showScreen('home');
-              console.log('✅ Showing home for ' + data.driverName);
+              DEBUG('✅ Showing home');
             }
           }
         } catch(e) {
-          console.warn('Could not restore session:', e);
+          DEBUG('Could not restore session: ' + e.message);
           localStorage.clear();
         }
       }
     } catch(e) {
-      console.error('DOMContentLoaded error:', e);
+      DEBUG('DOMContentLoaded error: ' + e.message);
     }
   }, 10);
 });
