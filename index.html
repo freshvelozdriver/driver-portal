@@ -383,7 +383,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 /* Loading screen removed */
 
 /* TOAST */
-#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;opacity:0;transition:all 0.3s;z-index:9999;white-space:nowrap;}
+#toast{position:fixed;bottom:140px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;padding:11px 22px;border-radius:30px;font-size:13px;font-weight:600;opacity:0;transition:all 0.3s;z-index:99999;white-space:nowrap;max-width:85vw;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* VAN CARD IN DASHBOARD */
@@ -473,17 +473,7 @@ body { display: block !important; overflow: hidden; }
 #app { visibility: visible !important; opacity: 1 !important; display: flex !important; flex-direction: column; }
 </style>
 
-<!-- DEBUG INFO -->
-<div id="debug-info" style="display:none;position:fixed;top:0;left:0;right:0;background:#333;color:#fff;z-index:99999;padding:10px;font-size:10px;max-height:100px;overflow:auto;font-family:monospace;">Ready</div>
 
-<script>
-window.DEBUG = function(msg) {
-  const d = document.getElementById('debug-info');
-  if (d) { d.style.display = 'block'; d.textContent = d.textContent + '\n' + msg; }
-  console.log(msg);
-};
-DEBUG('Page loading...');
-</script>
 
 <!-- Loading screen removed — app goes directly to login or home -->
 
@@ -1343,10 +1333,16 @@ DEBUG('Page loading...');
       <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">✅</div><div class="prof-info"><p>Condition</p><span id="vehicle-condition-text">Good — checked recently</span></div></div>
       <div class="prof-row"><div class="prof-icon" style="background:var(--bl)">📡</div><div class="prof-info"><p>GPS tracking</p><span>Active — every 5 mins</span></div></div>
     </div>
-    <!-- Van Activity Button -->
-    <button onclick="navigate('vanactivity')" style="width:100%;background:var(--green);color:#fff;border:none;border-radius:var(--radius);padding:13px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px">
-      <i class="ti ti-calendar-stats" style="font-size:16px"></i> Van Activity &amp; Upcoming Shifts
-    </button>
+    <!-- Van Activity inline (was separate screen) -->
+    <div style="height:1px;background:var(--border);margin:4px 0 14px"></div>
+    <p style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📅 Upcoming shifts for this van</p>
+    <div id="vehicle-upcoming-list" style="margin-bottom:14px">
+      <div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Loading...</div>
+    </div>
+    <p style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🕓 Recent shift history</p>
+    <div id="vehicle-history-list" style="margin-bottom:14px">
+      <div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Loading...</div>
+    </div>
   </div>
   <div class="ftr" style="flex-shrink:0;background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px">© 2026 Fresh Veloz. All rights reserved.</div>
 
@@ -1585,7 +1581,7 @@ let toastTimer;
 
 // ── Screen Navigation ─────────────────────────────────────
 function showScreen(name) {
-  DEBUG('showScreen: ' + name);
+  console.log('showScreen: ' + name);
   document.querySelectorAll('.screen').forEach(s => {
     s.classList.remove('active');
     s.style.display = '';
@@ -1607,7 +1603,7 @@ function showScreen(name) {
     if (name === 'profile')     loadProfile();
     if (name === 'settings')    loadProfile();
   } else {
-    DEBUG('showScreen missing element: screen-' + name);
+    console.log('showScreen missing element: screen-' + name);
   }
 }
 
@@ -1705,13 +1701,13 @@ async function loginWithPin() {
   btn.textContent = 'Signing in...';
   btn.disabled    = true;
   
-  DEBUG('Login attempt with phone: ' + phone);
+  console.log('Login attempt with phone: ' + phone);
 
   const cleanPhone = phone.replace(/[\s\-]/g,'').replace(/^(\+61|61|0)/,'');
 
   try {
     const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(cleanPhone) + '&pin=' + encodeURIComponent(pin);
-    DEBUG('Calling: ' + url.substring(0, 80) + '...');
+    console.log('Calling: ' + url.substring(0, 80) + '...');
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -1723,54 +1719,54 @@ async function loginWithPin() {
     });
     
     clearTimeout(timeoutId);
-    DEBUG('Response status: ' + resp.status);
+    console.log('Response status: ' + resp.status);
     
     const text = await resp.text();
-    DEBUG('Response length: ' + text.length);
+    console.log('Response length: ' + text.length);
     
     if (!text || text.trim() === '') {
       showLoginError('Empty response from server. Check your connection.');
-      DEBUG('ERROR: Empty response');
+      console.log('ERROR: Empty response');
       btn.textContent = 'Sign in';
       btn.disabled = false;
       return;
     }
     
-    DEBUG('Response text: ' + text.substring(0, 100));
+    console.log('Response text: ' + text.substring(0, 100));
     
     let data;
     try {
       data = JSON.parse(text);
     } catch(parseErr) {
       showLoginError('Invalid response from server. Please try again.');
-      DEBUG('ERROR: Parse failed - ' + parseErr.message);
+      console.log('ERROR: Parse failed - ' + parseErr.message);
       console.error('Response was:', text);
       btn.textContent = 'Sign in';
       btn.disabled = false;
       return;
     }
 
-    DEBUG('Parsed response: success=' + data.success);
+    console.log('Parsed response: success=' + data.success);
 
     if (data.success) {
       driverData = data;
       localStorage.setItem('fv_driver_email', data.email);
       localStorage.setItem('fv_driver_data',  JSON.stringify(data));
-      DEBUG('✅ Login successful');
+      console.log('✅ Login successful');
       setupDashboard();
       showScreen('home');
       setTimeout(setupDashboard, 50);
     } else {
       showLoginError(data.message || 'Incorrect phone number or PIN');
-      DEBUG('❌ Login failed: ' + (data.message || 'Unknown error'));
+      console.log('❌ Login failed: ' + (data.message || 'Unknown error'));
     }
   } catch(e) {
     if (e.name === 'AbortError') {
       showLoginError('Request timed out. Check your connection.');
-      DEBUG('ERROR: Timeout after 10s');
+      console.log('ERROR: Timeout after 10s');
     } else {
       showLoginError('Connection error. Check your internet and try again.');
-      DEBUG('ERROR: ' + e.message);
+      console.log('ERROR: ' + e.message);
     }
     console.error('Login error:', e);
   }
@@ -1844,26 +1840,37 @@ function getGPS(screen) {
     currentGPS.lng = pos.coords.longitude.toFixed(6);
     currentGPS.address = currentGPS.lat + ', ' + currentGPS.lng;
 
-    const latEl  = document.querySelector('#screen-' + screen + ' .gps-lat');
-    const lngEl  = document.querySelector('#screen-' + screen + ' .gps-lng');
+    // Update the GPS status elements (by ID pattern used in sign-in/sign-off)
+    const gpsEl  = document.getElementById(screen + '-gps');
+    const addrEl = document.getElementById(screen + '-address');
     const dotEl  = document.querySelector('#screen-' + screen + ' .gps-dot');
-    const addrEl = document.querySelector('#screen-' + screen + ' .gps-address');
 
-    if (latEl)  latEl.textContent  = currentGPS.lat;
-    if (lngEl)  lngEl.textContent  = currentGPS.lng;
+    if (gpsEl)  gpsEl.textContent  = 'Location found';
+    if (addrEl) addrEl.textContent = currentGPS.lat + ', ' + currentGPS.lng;
     if (dotEl)  dotEl.style.background = '#00D062';
-    if (addrEl) addrEl.textContent = 'GPS captured';
 
-    // Reverse geocode
+    // Reverse geocode for readable address
     fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + currentGPS.lat + '&lon=' + currentGPS.lng)
       .then(r => r.json())
       .then(d => {
         if (d.display_name) {
           currentGPS.address = d.display_name.split(',').slice(0,3).join(',');
+          if (gpsEl)  gpsEl.textContent  = 'Location captured ✅';
           if (addrEl) addrEl.textContent = currentGPS.address;
+          // Also pre-fill the drop-off address field on signoff
+          if (screen === 'signoff') {
+            const dropEl = document.getElementById('so-dropoff-address');
+            if (dropEl && !dropEl.value) dropEl.value = currentGPS.address;
+          }
         }
       }).catch(()=>{});
-  }, () => { console.log('GPS denied'); });
+  }, (err) => {
+    console.log('GPS error:', err.message);
+    const gpsEl  = document.getElementById(screen + '-gps');
+    const addrEl = document.getElementById(screen + '-address');
+    if (gpsEl)  gpsEl.textContent  = 'Location unavailable';
+    if (addrEl) addrEl.textContent = 'Please enter address manually';
+  }, { timeout: 10000, enableHighAccuracy: true });
 }
 
 // ── Date/Time ─────────────────────────────────────────────
@@ -1888,13 +1895,19 @@ function getCurrentTime() {
 // ── Sign In ───────────────────────────────────────────────
 async function completeSignIn() {
   if (!driverData) { toast('Please log in first'); return; }
+
+  // ── Validate required fields before submitting ──
+  const kmEl = document.getElementById('si-km');
+  if (!kmEl?.value || isNaN(parseFloat(kmEl.value))) {
+    toast('⚠️ Please enter the start odometer reading');
+    flashField(kmEl); kmEl?.focus();
+    return;
+  }
+
   const btn = document.getElementById('si-submit-btn');
   if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
   await waitForUploads('signin');
   if (btn) btn.textContent = 'Submitting...';
-  // Note: shiftId auto-resolved server-side by matching today's Scheduled shift
-
-  const kmEl = document.getElementById('si-km');
   const payload = {
     action:        'submitSignIn',
     driver:        driverData.driverName,
@@ -1963,8 +1976,12 @@ async function completeSignOff() {
   // Validate mandatory fields
   const kmEl    = document.getElementById('so-km');
   const addrEl  = document.getElementById('so-dropoff-address');
-  if (!kmEl?.value)   { toast('Please enter the end odometer reading'); return; }
-  if (!addrEl?.value) { toast('Please enter the drop-off address'); addrEl?.focus(); return; }
+  if (!kmEl?.value) { toast('⚠️ Please enter the end odometer reading'); flashField(kmEl); kmEl?.focus(); return; }
+  // Auto-fill address from GPS if blank, then validate
+  if (addrEl && !addrEl.value && currentGPS.address) {
+    addrEl.value = currentGPS.address;
+  }
+  if (!addrEl?.value) { toast('⚠️ Please enter where you parked the van'); flashField(addrEl); addrEl?.focus(); return; }
 
   const btn = document.getElementById('so-submit-btn');
   if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
@@ -2144,6 +2161,48 @@ async function loadVehicleData() {
         if (credit) credit.textContent = 'Parked by ' + last.driver + ' · ' + last.date;
       }
     }
+    // Populate inline upcoming shifts and history in vehicle screen
+    const vUpEl = document.getElementById('vehicle-upcoming-list');
+    const vHiEl = document.getElementById('vehicle-history-list');
+
+    if (vUpEl) {
+      if (!data.upcoming || data.upcoming.length === 0) {
+        vUpEl.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text3);font-size:12px">No upcoming shifts scheduled</div>';
+      } else {
+        vUpEl.innerHTML = data.upcoming.map(u => `
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div style="width:36px;height:36px;background:var(--blue-light);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:7px;color:var(--blue);font-weight:700">${u.date||''}</span>
+              <span style="font-size:9px;font-weight:800;color:var(--blue)">${u.startTime||''}</span>
+            </div>
+            <div style="flex:1">
+              <p style="font-size:12px;font-weight:600;color:var(--text)">${u.driver||'TBC'}</p>
+              <span style="font-size:10px;color:var(--text2)">${u.type||''} shift · ${u.status||''}</span>
+            </div>
+            <span style="font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;background:var(--blue-light);color:var(--blue)">${u.type||''}</span>
+          </div>`).join('');
+      }
+    }
+
+    if (vHiEl) {
+      if (!data.history || data.history.length === 0) {
+        vHiEl.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text3);font-size:12px">No shift history yet</div>';
+      } else {
+        vHiEl.innerHTML = data.history.map(h => `
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <div style="width:36px;height:36px;background:var(--bg2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:7px;color:var(--text3)">${h.date||''}</span>
+              <i class="ti ti-check" style="font-size:14px;color:var(--green)"></i>
+            </div>
+            <div style="flex:1">
+              <p style="font-size:12px;font-weight:600;color:var(--text)">${h.driver||''}</p>
+              <span style="font-size:10px;color:var(--text2)">${h.hoursWorked ? h.hoursWorked + ' hrs · ' : ''}${h.endLocation||''}</span>
+            </div>
+            ${h.handoverPhotoUrl ? `<button onclick="window.open('${h.handoverPhotoUrl}','_blank')" style="background:var(--green-light);color:var(--green-text);border:none;border-radius:6px;padding:4px 8px;font-size:9px;font-weight:700;cursor:pointer">📷 Photo</button>` : ''}
+          </div>`).join('');
+      }
+    }
+
   } catch(e) { console.error('loadVehicleData error', e); }
 
 // ── Load Van Activity (sub-screen) ───────────────────────
@@ -2316,13 +2375,12 @@ async function loadAlerts() {
   if (!driverData) return;
   const listEl = document.getElementById('alerts-list');
   if (!listEl) return;
-  listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Loading alerts...</div>';
   try {
     const url  = APPS_SCRIPT_URL + '?action=getAlerts&email=' + encodeURIComponent(driverData.email);
     const resp = await fetch(url, { method:'GET', redirect:'follow' });
     const data = JSON.parse(await resp.text());
     if (!data.success || !data.alerts || data.alerts.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">No alerts yet</div>';
+      // Keep any existing static content; just hide the dot
       const dot = document.getElementById('notif-dot'); if (dot) dot.style.display = 'none';
       return;
     }
@@ -2334,7 +2392,8 @@ async function loadAlerts() {
         <div class="alert-info"><p>${a.title||''}</p><span>${a.message||''}</span><div class="alert-time">${a.createdDate||''}</div></div>
       </div>`).join('');
   } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Could not load alerts.</div>';
+    // Keep existing static content on error — don't blank it out
+    console.log('Alerts load failed, showing static content');
   }
 }
 
@@ -2431,7 +2490,7 @@ async function submitFuel() {
   const photoInput = document.getElementById('fuel-photo-input');
   const dateEl     = document.querySelector('#screen-fuel input[type="date"]');
   const fuelTypeEl = document.querySelector('#screen-fuel .sel');
-  if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('Please enter the fuel amount'); return; }
+  if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('⚠️ Please enter the fuel amount'); flashField(document.getElementById('fuel-amount')); return; }
 
   // Wait for receipt photo upload to finish
   if (photoInput && photoInput.dataset.localFile === 'selected') {
@@ -2659,6 +2718,14 @@ function useCurrentLocation() {
 function updateMapFromAddress(addr) {
   // Update GPS address as user types
   if (addr && addr.length > 5) currentGPS.address = addr;
+}
+
+function flashField(el) {
+  if (!el) return;
+  const orig = el.style.borderColor;
+  el.style.borderColor = '#A32D2D';
+  el.style.boxShadow = '0 0 0 3px rgba(163,45,45,0.2)';
+  setTimeout(() => { el.style.borderColor = orig; el.style.boxShadow = ''; }, 2500);
 }
 
 function toast(msg) {
