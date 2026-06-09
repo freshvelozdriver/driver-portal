@@ -405,6 +405,967 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .amount-wrap .prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text2);}
 .amount-wrap input{padding-left:22px;}
 </style>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFBDMpRlxOgHU51FCcdISdGza0g5EVOQZIhOPrF7SmWfhb471UbgjUSzXHv5l4FDrq/exec';
+
+// ── App State ─────────────────────────────────────────────
+let driverData    = null;
+let shiftActive   = false;
+let currentScreen = 'login';
+let screenHistory = [];
+let currentGPS    = { lat:'', lng:'', address:'' };
+let toastTimer;
+
+// ── Screen Navigation ─────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  if (el) {
+    el.classList.add('active');
+    currentScreen = name;
+    const c = el.querySelector('.scroll, .content');
+    if (c) c.scrollTop = 0;
+    if (['signin','signoff','emergency'].includes(name)) getGPS(name);
+    if (['signin','signoff'].includes(name)) updateDateTime(name);
+    if (name === 'vehicle')     loadVehicleData();
+    if (name === 'vanactivity') loadVanActivity();
+    if (name === 'alerts')      loadAlerts();
+    if (name === 'myshifts')    loadMyShifts();
+    if (name === 'payout')      loadPayouts();
+    if (name === 'profile')     loadProfile();
+    if (name === 'settings')    loadProfile();
+    if (name === 'settings')   loadProfile();
+  }
+}
+
+function navigate(name) {
+  screenHistory.push(currentScreen);
+  showScreen(name);
+}
+
+function goBack() {
+  const prev = screenHistory.pop() || 'home';
+  showScreen(prev);
+}
+
+function backToHome() {
+  screenHistory = [];
+  showScreen('home');
+}
+
+// ── App Init ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Fix height for mobile browsers
+  const setHeight = () => {
+    document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
+    const app = document.getElementById('app');
+    if (app) app.style.height = window.innerHeight + 'px';
+  };
+  setHeight();
+  window.addEventListener('resize', setHeight);
+
+  // Check if already logged in
+  const saved = localStorage.getItem('fv_driver_data');
+  if (saved) {
+    try {
+      driverData = JSON.parse(saved);
+      setupDashboard();
+      const wasOnShift = localStorage.getItem('fv_shift_on') === 'true';
+      shiftActive = wasOnShift;
+      if (wasOnShift) {
+        document.getElementById('shift-btn').textContent = 'End shift';
+        document.getElementById('shift-btn').className = 'shift-btn-end';
+        document.getElementById('shift-label').textContent = 'Shift in progress';
+        document.getElementById('home-status').textContent = 'On Shift';
+      }
+      showScreen('home');
+      return;
+    } catch(e) { localStorage.clear(); }
+  }
+  showScreen('login');
+});
+
+// ── Login with PIN ────────────────────────────────────────
+async function loginWithPin() {
+  const phone = (document.getElementById('login-phone').value || '').trim().replace(/\s/g,'');
+  const pin   = (document.getElementById('login-pin').value || '').trim();
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+  if (!phone || phone.length < 8) { showLoginError('Please enter your mobile number'); return; }
+  if (!pin || pin.length !== 4)   { showLoginError('Please enter your 4-digit PIN'); return; }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled    = true;
+
+  const cleanPhone = phone.replace(/[\s\-]/g,'').replace(/^(\+61|61|0)/,'');
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(cleanPhone) + '&pin=' + encodeURIComponent(pin);
+    showLoginError('DEBUG: Calling server...');
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const text = await resp.text();
+    showLoginError('DEBUG: Got response: ' + text.substring(0, 120));
+    let data;
+    try { data = JSON.parse(text); }
+    catch(parseErr) {
+      showLoginError('Server error — script not deployed as "Anyone". Response: ' + text.substring(0, 200));
+      btn.textContent = 'Sign in'; btn.disabled = false;
+      return;
+    }
+
+    if (data.success) {
+      driverData = data;
+      localStorage.setItem('fv_driver_email', data.email);
+      localStorage.setItem('fv_driver_data',  JSON.stringify(data));
+      setupDashboard();
+      showScreen('home');
+      setTimeout(setupDashboard, 50);
+    } else {
+      showLoginError(data.message || 'Incorrect phone number or PIN');
+    }
+  } catch(e) {
+    showLoginError('Network error: ' + e.message + ' | URL tried: ' + APPS_SCRIPT_URL.substring(0,60) + '...');
+  }
+
+  btn.textContent = 'Sign in';
+  btn.disabled    = false;
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function signOut() {
+  localStorage.clear();
+  driverData   = null;
+  shiftActive  = false;
+  screenHistory = [];
+  showScreen('login');
+}
+
+// ── Setup Dashboard ───────────────────────────────────────
+function setupDashboard() {
+  if (!driverData) return;
+  // Home screen IDs
+  const nameEl   = document.getElementById('home-name');
+  const unitEl   = document.getElementById('home-unit');
+  const avatarEl = document.getElementById('home-avatar');
+  const statusEl = document.getElementById('home-status');
+  const vanEl    = document.getElementById('van-reg');
+
+  if (nameEl)   nameEl.textContent   = driverData.driverName  || '';
+  if (unitEl)   unitEl.textContent   = (driverData.businessUnit || '') + ' · ' + (driverData.suburb || '');
+  if (statusEl) statusEl.textContent = shiftActive ? 'On Shift' : 'Active';
+  if (vanEl)    vanEl.textContent    = driverData.assignedVan  || 'No van assigned';
+
+  if (avatarEl) {
+    const parts = (driverData.driverName || 'D').split(' ');
+    avatarEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+  }
+}
+
+// ── Load Profile ──────────────────────────────────────────
+function loadProfile() {
+  if (!driverData) return;
+  const n = document.getElementById('profile-name');
+  const e = document.getElementById('profile-email');
+  const a = document.getElementById('profile-avatar');
+  const b = document.getElementById('profile-unit') || document.getElementById('profile-badge');
+  if (n) n.textContent = driverData.driverName || '';
+  if (e) e.textContent = driverData.email || '';
+  if (b) b.textContent = (driverData.businessUnit || '') + ' · Active';
+  if (a) {
+    const parts = (driverData.driverName || 'D').split(' ');
+    a.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+  }
+  // Also populate Van PIN display from driver data
+  const pinEl = document.getElementById('pin-val');
+  if (pinEl && driverData.vanPin) pinEl.textContent = '● ● ● ●';
+}
+
+// ── GPS ───────────────────────────────────────────────────
+function getGPS(screen) {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    currentGPS.lat = pos.coords.latitude.toFixed(6);
+    currentGPS.lng = pos.coords.longitude.toFixed(6);
+    currentGPS.address = currentGPS.lat + ', ' + currentGPS.lng;
+
+    const latEl  = document.querySelector('#screen-' + screen + ' .gps-lat');
+    const lngEl  = document.querySelector('#screen-' + screen + ' .gps-lng');
+    const dotEl  = document.querySelector('#screen-' + screen + ' .gps-dot');
+    const addrEl = document.querySelector('#screen-' + screen + ' .gps-address');
+
+    if (latEl)  latEl.textContent  = currentGPS.lat;
+    if (lngEl)  lngEl.textContent  = currentGPS.lng;
+    if (dotEl)  dotEl.style.background = '#00D062';
+    if (addrEl) addrEl.textContent = 'GPS captured';
+
+    // Reverse geocode
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + currentGPS.lat + '&lon=' + currentGPS.lng)
+      .then(r => r.json())
+      .then(d => {
+        if (d.display_name) {
+          currentGPS.address = d.display_name.split(',').slice(0,3).join(',');
+          if (addrEl) addrEl.textContent = currentGPS.address;
+        }
+      }).catch(()=>{});
+  }, () => { console.log('GPS denied'); });
+}
+
+// ── Date/Time ─────────────────────────────────────────────
+let _dateTimeTicker = null;
+function updateDateTime(screen) {
+  if (_dateTimeTicker) clearInterval(_dateTimeTicker);
+  function tick() {
+    const now    = new Date();
+    const dateEl = document.getElementById(screen + '-date');
+    const timeEl = document.getElementById(screen + '-time');
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-AU', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+  }
+  tick();
+  _dateTimeTicker = setInterval(tick, 1000);
+}
+
+function getCurrentTime() {
+  return new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Sign In ───────────────────────────────────────────────
+async function completeSignIn() {
+  if (!driverData) { toast('Please log in first'); return; }
+  const btn = document.getElementById('si-submit-btn');
+  if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
+  await waitForUploads('signin');
+  if (btn) btn.textContent = 'Submitting...';
+  // Note: shiftId auto-resolved server-side by matching today's Scheduled shift
+
+  const kmEl = document.getElementById('si-km');
+  const payload = {
+    action:        'submitSignIn',
+    driver:        driverData.driverName,
+    email:         driverData.email,
+    van:           driverData.assignedVan,
+    lat:           currentGPS.lat || '',
+    lng:           currentGPS.lng || '',
+    address:       currentGPS.address || '',
+    kmReading:     kmEl ? kmEl.value : '',
+    vanCondition:  document.querySelector('#screen-signin .cond-btn.active')?.textContent?.trim() || 'Good',
+    fuelLevel:     (['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
+    damageNotes:   document.getElementById('si-damage-notes')?.value || '',
+    damagePhotoUrl: document.getElementById('cam-1-input')?.dataset?.uploadedUrl || '',
+    videoUrl:       document.getElementById('si-video-input')?.dataset?.uploadedUrl || '',
+    checklist:     Array.from(document.querySelectorAll('#screen-signin .chk-item')).map(el => {
+                     const lbl = el.querySelector('.chk-label')?.textContent || '';
+                     const checked = el.querySelector('.chk-box')?.classList.contains('checked');
+                     return lbl + ':' + (checked ? 'Yes' : 'No');
+                   }).join(' | '),
+    startTime:     document.getElementById('signin-time')?.textContent || new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
+    startDate:     document.getElementById('signin-date')?.textContent || new Date().toLocaleDateString('en-AU'),
+    shiftId:       '',
+    notes:         document.querySelector('#screen-signin textarea.inp')?.value || ''
+  };
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) {
+      shiftActive = true;
+      localStorage.setItem('fv_shift_on','true');
+      localStorage.setItem('fv_sign_in_id', data.signInId || '');
+      document.getElementById('shift-btn').textContent = 'End shift';
+      document.getElementById('shift-btn').className   = 'shift-btn-end';
+      document.getElementById('shift-label').textContent = 'Shift in progress';
+      document.getElementById('shift-time').textContent  = 'Started ' + getCurrentTime();
+      document.getElementById('home-status').textContent = 'On Shift';
+      toast('Shift started! Have a safe day 🚚');
+      backToHome();
+    } else {
+      toast('Error: ' + (data.message || 'Could not sign in. Try again.'));
+      if (btn) { btn.textContent = 'Confirm start shift'; btn.disabled = false; }
+    }
+  } catch(e) {
+    // Offline fallback
+    shiftActive = true;
+    localStorage.setItem('fv_shift_on','true');
+    document.getElementById('shift-btn').textContent = 'End shift';
+    document.getElementById('shift-btn').className   = 'shift-btn-end';
+    document.getElementById('shift-label').textContent = 'Shift in progress';
+    document.getElementById('shift-time').textContent  = 'Started ' + getCurrentTime();
+    document.getElementById('home-status').textContent = 'On Shift';
+    toast('Shift started (offline mode) 🚚');
+    backToHome();
+  }
+}
+
+// ── Sign Off ──────────────────────────────────────────────
+async function completeSignOff() {
+  if (!driverData) { toast('Please log in first'); return; }
+
+  // Validate mandatory fields
+  const kmEl    = document.getElementById('so-km');
+  const addrEl  = document.getElementById('so-dropoff-address');
+  if (!kmEl?.value)   { toast('Please enter the end odometer reading'); return; }
+  if (!addrEl?.value) { toast('Please enter the drop-off address'); addrEl?.focus(); return; }
+
+  const btn = document.getElementById('so-submit-btn');
+  if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
+  await waitForUploads('signoff');
+  if (btn) btn.textContent = 'Submitting...';
+
+  const noteEl = document.getElementById('so-next-driver-note');
+  const payload = {
+    action:          'submitSignOff',
+    driver:          driverData.driverName,
+    email:           driverData.email,
+    van:             driverData.assignedVan,
+    lat:             currentGPS.lat || '',
+    lng:             currentGPS.lng || '',
+    address:         (document.getElementById('so-dropoff-address')?.value || currentGPS.address || ''),
+    kmReading:       kmEl ? kmEl.value : '',
+    vanCondition:    document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
+    fuelLevel:       (['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
+    damageNotes:     document.getElementById('so-damage-notes')?.value || '',
+    damagePhotoUrl:  document.getElementById('cam-2-input')?.dataset?.uploadedUrl || '',
+    handoverPhotoUrl: document.getElementById('cam-3-input')?.dataset?.uploadedUrl || '',
+    checklist:       Array.from(document.querySelectorAll('#screen-signoff .chk-item')).map(el => {
+                       const lbl = el.querySelector('.chk-label')?.textContent || '';
+                       const checked = el.querySelector('.chk-box')?.classList.contains('checked');
+                       return lbl + ':' + (checked ? 'Yes' : 'No');
+                     }).join(' | '),
+    nextDriverNote:  noteEl ? noteEl.value : '',
+    endTime:         document.getElementById('signoff-time')?.textContent || new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
+    endDate:         document.getElementById('signoff-date')?.textContent || new Date().toLocaleDateString('en-AU'),
+    shiftId:         localStorage.getItem('fv_sign_in_id') || '',
+    notes:           ''
+  };
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) {
+      shiftActive = false;
+      localStorage.setItem('fv_shift_on','false');
+      localStorage.removeItem('fv_sign_in_id');
+      document.getElementById('shift-btn').textContent  = 'Start shift';
+      document.getElementById('shift-btn').className    = 'shift-btn-start';
+      document.getElementById('shift-label').textContent = 'Day shift today';
+      document.getElementById('shift-time').textContent  = '6:00 AM — 6:00 PM';
+      document.getElementById('home-status').textContent = 'Active';
+      screenHistory = [];
+      const snEl = document.getElementById('summary-name');
+      const sdEl = document.getElementById('summary-date');
+      if (snEl) snEl.textContent = 'Great work, ' + (driverData.driverName.split(' ')[0]) + '!';
+      if (sdEl) sdEl.textContent = new Date().toLocaleDateString('en-AU', {weekday:'long', day:'numeric', month:'long'}) + ' shift complete';
+      showScreen('shift-summary');
+    } else {
+      toast('Error: ' + (data.message || 'Could not sign off.'));
+      if (btn) { btn.textContent = 'Confirm end shift'; btn.disabled = false; }
+    }
+  } catch(e) {
+    shiftActive = false;
+    localStorage.setItem('fv_shift_on','false');
+    document.getElementById('shift-btn').textContent  = 'Start shift';
+    document.getElementById('shift-btn').className    = 'shift-btn-start';
+    document.getElementById('shift-label').textContent = 'Day shift today';
+    document.getElementById('home-status').textContent = 'Active';
+    toast('Shift ended (offline mode) 🎉');
+    screenHistory = [];
+    showScreen('shift-summary');
+  }
+}
+
+// ── Toggle shift from dashboard ───────────────────────────
+function toggleShift() {
+  if (shiftActive) navigate('signoff');
+  else             navigate('signin');
+}
+
+// ── File Handling ─────────────────────────────────────────
+function handleFileSelect(input, labelId, folderKey) {
+  if (!input.files || !input.files[0]) return;
+  const file    = input.files[0];
+  const labelEl = document.getElementById(labelId);
+  input.dataset.folderKey   = folderKey || 'Delivery Photos Folder ID';
+  input.dataset.localFile   = 'selected';
+  input.dataset.uploadedUrl = '';
+  if (labelEl) { labelEl.textContent = '✅ ' + file.name.substring(0,28); labelEl.style.color = 'var(--gt)'; }
+  uploadFileInBackground(input, file, folderKey);
+}
+
+async function uploadFileInBackground(input, file, folderKey) {
+  try {
+    const ext      = file.name.split('.').pop();
+    const name_    = (driverData ? driverData.driverName.replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
+    const url      = await uploadFileToDrive(file, folderKey || 'Delivery Photos Folder ID', name_);
+    input.dataset.uploadedUrl = url;
+    input.dataset.localFile   = 'uploaded';
+  } catch(e) {
+    input.dataset.localFile = 'failed';
+  }
+}
+
+// Wait for all pending uploads on a screen before submitting
+async function waitForUploads(screenId) {
+  const inputs = document.querySelectorAll('#screen-' + screenId + ' input[type="file"]');
+  const pending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected');
+  if (pending.length === 0) return true;
+  let waited = 0;
+  while (waited < 15000) {
+    await new Promise(r => setTimeout(r, 500));
+    waited += 500;
+    const stillPending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected');
+    if (stillPending.length === 0) return true;
+  }
+  return false; // timeout — submit anyway
+}
+
+async function uploadFileToDrive(file, folderKey, filename) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64 = e.target.result.split(',')[1];
+        const resp   = await fetch(APPS_SCRIPT_URL, {
+          method:'POST', redirect:'follow',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({ action:'uploadFile', filename, mimeType:file.type, base64Data:base64, folderKey, driverEmail: driverData?.email || '' })
+        });
+        const data = JSON.parse(await resp.text());
+        if (data.success) resolve(data.fileUrl);
+        else reject(data.message || 'Upload failed');
+      } catch(err) { reject(err.message); }
+    };
+    reader.onerror = () => reject('Could not read file');
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Load Vehicle Data (My Vehicle screen) ────────────────
+let _lastParkPhotoUrl = '';
+function openParkPhoto() { if (_lastParkPhotoUrl) window.open(_lastParkPhotoUrl, '_blank'); }
+
+async function loadVehicleData() {
+  if (!driverData || !driverData.assignedVan) return;
+  const van = driverData.assignedVan;
+  const titleEl = document.getElementById('vehicle-reg-title');
+  const displayEl = document.getElementById('vehicle-reg-display');
+  if (titleEl) titleEl.textContent = van;
+  if (displayEl) displayEl.textContent = van;
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    if (!data.success) return;
+
+    if (data.history && data.history.length > 0) {
+      const last   = data.history[0];
+      const addr   = last.endLocation || data.lastParked?.address || last.address || '';
+      const addrEl = document.getElementById('van-parked-addr');
+      const byEl   = document.getElementById('van-parked-by');
+      const mapsEl = document.getElementById('van-maps-link');
+      const locEl  = document.getElementById('van-last-location');
+      if (addrEl) addrEl.textContent = addr;
+      if (byEl)   byEl.textContent   = 'Parked by ' + last.driver + ' · ' + last.date;
+      if (locEl)  locEl.textContent  = addr.split(',')[0] || addr;
+      if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+
+      // Last park photo — show inline
+      if (last.handoverPhotoUrl) {
+        _lastParkPhotoUrl = last.handoverPhotoUrl;
+        const wrap   = document.getElementById('vehicle-park-photo-wrap');
+        const box    = document.getElementById('vehicle-park-photo-box');
+        const credit = document.getElementById('vehicle-park-photo-credit');
+        if (wrap)   wrap.style.display = 'block';
+        if (box)    box.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover">';
+        if (credit) credit.textContent = 'Parked by ' + last.driver + ' · ' + last.date;
+      }
+    }
+  } catch(e) { console.error('loadVehicleData error', e); }
+
+// ── Load Van Activity (sub-screen) ───────────────────────
+async function loadVanActivity() {
+  if (!driverData || !driverData.assignedVan) return;
+  const van = driverData.assignedVan;
+  const titleEl = document.getElementById('vanactivity-reg-title');
+  if (titleEl) titleEl.textContent = van;
+  const defSpan = document.getElementById('va-defect-van');
+  if (defSpan) defSpan.textContent = van + ' — all assigned drivers';
+
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    if (!data.success) return;
+
+    // Last park photo from most recent sign-off
+    // Last parked address
+    if (data.lastParked && data.lastParked.address) {
+      const addrEl = document.getElementById('van-parked-addr');
+      const byEl   = document.getElementById('van-parked-by');
+      const mapsEl = document.getElementById('van-maps-link');
+      if (addrEl) addrEl.textContent = data.lastParked.address;
+      if (byEl)   byEl.textContent   = 'Last updated: ' + (data.lastParked.time || '');
+      if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(data.lastParked.address);
+    }
+
+    // Last park photo
+    if (data.history && data.history.length > 0) {
+      const last = data.history[0];
+      const photoBox    = document.getElementById('van-last-photo-box');
+      const photoCredit = document.getElementById('van-last-photo-credit');
+      if (last.handoverPhotoUrl && photoBox) {
+        photoBox.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)">';
+        photoBox.onclick = () => window.open(last.handoverPhotoUrl, '_blank');
+      }
+      if (photoCredit) photoCredit.textContent = last.handoverPhotoUrl
+        ? 'Taken by ' + last.driver + ' · ' + last.date
+        : 'No photo from last driver';
+    }
+
+    // Active driver
+    const nameEl   = document.getElementById('van-active-name');
+    const infoEl   = document.getElementById('van-active-info');
+    const callEl   = document.getElementById('van-active-call');
+    const smsEl    = document.getElementById('van-active-sms');
+    const avatarEl = document.getElementById('van-active-avatar');
+    if (data.activeDriver) {
+      if (nameEl)   nameEl.textContent = data.activeDriver.name;
+      if (infoEl)   infoEl.textContent = 'Currently on shift';
+      if (avatarEl) {
+        const parts = data.activeDriver.name.split(' ');
+        avatarEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+      }
+      const phone = data.activeDriver.phone ? data.activeDriver.phone.replace(/^0/, '') : '';
+      if (callEl && phone) callEl.href = 'tel:+61' + phone;
+      if (smsEl  && phone) smsEl.href  = 'sms:+61' + phone;
+    } else {
+      if (nameEl)   nameEl.textContent = 'No active driver';
+      if (infoEl)   infoEl.textContent = 'Van is available';
+      if (avatarEl) avatarEl.textContent = '—';
+    }
+
+    // Upcoming shifts
+    const upEl = document.getElementById('van-upcoming-list');
+    if (upEl) {
+      if (!data.upcoming || data.upcoming.length === 0) {
+        upEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">No upcoming shifts scheduled</div>';
+      } else {
+        upEl.innerHTML = data.upcoming.map(u => {
+          const phone = u.phone ? u.phone.replace(/^0/, '') : '';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
+            <div style="width:32px;height:32px;background:var(--bl);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:7px;color:var(--blu)">${u.date||''}</span>
+              <span style="font-size:9px;font-weight:800;color:var(--blu)">${u.startTime||''}</span>
+            </div>
+            <div style="flex:1"><p style="font-size:11px;font-weight:600">${u.driver||''}</p><span style="font-size:9px;color:var(--t2)">${u.type||''} shift · ${u.status||''}</span></div>
+            <div style="display:flex;gap:4px">
+              ${phone ? `<a href="tel:+61${phone}"><button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">📞</button></a>` : ''}
+              ${phone ? `<a href="sms:+61${phone}"><button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">💬</button></a>` : ''}
+            </div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    // History
+    const histEl = document.getElementById('van-history-list');
+    if (histEl) {
+      if (!data.history || data.history.length === 0) {
+        histEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">No shift history yet</div>';
+      } else {
+        histEl.innerHTML = data.history.map(h => {
+          const phone = h.phone ? h.phone.replace(/^0/, '') : '';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
+            <div style="width:32px;height:32px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <span style="font-size:9px;font-weight:800">${h.date||''}</span>
+            </div>
+            <div style="flex:1">
+              <p style="font-size:11px;font-weight:600">${h.driver||''}</p>
+              <span style="font-size:9px;color:var(--t2)">${h.type||''} · ${h.hoursWorked ? h.hoursWorked + ' hrs' : ''} ${h.startKm && h.endKm ? '· ' + (parseFloat(h.endKm)-parseFloat(h.startKm)).toFixed(0) + ' km' : ''}</span>
+              ${h.note ? `<div style="font-size:9px;color:var(--t2);background:var(--bg2);border-radius:5px;padding:4px 6px;margin-top:3px">📝 ${h.note}</div>` : ''}
+            </div>
+            <div style="display:flex;gap:4px">
+              ${phone ? `<a href="tel:+61${phone}"><button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;cursor:pointer">📞</button></a>` : ''}
+              ${phone ? `<a href="sms:+61${phone}"><button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;cursor:pointer">💬</button></a>` : ''}
+            </div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    // Defects
+    loadDefectsForVan(van);
+  } catch(e) {
+    console.error('loadVanActivity error', e);
+    const upEl   = document.getElementById('van-upcoming-list');
+    const histEl = document.getElementById('van-history-list');
+    const errMsg = '<div style="padding:14px;color:var(--red);font-size:12px;text-align:center">Could not load data. Check connection.</div>';
+    if (upEl)   upEl.innerHTML   = errMsg;
+    if (histEl) histEl.innerHTML = errMsg;
+  }
+}
+
+
+// ── Load Alerts ───────────────────────────────────────────
+async function loadAlerts() {
+  if (!driverData) return;
+  const listEl = document.getElementById('alerts-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Loading alerts...</div>';
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getAlerts&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    if (!data.success || !data.alerts || data.alerts.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">No alerts yet</div>';
+      const dot = document.getElementById('notif-dot'); if (dot) dot.style.display = 'none';
+      return;
+    }
+    const unread = data.alerts.filter(a => a.read==='No').length;
+    const dot = document.getElementById('notif-dot'); if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
+    listEl.innerHTML = data.alerts.map(a => `
+      <div class="alert-item">
+        <div class="alert-dot ${a.read==='No'?'unread':'read'}"></div>
+        <div class="alert-info"><p>${a.title||''}</p><span>${a.message||''}</span><div class="alert-time">${a.createdDate||''}</div></div>
+      </div>`).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Could not load alerts.</div>';
+  }
+}
+
+// ── Load Shifts ───────────────────────────────────────────
+async function loadMyShifts() {
+  if (!driverData) return;
+  const listEl = document.getElementById('myshifts-list');
+  if (!listEl) return;
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getShifts&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    if (!data.success || !data.shifts || data.shifts.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:12px;margin-bottom:12px">No upcoming shifts found</div>' + getShiftRequestForm();
+      return;
+    }
+    const cards = data.shifts.map(s => {
+      const isDay    = s.type === 'Day';
+      const statusBg = s.status==='In Progress' ? 'var(--gl)' : s.status==='Completed' ? 'var(--bg2)' : 'var(--bl)';
+      const statusC  = s.status==='In Progress' ? 'var(--gt)' : s.status==='Completed' ? 'var(--t2)'  : 'var(--blu)';
+      // Show actual times if available, fall back to scheduled
+      const displayStart = s.actualStart || s.startTime || '—';
+      const displayEnd   = s.actualEnd   || s.endTime   || '—';
+      const kmInfo = (s.startKm && s.endKm)
+        ? `${s.startKm} → ${s.endKm} km (${(parseFloat(s.endKm)-parseFloat(s.startKm)).toFixed(0)} km)`
+        : (s.startKm ? `Start: ${s.startKm} km` : '');
+      return `<div class="shift-item">
+        <div class="shift-item-header">
+          <i class="ti ${isDay?'ti-sun':'ti-moon'}" style="color:${isDay?'var(--g)':'var(--pur)'}"></i>
+          <h3>${s.type} shift — ${s.date||''}</h3>
+          <span style="font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;background:${statusBg};color:${statusC}">${s.status||'Scheduled'}</span>
+        </div>
+        <div class="shift-meta">
+          <div class="shift-meta-item"><span>Scheduled</span><p>${s.startTime||'—'} – ${s.endTime||'—'}</p></div>
+          <div class="shift-meta-item"><span>Actual</span><p>${displayStart} – ${displayEnd}</p></div>
+          <div class="shift-meta-item"><span>Van</span><p>${s.van||'—'}</p></div>
+          ${s.hoursWorked ? `<div class="shift-meta-item"><span>Hours</span><p>${s.hoursWorked} hrs</p></div>` : ''}
+          ${kmInfo ? `<div class="shift-meta-item" style="grid-column:1/-1"><span>Odometer</span><p>${kmInfo}</p></div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    listEl.innerHTML = cards + getShiftRequestForm();
+  } catch(e) { listEl.innerHTML = getShiftRequestForm(); }
+}
+
+function getShiftRequestForm() {
+  return `<div class="card">
+    <p style="font-size:13px;font-weight:700;margin-bottom:12px">Request shift change</p>
+    <label class="lbl">Request type</label>
+    <select class="sel"><option>Shift change — day to night</option><option>Shift change — night to day</option><option>Request extra shift</option><option>Cancel a shift</option></select>
+    <label class="lbl">Date</label>
+    <input type="date" class="inp">
+    <label class="lbl">Reason</label>
+    <textarea class="textarea" style="height:60px" placeholder="Why do you need this change?"></textarea>
+    <button class="btn btn-green" style="margin-bottom:0" onclick="submitShiftRequest()">Submit request</button>
+  </div>`;
+}
+
+async function submitShiftRequest() { toast('Shift request submitted ✅ Manager will review.'); }
+
+// ── Load Payouts ──────────────────────────────────────────
+async function loadPayouts() {
+  if (!driverData) return;
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getPayouts&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    if (!data.success || !data.payouts || data.payouts.length === 0) return;
+    const last = data.payouts.find(p => p.status==='Paid');
+    if (last) {
+      const a = document.getElementById('payout-last-amount'); if (a) a.textContent = '$' + parseFloat(last.total||0).toFixed(2);
+      const d = document.getElementById('payout-last-date');   if (d) d.textContent = 'Paid ' + (last.paymentDate||'');
+    }
+  } catch(e) {}
+}
+
+// ── Submit Fuel ───────────────────────────────────────────
+async function submitFuel() {
+  if (!driverData) return;
+  const amountEl   = document.getElementById('fuel-amount');
+  const photoInput = document.getElementById('fuel-photo-input');
+  const dateEl     = document.querySelector('#screen-fuel input[type="date"]');
+  const fuelTypeEl = document.querySelector('#screen-fuel .sel');
+  if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('Please enter the fuel amount'); return; }
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
+        fuelDate: dateEl?dateEl.value:'', amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
+        receiptUrl: photoInput?.dataset?.uploadedUrl||''
+      })
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Reimbursement submitted ✅ Paid Wednesday.'); amountEl.value=''; goBack(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
+}
+
+// ── Submit Leave ──────────────────────────────────────────
+async function submitLeave() {
+  if (!driverData) return;
+  const typeEl   = document.querySelector('#screen-leave .type-btn.active p');
+  const fromEl   = document.querySelector('#screen-leave input[type="date"]');
+  const reasonEl = document.querySelector('#screen-leave .textarea');
+  const shiftEl  = document.querySelector('#screen-leave .sel');
+  if (!fromEl?.value) { toast('Please select a start date'); return; }
+  if (!reasonEl?.value) { toast('Please enter a reason'); return; }
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action:'submitLeave', driver:driverData.driverName, email:driverData.email,
+        type: typeEl?typeEl.textContent:'Leave', fromDate:fromEl.value, toDate:fromEl.value,
+        shiftAffected: shiftEl?shiftEl.value:'', reason:reasonEl.value
+      })
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Leave request submitted ✅ Manager notified.'); reasonEl.value=''; goBack(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
+}
+
+// ── Submit Ticket ─────────────────────────────────────────
+async function submitTicket() {
+  if (!driverData) return;
+  const responseEl = document.querySelector('#screen-tickets .sel');
+  const explEl     = document.querySelector('#screen-tickets .textarea');
+  if (!explEl?.value) { toast('Please describe what happened'); return; }
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action:'submitTicketResponse', driver:driverData.driverName, email:driverData.email,
+        responseType: responseEl?responseEl.value:'', explanation:explEl.value
+      })
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Response submitted ✅ Manager notified.'); explEl.value=''; goBack(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
+}
+
+// ── Submit Defect ─────────────────────────────────────────
+async function submitDefectForm() {
+  if (!driverData) return;
+  const catEl   = document.getElementById('def-category');
+  const descEl  = document.getElementById('def-description');
+  const photoInput = document.getElementById('cam-5-input-def');
+  if (!descEl?.value) { toast('Please describe the defect'); return; }
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action:'submitDefect', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
+        category: catEl?catEl.value:'Other', description:descEl.value, photoUrl:photoInput?.dataset?.uploadedUrl||''
+      })
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Defect reported ✅ Manager notified.'); descEl.value=''; toggleDef(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
+}
+
+// ── Submit Inspection ─────────────────────────────────────
+async function submitInspectionForm() {
+  if (!driverData) return;
+  const items = {};
+  ['Tyres','Lights','Wipers','Brakes','Interior'].forEach(k => {
+    const container = document.querySelector(`#insp-form [data-item="${k}"]`);
+    const active = container ? container.querySelector('.active') : null;
+    items[k.toLowerCase()] = active ? active.textContent.trim() : 'Good';
+  });
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'submitInspection', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan, ...items })
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) { toast('Inspection submitted ✅ Status: ' + data.overallStatus); toggleInsp(); }
+    else toast('Error: ' + (data.message||'Try again'));
+  } catch(e) { toast('Connection error. Try again.'); }
+}
+
+// ── Submit Emergency ──────────────────────────────────────
+async function submitEmergencyReport() {
+  if (!driverData) return;
+  const typeEl = document.querySelector('#screen-emergency .incident-type.active');
+  const descEl = document.querySelector('#screen-emergency .textarea');
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action:'submitEmergency', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
+        type: typeEl?typeEl.textContent.trim():'Emergency',
+        lat:currentGPS.lat||'', lng:currentGPS.lng||'', address:currentGPS.address||'',
+        description: descEl?descEl.value:''
+      })
+    });
+    JSON.parse(await resp.text());
+    toast('Emergency reported ✅ Manager notified immediately.');
+  } catch(e) { toast('Manager being contacted. Stay safe.'); }
+}
+
+// ── Checklist Toggle ─────────────────────────────────────
+function toggleChk(el) {
+  const box = el.querySelector(".chk-box");
+  if (!box) return;
+  const checked = box.classList.toggle("checked");
+  const icon = box.querySelector("i");
+  if (icon) icon.style.color = checked ? "" : "transparent";
+}
+
+// ── Condition & Fuel Selectors ────────────────────────────
+function siSelCond(v) {
+  ['si-cond-good','si-cond-dmg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id.endsWith(v));
+  });
+  const sec = document.getElementById('si-damage-section');
+  if (sec) sec.style.display = v==='dmg' ? 'block' : 'none';
+}
+function soSelCond(v) {
+  ['so-cond-good','so-cond-dmg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id.endsWith(v));
+  });
+  const sec = document.getElementById('so-damage-section');
+  if (sec) sec.style.display = v==='dmg' ? 'block' : 'none';
+}
+function siSelFuel(v) { ['full','half','low','empty'].forEach(f => { const el=document.getElementById('si-fuel-'+f); if(el) el.classList.toggle('active',f===v); }); }
+function soSelFuel(v) { ['full','half','low','empty'].forEach(f => { const el=document.getElementById('so-fuel-'+f); if(el) el.classList.toggle('active',f===v); }); }
+function toggleInsp() {
+  inspOpen = !inspOpen;
+  const f = document.getElementById('insp-form');
+  const b = document.getElementById('insp-btn');
+  if (f) f.style.display = inspOpen ? 'block' : 'none';
+  if (b) b.textContent  = inspOpen ? 'Close' : 'Start';
+}
+function toggleDef() {
+  defOpen = !defOpen;
+  const f = document.getElementById('def-form');
+  const b = document.getElementById('def-btn');
+  if (f) f.style.display = defOpen ? 'block' : 'none';
+  if (b) b.textContent  = defOpen ? 'Close' : 'Report new';
+}
+let inspOpen = false, defOpen = false;
+
+function selectType(el) {
+  el.closest('.type-grid').querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function selectPeriod(el) {
+  el.closest('.pay-pills').querySelectorAll('.ppill,.pay-pill').forEach(p => p.classList.remove('active','on'));
+  el.classList.add('active');
+  toast('Showing ' + el.textContent.trim() + ' earnings');
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function useCurrentLocation() {
+  const addrEl = document.getElementById('so-dropoff-address');
+  if (!addrEl) return;
+  if (currentGPS && currentGPS.address) {
+    addrEl.value = currentGPS.address;
+    toast('📍 Location set to current GPS');
+  } else {
+    addrEl.value = 'Getting location...';
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        currentGPS.lat = lat; currentGPS.lng = lng;
+        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
+          .then(r => r.json())
+          .then(d => {
+            const addr = d.display_name ? d.display_name.split(',').slice(0,4).join(',').trim() : lat + ',' + lng;
+            currentGPS.address = addr;
+            addrEl.value = addr;
+            toast('📍 Location captured');
+          }).catch(() => {
+            addrEl.value = lat + ', ' + lng;
+            toast('📍 GPS coordinates captured');
+          });
+      }, () => toast('Could not get GPS. Please type the address manually.'));
+    }
+  }
+}
+
+function updateMapFromAddress(addr) {
+  // Update GPS address as user types
+  if (addr && addr.length > 5) currentGPS.address = addr;
+}
+
+function toast(msg) {
+  let el = document.getElementById('toast-el');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast-el';
+    el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:30px;font-size:12px;font-weight:600;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.25s;white-space:nowrap;max-width:90vw;text-align:center;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => { el.style.opacity = '0'; }, 2800);
+}
+
+// ── Toggle PIN visibility ─────────────────────────────────
+function togglePin() {
+  const el = document.getElementById('pin-val');
+  if (!el) return;
+  el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
+}
+
+</script>
 </head>
 <body>
 
@@ -1493,966 +2454,5 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
   </div>
   <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
-
-<script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFBDMpRlxOgHU51FCcdISdGza0g5EVOQZIhOPrF7SmWfhb471UbgjUSzXHv5l4FDrq/exec';
-
-// ── App State ─────────────────────────────────────────────
-let driverData    = null;
-let shiftActive   = false;
-let currentScreen = 'login';
-let screenHistory = [];
-let currentGPS    = { lat:'', lng:'', address:'' };
-let toastTimer;
-
-// ── Screen Navigation ─────────────────────────────────────
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById('screen-' + name);
-  if (el) {
-    el.classList.add('active');
-    currentScreen = name;
-    const c = el.querySelector('.scroll, .content');
-    if (c) c.scrollTop = 0;
-    if (['signin','signoff','emergency'].includes(name)) getGPS(name);
-    if (['signin','signoff'].includes(name)) updateDateTime(name);
-    if (name === 'vehicle')     loadVehicleData();
-    if (name === 'vanactivity') loadVanActivity();
-    if (name === 'alerts')      loadAlerts();
-    if (name === 'myshifts')    loadMyShifts();
-    if (name === 'payout')      loadPayouts();
-    if (name === 'profile')     loadProfile();
-    if (name === 'settings')    loadProfile();
-    if (name === 'settings')   loadProfile();
-  }
-}
-
-function navigate(name) {
-  screenHistory.push(currentScreen);
-  showScreen(name);
-}
-
-function goBack() {
-  const prev = screenHistory.pop() || 'home';
-  showScreen(prev);
-}
-
-function backToHome() {
-  screenHistory = [];
-  showScreen('home');
-}
-
-// ── App Init ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // Fix height for mobile browsers
-  const setHeight = () => {
-    document.documentElement.style.setProperty('--vh', window.innerHeight + 'px');
-    const app = document.getElementById('app');
-    if (app) app.style.height = window.innerHeight + 'px';
-  };
-  setHeight();
-  window.addEventListener('resize', setHeight);
-
-  // Check if already logged in
-  const saved = localStorage.getItem('fv_driver_data');
-  if (saved) {
-    try {
-      driverData = JSON.parse(saved);
-      setupDashboard();
-      const wasOnShift = localStorage.getItem('fv_shift_on') === 'true';
-      shiftActive = wasOnShift;
-      if (wasOnShift) {
-        document.getElementById('shift-btn').textContent = 'End shift';
-        document.getElementById('shift-btn').className = 'shift-btn-end';
-        document.getElementById('shift-label').textContent = 'Shift in progress';
-        document.getElementById('home-status').textContent = 'On Shift';
-      }
-      showScreen('home');
-      return;
-    } catch(e) { localStorage.clear(); }
-  }
-  showScreen('login');
-});
-
-// ── Login with PIN ────────────────────────────────────────
-async function loginWithPin() {
-  const phone = (document.getElementById('login-phone').value || '').trim().replace(/\s/g,'');
-  const pin   = (document.getElementById('login-pin').value || '').trim();
-  const errEl = document.getElementById('login-error');
-  const btn   = document.getElementById('login-btn');
-
-  errEl.style.display = 'none';
-  if (!phone || phone.length < 8) { showLoginError('Please enter your mobile number'); return; }
-  if (!pin || pin.length !== 4)   { showLoginError('Please enter your 4-digit PIN'); return; }
-
-  btn.textContent = 'Signing in...';
-  btn.disabled    = true;
-
-  const cleanPhone = phone.replace(/[\s\-]/g,'').replace(/^(\+61|61|0)/,'');
-
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=loginWithPin&phone=' + encodeURIComponent(cleanPhone) + '&pin=' + encodeURIComponent(pin);
-    showLoginError('DEBUG: Calling server...');
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const text = await resp.text();
-    showLoginError('DEBUG: Got response: ' + text.substring(0, 120));
-    let data;
-    try { data = JSON.parse(text); }
-    catch(parseErr) {
-      showLoginError('Server error — script not deployed as "Anyone". Response: ' + text.substring(0, 200));
-      btn.textContent = 'Sign in'; btn.disabled = false;
-      return;
-    }
-
-    if (data.success) {
-      driverData = data;
-      localStorage.setItem('fv_driver_email', data.email);
-      localStorage.setItem('fv_driver_data',  JSON.stringify(data));
-      setupDashboard();
-      showScreen('home');
-      setTimeout(setupDashboard, 50);
-    } else {
-      showLoginError(data.message || 'Incorrect phone number or PIN');
-    }
-  } catch(e) {
-    showLoginError('Network error: ' + e.message + ' | URL tried: ' + APPS_SCRIPT_URL.substring(0,60) + '...');
-  }
-
-  btn.textContent = 'Sign in';
-  btn.disabled    = false;
-}
-
-function showLoginError(msg) {
-  const el = document.getElementById('login-error');
-  if (el) { el.textContent = msg; el.style.display = 'block'; }
-}
-
-function signOut() {
-  localStorage.clear();
-  driverData   = null;
-  shiftActive  = false;
-  screenHistory = [];
-  showScreen('login');
-}
-
-// ── Setup Dashboard ───────────────────────────────────────
-function setupDashboard() {
-  if (!driverData) return;
-  // Home screen IDs
-  const nameEl   = document.getElementById('home-name');
-  const unitEl   = document.getElementById('home-unit');
-  const avatarEl = document.getElementById('home-avatar');
-  const statusEl = document.getElementById('home-status');
-  const vanEl    = document.getElementById('van-reg');
-
-  if (nameEl)   nameEl.textContent   = driverData.driverName  || '';
-  if (unitEl)   unitEl.textContent   = (driverData.businessUnit || '') + ' · ' + (driverData.suburb || '');
-  if (statusEl) statusEl.textContent = shiftActive ? 'On Shift' : 'Active';
-  if (vanEl)    vanEl.textContent    = driverData.assignedVan  || 'No van assigned';
-
-  if (avatarEl) {
-    const parts = (driverData.driverName || 'D').split(' ');
-    avatarEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
-  }
-}
-
-// ── Load Profile ──────────────────────────────────────────
-function loadProfile() {
-  if (!driverData) return;
-  const n = document.getElementById('profile-name');
-  const e = document.getElementById('profile-email');
-  const a = document.getElementById('profile-avatar');
-  const b = document.getElementById('profile-unit') || document.getElementById('profile-badge');
-  if (n) n.textContent = driverData.driverName || '';
-  if (e) e.textContent = driverData.email || '';
-  if (b) b.textContent = (driverData.businessUnit || '') + ' · Active';
-  if (a) {
-    const parts = (driverData.driverName || 'D').split(' ');
-    a.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
-  }
-  // Also populate Van PIN display from driver data
-  const pinEl = document.getElementById('pin-val');
-  if (pinEl && driverData.vanPin) pinEl.textContent = '● ● ● ●';
-}
-
-// ── GPS ───────────────────────────────────────────────────
-function getGPS(screen) {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    currentGPS.lat = pos.coords.latitude.toFixed(6);
-    currentGPS.lng = pos.coords.longitude.toFixed(6);
-    currentGPS.address = currentGPS.lat + ', ' + currentGPS.lng;
-
-    const latEl  = document.querySelector('#screen-' + screen + ' .gps-lat');
-    const lngEl  = document.querySelector('#screen-' + screen + ' .gps-lng');
-    const dotEl  = document.querySelector('#screen-' + screen + ' .gps-dot');
-    const addrEl = document.querySelector('#screen-' + screen + ' .gps-address');
-
-    if (latEl)  latEl.textContent  = currentGPS.lat;
-    if (lngEl)  lngEl.textContent  = currentGPS.lng;
-    if (dotEl)  dotEl.style.background = '#00D062';
-    if (addrEl) addrEl.textContent = 'GPS captured';
-
-    // Reverse geocode
-    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + currentGPS.lat + '&lon=' + currentGPS.lng)
-      .then(r => r.json())
-      .then(d => {
-        if (d.display_name) {
-          currentGPS.address = d.display_name.split(',').slice(0,3).join(',');
-          if (addrEl) addrEl.textContent = currentGPS.address;
-        }
-      }).catch(()=>{});
-  }, () => { console.log('GPS denied'); });
-}
-
-// ── Date/Time ─────────────────────────────────────────────
-let _dateTimeTicker = null;
-function updateDateTime(screen) {
-  if (_dateTimeTicker) clearInterval(_dateTimeTicker);
-  function tick() {
-    const now    = new Date();
-    const dateEl = document.getElementById(screen + '-date');
-    const timeEl = document.getElementById(screen + '-time');
-    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-AU', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
-    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
-  }
-  tick();
-  _dateTimeTicker = setInterval(tick, 1000);
-}
-
-function getCurrentTime() {
-  return new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
-}
-
-// ── Sign In ───────────────────────────────────────────────
-async function completeSignIn() {
-  if (!driverData) { toast('Please log in first'); return; }
-  const btn = document.getElementById('si-submit-btn');
-  if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
-  await waitForUploads('signin');
-  if (btn) btn.textContent = 'Submitting...';
-  // Note: shiftId auto-resolved server-side by matching today's Scheduled shift
-
-  const kmEl = document.getElementById('si-km');
-  const payload = {
-    action:        'submitSignIn',
-    driver:        driverData.driverName,
-    email:         driverData.email,
-    van:           driverData.assignedVan,
-    lat:           currentGPS.lat || '',
-    lng:           currentGPS.lng || '',
-    address:       currentGPS.address || '',
-    kmReading:     kmEl ? kmEl.value : '',
-    vanCondition:  document.querySelector('#screen-signin .cond-btn.active')?.textContent?.trim() || 'Good',
-    fuelLevel:     (['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
-    damageNotes:   document.getElementById('si-damage-notes')?.value || '',
-    damagePhotoUrl: document.getElementById('cam-1-input')?.dataset?.uploadedUrl || '',
-    videoUrl:       document.getElementById('si-video-input')?.dataset?.uploadedUrl || '',
-    checklist:     Array.from(document.querySelectorAll('#screen-signin .chk-item')).map(el => {
-                     const lbl = el.querySelector('.chk-label')?.textContent || '';
-                     const checked = el.querySelector('.chk-box')?.classList.contains('checked');
-                     return lbl + ':' + (checked ? 'Yes' : 'No');
-                   }).join(' | '),
-    startTime:     document.getElementById('signin-time')?.textContent || new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
-    startDate:     document.getElementById('signin-date')?.textContent || new Date().toLocaleDateString('en-AU'),
-    shiftId:       '',
-    notes:         document.querySelector('#screen-signin textarea.inp')?.value || ''
-  };
-
-  try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) {
-      shiftActive = true;
-      localStorage.setItem('fv_shift_on','true');
-      localStorage.setItem('fv_sign_in_id', data.signInId || '');
-      document.getElementById('shift-btn').textContent = 'End shift';
-      document.getElementById('shift-btn').className   = 'shift-btn-end';
-      document.getElementById('shift-label').textContent = 'Shift in progress';
-      document.getElementById('shift-time').textContent  = 'Started ' + getCurrentTime();
-      document.getElementById('home-status').textContent = 'On Shift';
-      toast('Shift started! Have a safe day 🚚');
-      backToHome();
-    } else {
-      toast('Error: ' + (data.message || 'Could not sign in. Try again.'));
-      if (btn) { btn.textContent = 'Confirm start shift'; btn.disabled = false; }
-    }
-  } catch(e) {
-    // Offline fallback
-    shiftActive = true;
-    localStorage.setItem('fv_shift_on','true');
-    document.getElementById('shift-btn').textContent = 'End shift';
-    document.getElementById('shift-btn').className   = 'shift-btn-end';
-    document.getElementById('shift-label').textContent = 'Shift in progress';
-    document.getElementById('shift-time').textContent  = 'Started ' + getCurrentTime();
-    document.getElementById('home-status').textContent = 'On Shift';
-    toast('Shift started (offline mode) 🚚');
-    backToHome();
-  }
-}
-
-// ── Sign Off ──────────────────────────────────────────────
-async function completeSignOff() {
-  if (!driverData) { toast('Please log in first'); return; }
-
-  // Validate mandatory fields
-  const kmEl    = document.getElementById('so-km');
-  const addrEl  = document.getElementById('so-dropoff-address');
-  if (!kmEl?.value)   { toast('Please enter the end odometer reading'); return; }
-  if (!addrEl?.value) { toast('Please enter the drop-off address'); addrEl?.focus(); return; }
-
-  const btn = document.getElementById('so-submit-btn');
-  if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
-  await waitForUploads('signoff');
-  if (btn) btn.textContent = 'Submitting...';
-
-  const noteEl = document.getElementById('so-next-driver-note');
-  const payload = {
-    action:          'submitSignOff',
-    driver:          driverData.driverName,
-    email:           driverData.email,
-    van:             driverData.assignedVan,
-    lat:             currentGPS.lat || '',
-    lng:             currentGPS.lng || '',
-    address:         (document.getElementById('so-dropoff-address')?.value || currentGPS.address || ''),
-    kmReading:       kmEl ? kmEl.value : '',
-    vanCondition:    document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
-    fuelLevel:       (['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
-    damageNotes:     document.getElementById('so-damage-notes')?.value || '',
-    damagePhotoUrl:  document.getElementById('cam-2-input')?.dataset?.uploadedUrl || '',
-    handoverPhotoUrl: document.getElementById('cam-3-input')?.dataset?.uploadedUrl || '',
-    checklist:       Array.from(document.querySelectorAll('#screen-signoff .chk-item')).map(el => {
-                       const lbl = el.querySelector('.chk-label')?.textContent || '';
-                       const checked = el.querySelector('.chk-box')?.classList.contains('checked');
-                       return lbl + ':' + (checked ? 'Yes' : 'No');
-                     }).join(' | '),
-    nextDriverNote:  noteEl ? noteEl.value : '',
-    endTime:         document.getElementById('signoff-time')?.textContent || new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
-    endDate:         document.getElementById('signoff-date')?.textContent || new Date().toLocaleDateString('en-AU'),
-    shiftId:         localStorage.getItem('fv_sign_in_id') || '',
-    notes:           ''
-  };
-
-  try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify(payload)
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) {
-      shiftActive = false;
-      localStorage.setItem('fv_shift_on','false');
-      localStorage.removeItem('fv_sign_in_id');
-      document.getElementById('shift-btn').textContent  = 'Start shift';
-      document.getElementById('shift-btn').className    = 'shift-btn-start';
-      document.getElementById('shift-label').textContent = 'Day shift today';
-      document.getElementById('shift-time').textContent  = '6:00 AM — 6:00 PM';
-      document.getElementById('home-status').textContent = 'Active';
-      screenHistory = [];
-      const snEl = document.getElementById('summary-name');
-      const sdEl = document.getElementById('summary-date');
-      if (snEl) snEl.textContent = 'Great work, ' + (driverData.driverName.split(' ')[0]) + '!';
-      if (sdEl) sdEl.textContent = new Date().toLocaleDateString('en-AU', {weekday:'long', day:'numeric', month:'long'}) + ' shift complete';
-      showScreen('shift-summary');
-    } else {
-      toast('Error: ' + (data.message || 'Could not sign off.'));
-      if (btn) { btn.textContent = 'Confirm end shift'; btn.disabled = false; }
-    }
-  } catch(e) {
-    shiftActive = false;
-    localStorage.setItem('fv_shift_on','false');
-    document.getElementById('shift-btn').textContent  = 'Start shift';
-    document.getElementById('shift-btn').className    = 'shift-btn-start';
-    document.getElementById('shift-label').textContent = 'Day shift today';
-    document.getElementById('home-status').textContent = 'Active';
-    toast('Shift ended (offline mode) 🎉');
-    screenHistory = [];
-    showScreen('shift-summary');
-  }
-}
-
-// ── Toggle shift from dashboard ───────────────────────────
-function toggleShift() {
-  if (shiftActive) navigate('signoff');
-  else             navigate('signin');
-}
-
-// ── File Handling ─────────────────────────────────────────
-function handleFileSelect(input, labelId, folderKey) {
-  if (!input.files || !input.files[0]) return;
-  const file    = input.files[0];
-  const labelEl = document.getElementById(labelId);
-  input.dataset.folderKey   = folderKey || 'Delivery Photos Folder ID';
-  input.dataset.localFile   = 'selected';
-  input.dataset.uploadedUrl = '';
-  if (labelEl) { labelEl.textContent = '✅ ' + file.name.substring(0,28); labelEl.style.color = 'var(--gt)'; }
-  uploadFileInBackground(input, file, folderKey);
-}
-
-async function uploadFileInBackground(input, file, folderKey) {
-  try {
-    const ext      = file.name.split('.').pop();
-    const name_    = (driverData ? driverData.driverName.replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
-    const url      = await uploadFileToDrive(file, folderKey || 'Delivery Photos Folder ID', name_);
-    input.dataset.uploadedUrl = url;
-    input.dataset.localFile   = 'uploaded';
-  } catch(e) {
-    input.dataset.localFile = 'failed';
-  }
-}
-
-// Wait for all pending uploads on a screen before submitting
-async function waitForUploads(screenId) {
-  const inputs = document.querySelectorAll('#screen-' + screenId + ' input[type="file"]');
-  const pending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected');
-  if (pending.length === 0) return true;
-  let waited = 0;
-  while (waited < 15000) {
-    await new Promise(r => setTimeout(r, 500));
-    waited += 500;
-    const stillPending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected');
-    if (stillPending.length === 0) return true;
-  }
-  return false; // timeout — submit anyway
-}
-
-async function uploadFileToDrive(file, folderKey, filename) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const base64 = e.target.result.split(',')[1];
-        const resp   = await fetch(APPS_SCRIPT_URL, {
-          method:'POST', redirect:'follow',
-          headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body: JSON.stringify({ action:'uploadFile', filename, mimeType:file.type, base64Data:base64, folderKey, driverEmail: driverData?.email || '' })
-        });
-        const data = JSON.parse(await resp.text());
-        if (data.success) resolve(data.fileUrl);
-        else reject(data.message || 'Upload failed');
-      } catch(err) { reject(err.message); }
-    };
-    reader.onerror = () => reject('Could not read file');
-    reader.readAsDataURL(file);
-  });
-}
-
-// ── Load Vehicle Data (My Vehicle screen) ────────────────
-let _lastParkPhotoUrl = '';
-function openParkPhoto() { if (_lastParkPhotoUrl) window.open(_lastParkPhotoUrl, '_blank'); }
-
-async function loadVehicleData() {
-  if (!driverData || !driverData.assignedVan) return;
-  const van = driverData.assignedVan;
-  const titleEl = document.getElementById('vehicle-reg-title');
-  const displayEl = document.getElementById('vehicle-reg-display');
-  if (titleEl) titleEl.textContent = van;
-  if (displayEl) displayEl.textContent = van;
-
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
-    if (!data.success) return;
-
-    if (data.history && data.history.length > 0) {
-      const last   = data.history[0];
-      const addr   = last.endLocation || data.lastParked?.address || last.address || '';
-      const addrEl = document.getElementById('van-parked-addr');
-      const byEl   = document.getElementById('van-parked-by');
-      const mapsEl = document.getElementById('van-maps-link');
-      const locEl  = document.getElementById('van-last-location');
-      if (addrEl) addrEl.textContent = addr;
-      if (byEl)   byEl.textContent   = 'Parked by ' + last.driver + ' · ' + last.date;
-      if (locEl)  locEl.textContent  = addr.split(',')[0] || addr;
-      if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
-
-      // Last park photo — show inline
-      if (last.handoverPhotoUrl) {
-        _lastParkPhotoUrl = last.handoverPhotoUrl;
-        const wrap   = document.getElementById('vehicle-park-photo-wrap');
-        const box    = document.getElementById('vehicle-park-photo-box');
-        const credit = document.getElementById('vehicle-park-photo-credit');
-        if (wrap)   wrap.style.display = 'block';
-        if (box)    box.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover">';
-        if (credit) credit.textContent = 'Parked by ' + last.driver + ' · ' + last.date;
-      }
-    }
-  } catch(e) { console.error('loadVehicleData error', e); }
-
-// ── Load Van Activity (sub-screen) ───────────────────────
-async function loadVanActivity() {
-  if (!driverData || !driverData.assignedVan) return;
-  const van = driverData.assignedVan;
-  const titleEl = document.getElementById('vanactivity-reg-title');
-  if (titleEl) titleEl.textContent = van;
-  const defSpan = document.getElementById('va-defect-van');
-  if (defSpan) defSpan.textContent = van + ' — all assigned drivers';
-
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
-    if (!data.success) return;
-
-    // Last park photo from most recent sign-off
-    // Last parked address
-    if (data.lastParked && data.lastParked.address) {
-      const addrEl = document.getElementById('van-parked-addr');
-      const byEl   = document.getElementById('van-parked-by');
-      const mapsEl = document.getElementById('van-maps-link');
-      if (addrEl) addrEl.textContent = data.lastParked.address;
-      if (byEl)   byEl.textContent   = 'Last updated: ' + (data.lastParked.time || '');
-      if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(data.lastParked.address);
-    }
-
-    // Last park photo
-    if (data.history && data.history.length > 0) {
-      const last = data.history[0];
-      const photoBox    = document.getElementById('van-last-photo-box');
-      const photoCredit = document.getElementById('van-last-photo-credit');
-      if (last.handoverPhotoUrl && photoBox) {
-        photoBox.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)">';
-        photoBox.onclick = () => window.open(last.handoverPhotoUrl, '_blank');
-      }
-      if (photoCredit) photoCredit.textContent = last.handoverPhotoUrl
-        ? 'Taken by ' + last.driver + ' · ' + last.date
-        : 'No photo from last driver';
-    }
-
-    // Active driver
-    const nameEl   = document.getElementById('van-active-name');
-    const infoEl   = document.getElementById('van-active-info');
-    const callEl   = document.getElementById('van-active-call');
-    const smsEl    = document.getElementById('van-active-sms');
-    const avatarEl = document.getElementById('van-active-avatar');
-    if (data.activeDriver) {
-      if (nameEl)   nameEl.textContent = data.activeDriver.name;
-      if (infoEl)   infoEl.textContent = 'Currently on shift';
-      if (avatarEl) {
-        const parts = data.activeDriver.name.split(' ');
-        avatarEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
-      }
-      const phone = data.activeDriver.phone ? data.activeDriver.phone.replace(/^0/, '') : '';
-      if (callEl && phone) callEl.href = 'tel:+61' + phone;
-      if (smsEl  && phone) smsEl.href  = 'sms:+61' + phone;
-    } else {
-      if (nameEl)   nameEl.textContent = 'No active driver';
-      if (infoEl)   infoEl.textContent = 'Van is available';
-      if (avatarEl) avatarEl.textContent = '—';
-    }
-
-    // Upcoming shifts
-    const upEl = document.getElementById('van-upcoming-list');
-    if (upEl) {
-      if (!data.upcoming || data.upcoming.length === 0) {
-        upEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">No upcoming shifts scheduled</div>';
-      } else {
-        upEl.innerHTML = data.upcoming.map(u => {
-          const phone = u.phone ? u.phone.replace(/^0/, '') : '';
-          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
-            <div style="width:32px;height:32px;background:var(--bl);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-              <span style="font-size:7px;color:var(--blu)">${u.date||''}</span>
-              <span style="font-size:9px;font-weight:800;color:var(--blu)">${u.startTime||''}</span>
-            </div>
-            <div style="flex:1"><p style="font-size:11px;font-weight:600">${u.driver||''}</p><span style="font-size:9px;color:var(--t2)">${u.type||''} shift · ${u.status||''}</span></div>
-            <div style="display:flex;gap:4px">
-              ${phone ? `<a href="tel:+61${phone}"><button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">📞</button></a>` : ''}
-              ${phone ? `<a href="sms:+61${phone}"><button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">💬</button></a>` : ''}
-            </div>
-          </div>`;
-        }).join('');
-      }
-    }
-
-    // History
-    const histEl = document.getElementById('van-history-list');
-    if (histEl) {
-      if (!data.history || data.history.length === 0) {
-        histEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">No shift history yet</div>';
-      } else {
-        histEl.innerHTML = data.history.map(h => {
-          const phone = h.phone ? h.phone.replace(/^0/, '') : '';
-          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
-            <div style="width:32px;height:32px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-              <span style="font-size:9px;font-weight:800">${h.date||''}</span>
-            </div>
-            <div style="flex:1">
-              <p style="font-size:11px;font-weight:600">${h.driver||''}</p>
-              <span style="font-size:9px;color:var(--t2)">${h.type||''} · ${h.hoursWorked ? h.hoursWorked + ' hrs' : ''} ${h.startKm && h.endKm ? '· ' + (parseFloat(h.endKm)-parseFloat(h.startKm)).toFixed(0) + ' km' : ''}</span>
-              ${h.note ? `<div style="font-size:9px;color:var(--t2);background:var(--bg2);border-radius:5px;padding:4px 6px;margin-top:3px">📝 ${h.note}</div>` : ''}
-            </div>
-            <div style="display:flex;gap:4px">
-              ${phone ? `<a href="tel:+61${phone}"><button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;cursor:pointer">📞</button></a>` : ''}
-              ${phone ? `<a href="sms:+61${phone}"><button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;cursor:pointer">💬</button></a>` : ''}
-            </div>
-          </div>`;
-        }).join('');
-      }
-    }
-
-    // Defects
-    loadDefectsForVan(van);
-  } catch(e) {
-    console.error('loadVanActivity error', e);
-    const upEl   = document.getElementById('van-upcoming-list');
-    const histEl = document.getElementById('van-history-list');
-    const errMsg = '<div style="padding:14px;color:var(--red);font-size:12px;text-align:center">Could not load data. Check connection.</div>';
-    if (upEl)   upEl.innerHTML   = errMsg;
-    if (histEl) histEl.innerHTML = errMsg;
-  }
-}
-
-
-// ── Load Alerts ───────────────────────────────────────────
-async function loadAlerts() {
-  if (!driverData) return;
-  const listEl = document.getElementById('alerts-list');
-  if (!listEl) return;
-  listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Loading alerts...</div>';
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getAlerts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
-    if (!data.success || !data.alerts || data.alerts.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">No alerts yet</div>';
-      const dot = document.getElementById('notif-dot'); if (dot) dot.style.display = 'none';
-      return;
-    }
-    const unread = data.alerts.filter(a => a.read==='No').length;
-    const dot = document.getElementById('notif-dot'); if (dot) dot.style.display = unread > 0 ? 'block' : 'none';
-    listEl.innerHTML = data.alerts.map(a => `
-      <div class="alert-item">
-        <div class="alert-dot ${a.read==='No'?'unread':'read'}"></div>
-        <div class="alert-info"><p>${a.title||''}</p><span>${a.message||''}</span><div class="alert-time">${a.createdDate||''}</div></div>
-      </div>`).join('');
-  } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t2);font-size:12px">Could not load alerts.</div>';
-  }
-}
-
-// ── Load Shifts ───────────────────────────────────────────
-async function loadMyShifts() {
-  if (!driverData) return;
-  const listEl = document.getElementById('myshifts-list');
-  if (!listEl) return;
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getShifts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
-    if (!data.success || !data.shifts || data.shifts.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t2);font-size:12px;margin-bottom:12px">No upcoming shifts found</div>' + getShiftRequestForm();
-      return;
-    }
-    const cards = data.shifts.map(s => {
-      const isDay    = s.type === 'Day';
-      const statusBg = s.status==='In Progress' ? 'var(--gl)' : s.status==='Completed' ? 'var(--bg2)' : 'var(--bl)';
-      const statusC  = s.status==='In Progress' ? 'var(--gt)' : s.status==='Completed' ? 'var(--t2)'  : 'var(--blu)';
-      // Show actual times if available, fall back to scheduled
-      const displayStart = s.actualStart || s.startTime || '—';
-      const displayEnd   = s.actualEnd   || s.endTime   || '—';
-      const kmInfo = (s.startKm && s.endKm)
-        ? `${s.startKm} → ${s.endKm} km (${(parseFloat(s.endKm)-parseFloat(s.startKm)).toFixed(0)} km)`
-        : (s.startKm ? `Start: ${s.startKm} km` : '');
-      return `<div class="shift-item">
-        <div class="shift-item-header">
-          <i class="ti ${isDay?'ti-sun':'ti-moon'}" style="color:${isDay?'var(--g)':'var(--pur)'}"></i>
-          <h3>${s.type} shift — ${s.date||''}</h3>
-          <span style="font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;background:${statusBg};color:${statusC}">${s.status||'Scheduled'}</span>
-        </div>
-        <div class="shift-meta">
-          <div class="shift-meta-item"><span>Scheduled</span><p>${s.startTime||'—'} – ${s.endTime||'—'}</p></div>
-          <div class="shift-meta-item"><span>Actual</span><p>${displayStart} – ${displayEnd}</p></div>
-          <div class="shift-meta-item"><span>Van</span><p>${s.van||'—'}</p></div>
-          ${s.hoursWorked ? `<div class="shift-meta-item"><span>Hours</span><p>${s.hoursWorked} hrs</p></div>` : ''}
-          ${kmInfo ? `<div class="shift-meta-item" style="grid-column:1/-1"><span>Odometer</span><p>${kmInfo}</p></div>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-    listEl.innerHTML = cards + getShiftRequestForm();
-  } catch(e) { listEl.innerHTML = getShiftRequestForm(); }
-}
-
-function getShiftRequestForm() {
-  return `<div class="card">
-    <p style="font-size:13px;font-weight:700;margin-bottom:12px">Request shift change</p>
-    <label class="lbl">Request type</label>
-    <select class="sel"><option>Shift change — day to night</option><option>Shift change — night to day</option><option>Request extra shift</option><option>Cancel a shift</option></select>
-    <label class="lbl">Date</label>
-    <input type="date" class="inp">
-    <label class="lbl">Reason</label>
-    <textarea class="textarea" style="height:60px" placeholder="Why do you need this change?"></textarea>
-    <button class="btn btn-green" style="margin-bottom:0" onclick="submitShiftRequest()">Submit request</button>
-  </div>`;
-}
-
-async function submitShiftRequest() { toast('Shift request submitted ✅ Manager will review.'); }
-
-// ── Load Payouts ──────────────────────────────────────────
-async function loadPayouts() {
-  if (!driverData) return;
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getPayouts&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
-    if (!data.success || !data.payouts || data.payouts.length === 0) return;
-    const last = data.payouts.find(p => p.status==='Paid');
-    if (last) {
-      const a = document.getElementById('payout-last-amount'); if (a) a.textContent = '$' + parseFloat(last.total||0).toFixed(2);
-      const d = document.getElementById('payout-last-date');   if (d) d.textContent = 'Paid ' + (last.paymentDate||'');
-    }
-  } catch(e) {}
-}
-
-// ── Submit Fuel ───────────────────────────────────────────
-async function submitFuel() {
-  if (!driverData) return;
-  const amountEl   = document.getElementById('fuel-amount');
-  const photoInput = document.getElementById('fuel-photo-input');
-  const dateEl     = document.querySelector('#screen-fuel input[type="date"]');
-  const fuelTypeEl = document.querySelector('#screen-fuel .sel');
-  if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('Please enter the fuel amount'); return; }
-  try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
-        fuelDate: dateEl?dateEl.value:'', amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
-        receiptUrl: photoInput?.dataset?.uploadedUrl||''
-      })
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) { toast('Reimbursement submitted ✅ Paid Wednesday.'); amountEl.value=''; goBack(); }
-    else toast('Error: ' + (data.message||'Try again'));
-  } catch(e) { toast('Connection error. Try again.'); }
-}
-
-// ── Submit Leave ──────────────────────────────────────────
-async function submitLeave() {
-  if (!driverData) return;
-  const typeEl   = document.querySelector('#screen-leave .type-btn.active p');
-  const fromEl   = document.querySelector('#screen-leave input[type="date"]');
-  const reasonEl = document.querySelector('#screen-leave .textarea');
-  const shiftEl  = document.querySelector('#screen-leave .sel');
-  if (!fromEl?.value) { toast('Please select a start date'); return; }
-  if (!reasonEl?.value) { toast('Please enter a reason'); return; }
-  try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        action:'submitLeave', driver:driverData.driverName, email:driverData.email,
-        type: typeEl?typeEl.textContent:'Leave', fromDate:fromEl.value, toDate:fromEl.value,
-        shiftAffected: shiftEl?shiftEl.value:'', reason:reasonEl.value
-      })
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) { toast('Leave request submitted ✅ Manager notified.'); reasonEl.value=''; goBack(); }
-    else toast('Error: ' + (data.message||'Try again'));
-  } catch(e) { toast('Connection error. Try again.'); }
-}
-
-// ── Submit Ticket ─────────────────────────────────────────
-async function submitTicket() {
-  if (!driverData) return;
-  const responseEl = document.querySelector('#screen-tickets .sel');
-  const explEl     = document.querySelector('#screen-tickets .textarea');
-  if (!explEl?.value) { toast('Please describe what happened'); return; }
-  try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        action:'submitTicketResponse', driver:driverData.driverName, email:driverData.email,
-        responseType: responseEl?responseEl.value:'', explanation:explEl.value
-      })
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) { toast('Response submitted ✅ Manager notified.'); explEl.value=''; goBack(); }
-    else toast('Error: ' + (data.message||'Try again'));
-  } catch(e) { toast('Connection error. Try again.'); }
-}
-
-// ── Submit Defect ─────────────────────────────────────────
-async function submitDefectForm() {
-  if (!driverData) return;
-  const catEl   = document.getElementById('def-category');
-  const descEl  = document.getElementById('def-description');
-  const photoInput = document.getElementById('cam-5-input-def');
-  if (!descEl?.value) { toast('Please describe the defect'); return; }
-  try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        action:'submitDefect', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
-        category: catEl?catEl.value:'Other', description:descEl.value, photoUrl:photoInput?.dataset?.uploadedUrl||''
-      })
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) { toast('Defect reported ✅ Manager notified.'); descEl.value=''; toggleDef(); }
-    else toast('Error: ' + (data.message||'Try again'));
-  } catch(e) { toast('Connection error. Try again.'); }
-}
-
-// ── Submit Inspection ─────────────────────────────────────
-async function submitInspectionForm() {
-  if (!driverData) return;
-  const items = {};
-  ['Tyres','Lights','Wipers','Brakes','Interior'].forEach(k => {
-    const container = document.querySelector(`#insp-form [data-item="${k}"]`);
-    const active = container ? container.querySelector('.active') : null;
-    items[k.toLowerCase()] = active ? active.textContent.trim() : 'Good';
-  });
-  try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({ action:'submitInspection', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan, ...items })
-    });
-    const data = JSON.parse(await resp.text());
-    if (data.success) { toast('Inspection submitted ✅ Status: ' + data.overallStatus); toggleInsp(); }
-    else toast('Error: ' + (data.message||'Try again'));
-  } catch(e) { toast('Connection error. Try again.'); }
-}
-
-// ── Submit Emergency ──────────────────────────────────────
-async function submitEmergencyReport() {
-  if (!driverData) return;
-  const typeEl = document.querySelector('#screen-emergency .incident-type.active');
-  const descEl = document.querySelector('#screen-emergency .textarea');
-  try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method:'POST', redirect:'follow',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({
-        action:'submitEmergency', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
-        type: typeEl?typeEl.textContent.trim():'Emergency',
-        lat:currentGPS.lat||'', lng:currentGPS.lng||'', address:currentGPS.address||'',
-        description: descEl?descEl.value:''
-      })
-    });
-    JSON.parse(await resp.text());
-    toast('Emergency reported ✅ Manager notified immediately.');
-  } catch(e) { toast('Manager being contacted. Stay safe.'); }
-}
-
-// ── Checklist Toggle ─────────────────────────────────────
-function toggleChk(el) {
-  const box = el.querySelector(".chk-box");
-  if (!box) return;
-  const checked = box.classList.toggle("checked");
-  const icon = box.querySelector("i");
-  if (icon) icon.style.color = checked ? "" : "transparent";
-}
-
-// ── Condition & Fuel Selectors ────────────────────────────
-function siSelCond(v) {
-  ['si-cond-good','si-cond-dmg'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('active', id.endsWith(v));
-  });
-  const sec = document.getElementById('si-damage-section');
-  if (sec) sec.style.display = v==='dmg' ? 'block' : 'none';
-}
-function soSelCond(v) {
-  ['so-cond-good','so-cond-dmg'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('active', id.endsWith(v));
-  });
-  const sec = document.getElementById('so-damage-section');
-  if (sec) sec.style.display = v==='dmg' ? 'block' : 'none';
-}
-function siSelFuel(v) { ['full','half','low','empty'].forEach(f => { const el=document.getElementById('si-fuel-'+f); if(el) el.classList.toggle('active',f===v); }); }
-function soSelFuel(v) { ['full','half','low','empty'].forEach(f => { const el=document.getElementById('so-fuel-'+f); if(el) el.classList.toggle('active',f===v); }); }
-function toggleInsp() {
-  inspOpen = !inspOpen;
-  const f = document.getElementById('insp-form');
-  const b = document.getElementById('insp-btn');
-  if (f) f.style.display = inspOpen ? 'block' : 'none';
-  if (b) b.textContent  = inspOpen ? 'Close' : 'Start';
-}
-function toggleDef() {
-  defOpen = !defOpen;
-  const f = document.getElementById('def-form');
-  const b = document.getElementById('def-btn');
-  if (f) f.style.display = defOpen ? 'block' : 'none';
-  if (b) b.textContent  = defOpen ? 'Close' : 'Report new';
-}
-let inspOpen = false, defOpen = false;
-
-function selectType(el) {
-  el.closest('.type-grid').querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-}
-function selectPeriod(el) {
-  el.closest('.pay-pills').querySelectorAll('.ppill,.pay-pill').forEach(p => p.classList.remove('active','on'));
-  el.classList.add('active');
-  toast('Showing ' + el.textContent.trim() + ' earnings');
-}
-
-// ── Toast ─────────────────────────────────────────────────
-function useCurrentLocation() {
-  const addrEl = document.getElementById('so-dropoff-address');
-  if (!addrEl) return;
-  if (currentGPS && currentGPS.address) {
-    addrEl.value = currentGPS.address;
-    toast('📍 Location set to current GPS');
-  } else {
-    addrEl.value = 'Getting location...';
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const lat = pos.coords.latitude.toFixed(6);
-        const lng = pos.coords.longitude.toFixed(6);
-        currentGPS.lat = lat; currentGPS.lng = lng;
-        fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng)
-          .then(r => r.json())
-          .then(d => {
-            const addr = d.display_name ? d.display_name.split(',').slice(0,4).join(',').trim() : lat + ',' + lng;
-            currentGPS.address = addr;
-            addrEl.value = addr;
-            toast('📍 Location captured');
-          }).catch(() => {
-            addrEl.value = lat + ', ' + lng;
-            toast('📍 GPS coordinates captured');
-          });
-      }, () => toast('Could not get GPS. Please type the address manually.'));
-    }
-  }
-}
-
-function updateMapFromAddress(addr) {
-  // Update GPS address as user types
-  if (addr && addr.length > 5) currentGPS.address = addr;
-}
-
-function toast(msg) {
-  let el = document.getElementById('toast-el');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'toast-el';
-    el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:30px;font-size:12px;font-weight:600;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.25s;white-space:nowrap;max-width:90vw;text-align:center;';
-    document.body.appendChild(el);
-  }
-  el.textContent = msg;
-  el.style.opacity = '1';
-  clearTimeout(window._toastT);
-  window._toastT = setTimeout(() => { el.style.opacity = '0'; }, 2800);
-}
-
-// ── Toggle PIN visibility ─────────────────────────────────
-function togglePin() {
-  const el = document.getElementById('pin-val');
-  if (!el) return;
-  el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
-}
-
-</script>
 </body>
 </html>
