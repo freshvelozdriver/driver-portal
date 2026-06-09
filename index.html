@@ -176,7 +176,9 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .chk-item:hover{background:var(--green-light);}
 .chk-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--bg);transition:all 0.15s;}
 .chk-box.checked{background:var(--green);border-color:var(--green);}
-.chk-box.checked i{color:#fff;font-size:13px;}
+.chk-box.checked i{color:#fff;font-size:13px;pointer-events:none;}
+.chk-label{pointer-events:none;}
+.cond-btn{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
 .chk-label{font-size:13px;color:var(--text);font-weight:500;}
 
 /* STAT GRID */
@@ -583,7 +585,7 @@ body { display: block !important; overflow: hidden; }
         <div class="van-icon"><i class="ti ti-truck"></i></div>
         <div style="flex:1;margin-left:8px">
           <p style="font-size:13px;font-weight:600;color:var(--text)" id="van-reg">NSW 123 ABC</p>
-          <p style="font-size:11px;color:var(--text2)">Toyota HiAce · Last seen: Alexandria</p>
+          <p style="font-size:11px;color:var(--text2)" id="home-van-detail">Assigned van</p>
         </div>
         <i class="ti ti-chevron-right" style="color:var(--text2);font-size:14px"></i>
       </div>
@@ -1327,7 +1329,7 @@ body { display: block !important; overflow: hidden; }
     </div>
     <!-- Van details -->
     <div class="prof-sec">
-      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">🚐</div><div class="prof-info"><p id="vehicle-reg-display">NSW 123 ABC</p><span id="vehicle-details">Toyota HiAce · White · Lime team</span></div></div>
+      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">🚐</div><div class="prof-info"><p id="vehicle-reg-display">NSW 123 ABC</p><span id="vehicle-details">Assigned vehicle</span></div></div>
       <div class="prof-row"><div class="prof-icon" style="background:var(--al)">⛽</div><div class="prof-info"><p>Fuel type</p><span>Diesel only</span></div></div>
       <div class="prof-row" onclick="togglePin()"><div class="prof-icon" style="background:var(--pl)">🔒</div><div class="prof-info"><p>Lock box PIN</p><span id="pin-val">● ● ● ●</span></div><i class="ti ti-eye" style="color:var(--t2)"></i></div>
       <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">✅</div><div class="prof-info"><p>Condition</p><span id="vehicle-condition-text">Good — checked recently</span></div></div>
@@ -1808,6 +1810,10 @@ function setupDashboard() {
       const parts = (driverData.driverName || 'D').split(' ');
       avatarEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
     }
+    const vanDetailEl = document.getElementById('home-van-detail');
+    if (vanDetailEl) vanDetailEl.textContent = (driverData.assignedVan || 'No van assigned') + (driverData.businessUnit ? ' · ' + driverData.businessUnit : '');
+    const vehDetailEl = document.getElementById('vehicle-details');
+    if (vehDetailEl) vehDetailEl.textContent = (driverData.assignedVan || '—') + (driverData.suburb ? ' · ' + driverData.suburb : '');
   } catch(e) {
     console.error('setupDashboard error:', e);
   }
@@ -1820,16 +1826,19 @@ function loadProfile() {
   const e = document.getElementById('profile-email');
   const a = document.getElementById('profile-avatar');
   const b = document.getElementById('profile-unit') || document.getElementById('profile-badge');
-  if (n) n.textContent = driverData.driverName || '';
-  if (e) e.textContent = driverData.email || '';
-  if (b) b.textContent = (driverData.businessUnit || '') + ' · Active';
+  const ph = document.getElementById('profile-phone');
+  const van = document.getElementById('profile-van');
+  if (n)   n.textContent   = driverData.driverName    || '';
+  if (e)   e.textContent   = driverData.email         || '';
+  if (b)   b.textContent   = (driverData.businessUnit || '') + ' · Active';
+  if (ph)  ph.textContent  = driverData.phone         || '';
+  if (van) van.textContent = driverData.assignedVan   || '—';
   if (a) {
     const parts = (driverData.driverName || 'D').split(' ');
     a.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
   }
-  // Also populate Van PIN display from driver data
   const pinEl = document.getElementById('pin-val');
-  if (pinEl && driverData.vanPin) pinEl.textContent = '● ● ● ●';
+  if (pinEl) pinEl.textContent = '● ● ● ●';
 }
 
 // ── GPS ───────────────────────────────────────────────────
@@ -2204,6 +2213,7 @@ async function loadVehicleData() {
     }
 
   } catch(e) { console.error('loadVehicleData error', e); }
+} // end loadVehicleData
 
 // ── Load Van Activity (sub-screen) ───────────────────────
 async function loadVanActivity() {
@@ -2733,13 +2743,14 @@ function toast(msg) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'toast-el';
-    el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:30px;font-size:12px;font-weight:600;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.25s;white-space:nowrap;max-width:90vw;text-align:center;';
+    // top:30% keeps it visible above keyboard on all phones
+    el.style.cssText = 'position:fixed;top:30%;left:50%;transform:translateX(-50%) translateY(-50%);background:rgba(26,26,26,0.95);color:#fff;padding:11px 22px;border-radius:30px;font-size:13px;font-weight:600;z-index:999999;pointer-events:none;opacity:0;transition:opacity 0.25s;max-width:88vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.35);backdrop-filter:blur(4px);';
     document.body.appendChild(el);
   }
   el.textContent = msg;
   el.style.opacity = '1';
   clearTimeout(window._toastT);
-  window._toastT = setTimeout(() => { el.style.opacity = '0'; }, 2800);
+  window._toastT = setTimeout(() => { el.style.opacity = '0'; }, 3000);
 }
 
 // ── Toggle PIN visibility ─────────────────────────────────
@@ -2757,7 +2768,6 @@ function togglePin() {
   el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
 }
 
-}
 </script>
 </body>
 </html>
