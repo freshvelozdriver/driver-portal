@@ -471,7 +471,6 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 html, body { visibility: visible !important; opacity: 1 !important; margin:0; padding:0; background:#fff; width:100%; height:100%; height:-webkit-fill-available; }
 body { display: block !important; overflow: hidden; }
 #app { visibility: visible !important; opacity: 1 !important; display: flex !important; flex-direction: column; }
-#screen-login { display: flex !important; visibility: visible !important; opacity: 1 !important; position: absolute !important; flex-direction: column; }
 </style>
 
 <!-- DEBUG INFO -->
@@ -1573,28 +1572,16 @@ DEBUG('Page loading...');
   <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
 
-<!-- IMMEDIATE RENDER FORCE -->
 <script>
 (function() {
   const app = document.getElementById('app');
-  const login = document.getElementById('screen-login');
-  if (app) { 
-    app.style.visibility = 'visible'; 
-    app.style.display = 'flex'; 
+  if (app) {
+    app.style.visibility = 'visible';
+    app.style.display = 'flex';
     app.style.opacity = '1';
     app.style.height = window.innerHeight + 'px';
   }
-  if (login) { 
-    login.style.display = 'flex'; 
-    login.style.visibility = 'visible'; 
-    login.style.opacity = '1';
-    login.classList.add('active');
-  }
-  // Hide all other screens
-  document.querySelectorAll('.screen').forEach(s => {
-    if (s.id !== 'screen-login') s.style.display = 'none';
-  });
-  console.log('📱 Immediate render forced');
+  console.log('📱 App container styled for visibility');
 })();
 </script>
 
@@ -1611,10 +1598,15 @@ let toastTimer;
 
 // ── Screen Navigation ─────────────────────────────────────
 function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  DEBUG('showScreen: ' + name);
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = '';
+  });
   const el = document.getElementById('screen-' + name);
   if (el) {
     el.classList.add('active');
+    el.style.display = '';
     currentScreen = name;
     const c = el.querySelector('.scroll, .content');
     if (c) c.scrollTop = 0;
@@ -1627,6 +1619,8 @@ function showScreen(name) {
     if (name === 'payout')      loadPayouts();
     if (name === 'profile')     loadProfile();
     if (name === 'settings')    loadProfile();
+  } else {
+    DEBUG('showScreen missing element: screen-' + name);
   }
 }
 
