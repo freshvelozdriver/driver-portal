@@ -571,7 +571,7 @@ DEBUG('Page loading...');
     <div class="driver-bar">
       <div class="avatar" id="home-avatar">JD</div>
       <div class="driver-info">
-        <h2 id="home-name">John Driver</h2>
+        <h2 id="home-name">Driver</h2>
         <p id="home-unit">Lime · Alexandria</p>
       </div>
       <div class="status-pill" id="home-status">Active</div>
@@ -1319,7 +1319,7 @@ DEBUG('Page loading...');
           <span style="font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:2px">Last parked address</span>
           <p id="van-parked-addr" style="font-size:13px;font-weight:700;margin-bottom:2px">88 Bourke Rd, Alexandria NSW 2015</p>
           <span style="font-size:10px;color:var(--t2)">Near Amazon Warehouse</span>
-          <span id="van-parked-by" style="font-size:9px;color:var(--t3);display:block;margin-top:2px">Parked by John Driver at 6:08 PM · Mon 26 May</span>
+          <span id="van-parked-by" style="font-size:9px;color:var(--t3);display:block;margin-top:2px">Parked by Driver at 6:08 PM · Mon 26 May</span>
           <a id="van-maps-link" href="https://www.google.com/maps/search/?api=1&query=88+Bourke+Rd+Alexandria+NSW+2015" target="_blank" style="text-decoration:none;display:block;margin-top:9px">
             <button style="width:100%;background:#4285F4;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
               <i class="ti ti-map-2" style="font-size:14px"></i> Open in Google Maps
@@ -1516,7 +1516,7 @@ DEBUG('Page loading...');
   <div class="content">
     <div style="text-align:center;padding:16px 0 20px">
       <div id="profile-avatar" style="width:64px;height:64px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:22px;font-weight:800;color:#fff">JD</div>
-      <p style="font-size:17px;font-weight:700;color:var(--text)" id="profile-name">John Driver</p>
+      <p style="font-size:17px;font-weight:700;color:var(--text)" id="profile-name">Driver</p>
       <p style="font-size:12px;color:var(--text2)" id="profile-email">john@email.com</p>
       <span class="badge badge-green" style="margin-top:6px;display:inline-block" id="profile-unit">Lime · Active</span>
     </div>
@@ -1571,19 +1571,6 @@ DEBUG('Page loading...');
   </div>
   <div class="ftr">© 2026 Fresh Veloz. All rights reserved.</div>
 </div>
-
-<script>
-(function() {
-  const app = document.getElementById('app');
-  if (app) {
-    app.style.visibility = 'visible';
-    app.style.display = 'flex';
-    app.style.opacity = '1';
-    app.style.height = window.innerHeight + 'px';
-  }
-  console.log('📱 App container styled for visibility');
-})();
-</script>
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFBDMpRlxOgHU51FCcdISdGza0g5EVOQZIhOPrF7SmWfhb471UbgjUSzXHv5l4FDrq/exec';
@@ -1744,6 +1731,8 @@ async function loginWithPin() {
     if (!text || text.trim() === '') {
       showLoginError('Empty response from server. Check your connection.');
       DEBUG('ERROR: Empty response');
+      btn.textContent = 'Sign in';
+      btn.disabled = false;
       return;
     }
     
@@ -1756,6 +1745,8 @@ async function loginWithPin() {
       showLoginError('Invalid response from server. Please try again.');
       DEBUG('ERROR: Parse failed - ' + parseErr.message);
       console.error('Response was:', text);
+      btn.textContent = 'Sign in';
+      btn.disabled = false;
       return;
     }
 
@@ -2685,53 +2676,21 @@ function toast(msg) {
 }
 
 // ── Toggle PIN visibility ─────────────────────────────────
+function filterCon(el, type) {
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.con-item').forEach(item => {
+    item.style.display = (type === 'all' || item.dataset.type === type) ? '' : 'none';
+  });
+}
+
 function togglePin() {
   const el = document.getElementById('pin-val');
   if (!el) return;
   el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
 }
 
-</script>
-
-<script>
-// IMMEDIATE INITIALIZATION - Runs synchronously before page fully renders
-document.addEventListener('DOMContentLoaded', () => {
-  DEBUG('DOM ready');
-  setTimeout(() => {
-    try {
-      // Force login screen visible
-      DEBUG('Forcing login screen...');
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      const loginScreen = document.getElementById('screen-login');
-      if (loginScreen) {
-        loginScreen.classList.add('active');
-        DEBUG('✅ Login screen visible');
-      }
-      
-      // Check for saved session
-      const saved = localStorage.getItem('fv_driver_data');
-      if (saved) {
-        DEBUG('Found saved session');
-        try {
-          const data = JSON.parse(saved);
-          if (data && data.email && data.driverName) {
-            // User already logged in
-            DEBUG('Restoring session for: ' + data.driverName);
-            if (typeof showScreen === 'function') {
-              showScreen('home');
-              DEBUG('✅ Showing home');
-            }
-          }
-        } catch(e) {
-          DEBUG('Could not restore session: ' + e.message);
-          localStorage.clear();
-        }
-      }
-    } catch(e) {
-      DEBUG('DOMContentLoaded error: ' + e.message);
-    }
-  }, 10);
-});
+}
 </script>
 </body>
 </html>
