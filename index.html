@@ -380,14 +380,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .ppill{background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;cursor:pointer;}
 .ppill.active{background:#fff;color:var(--green);font-weight:700;}
 
-/* LOADING */
-#loading{position:fixed;inset:0;background:var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;}
-#loading .logo{width:80px;height:80px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
-#loading .logo i{color:var(--green);font-size:36px;}
-#loading h1{color:#fff;font-size:24px;font-weight:800;margin-bottom:4px;}
-#loading p{color:rgba(255,255,255,0.8);font-size:12px;text-transform:uppercase;letter-spacing:2px;}
-.spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;margin-top:30px;}
-@keyframes spin{to{transform:rotate(360deg);}}
+/* Loading screen removed */
 
 /* TOAST */
 #toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:500;opacity:0;transition:all 0.3s;z-index:9999;white-space:nowrap;}
@@ -411,17 +404,70 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
 .amount-wrap{position:relative;}
 .amount-wrap .prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text2);}
 .amount-wrap input{padding-left:22px;}
+
+/* ── MISSING CLASSES THAT CAUSED BLANK SCREENS ── */
+.hdr-title{flex:1;overflow:hidden;}
+.hdr-title h1{font-size:15px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-title p{font-size:10px;color:rgba(255,255,255,0.8);margin:0;}
+.hdr-info{flex:1;}
+.hdr-info h1{font-size:15px;font-weight:700;color:#fff;}
+.hdr-info p{font-size:10px;color:rgba(255,255,255,0.8);}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:var(--radius);padding:12px 18px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:active{background:var(--green-dark);}
+
+.ibox{display:flex;align-items:flex-start;gap:10px;background:var(--bg2);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;font-size:12px;line-height:1.5;}
+.ibox i{font-size:16px;flex-shrink:0;margin-top:1px;}
+.ibox p{color:var(--text2);}
+.ibox-green{background:var(--green-light);}
+.ibox-green i,.ibox-green p,.ibox-green strong{color:var(--green-text);}
+.ibox-amber{background:var(--amber-light);}
+.ibox-amber i,.ibox-amber p{color:var(--amber);}
+.ibox-red{background:var(--red-light);}
+.ibox-red i,.ibox-red p{color:var(--red);}
+
+.alert-info{flex:1;}
+.alert-info p{font-size:12px;font-weight:600;color:var(--text);}
+.alert-info span{font-size:11px;color:var(--text2);display:block;margin-top:1px;}
+.alert-time{font-size:9px;color:var(--text3);margin-top:3px;}
+
+.shift-meta-item span{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;}
+.shift-meta-item p{font-size:12px;font-weight:600;color:var(--text);word-break:break-word;}
+
+.stat-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;}
+.stat-val{font-size:16px;font-weight:800;color:var(--text);}
+
+.upl{border:1.5px dashed var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center;cursor:pointer;background:var(--bg2);}
+.upl:active{background:var(--bg3);}
+.upl-icon{width:36px;height:36px;background:var(--green-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
+.upl-icon i{color:var(--green);font-size:18px;}
+.upl h3{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.upl p{font-size:10px;color:var(--text3);}
+
+.lbl{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;}
+.sel{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--bg);outline:none;-webkit-appearance:none;appearance:none;}
+.inp{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--bg);outline:none;}
+.textarea{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text);background:var(--bg);outline:none;resize:none;min-height:72px;font-family:inherit;}
+
+.pay-info p{font-size:13px;font-weight:600;color:var(--text);}
+.pay-info span{font-size:11px;color:var(--text2);}
+
+.support-info p{font-size:13px;font-weight:600;color:var(--text);}
+.support-info span{font-size:11px;color:var(--text2);}
+
+.km-input-wrap{position:relative;}
+.km-input-wrap input{padding-left:36px;}
+.km-input-wrap::before{content:'km';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text3);font-weight:600;}
+
+.damage-history-list .dh-item{background:var(--bg2);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px;}
+/* ── END MISSING CLASSES ── */
+
 </style>
 </head>
 <body>
 
-<!-- LOADING SCREEN -->
-<div id="loading">
-  <div class="logo"><i class="ti ti-truck"></i></div>
-  <h1>Fresh Veloz</h1>
-  <p>Driver Portal</p>
-  <div class="spinner"></div>
-</div>
+<!-- Loading screen removed — app goes directly to login or home -->
 
 <!-- TOAST -->
 <div id="toast"></div>
@@ -734,7 +780,7 @@ html,body{margin:0;padding:0;height:100%;height:-webkit-fill-available;overflow:
       <div class="cond-btn" id="so-fuel-low" onclick="soSelFuel('low')">⚠️ Low fuel</div>
       <div class="cond-btn" id="so-fuel-empty" onclick="soSelFuel('empty')">🚨 Empty</div>
     </div>
-    <input type="file" accept="image/*" capture="environment" id="cam-3-input" style="display:none" onchange="handleFileSelect(this,'cam-3-lbl','Emergency Photos Folder ID')">
+    <input type="file" accept="image/*" capture="environment" id="cam-3-input" style="display:none" onchange="handleFileSelect(this,'cam-3-lbl','Handover Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-3-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-3-lbl">Van handover photo</h3>
@@ -1567,10 +1613,6 @@ window.addEventListener('load', () => {
   setHeight();
   window.addEventListener('resize', setHeight);
 
-  // Hide loading screen
-  const loadingEl = document.getElementById('loading');
-  if (loadingEl) loadingEl.style.display = 'none';
-
   // Check if already logged in
   const saved = localStorage.getItem('fv_driver_data');
   if (saved) {
@@ -1997,17 +2039,34 @@ async function loadVehicleData() {
 
 // ── Load Van Activity (sub-screen) ───────────────────────
 async function loadVanActivity() {
-  if (!driverData || !driverData.assignedVan) return;
+  if (!driverData || !driverData.assignedVan) {
+    const upEl = document.getElementById('van-upcoming-list');
+    const hiEl = document.getElementById('van-history-list');
+    if (upEl) upEl.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);text-align:center">No van assigned to your account</div>';
+    return;
+  }
   const van = driverData.assignedVan;
   const titleEl = document.getElementById('vanactivity-reg-title');
   if (titleEl) titleEl.textContent = van;
   const defSpan = document.getElementById('va-defect-van');
   if (defSpan) defSpan.textContent = van + ' — all assigned drivers';
 
+  // Show loading state
+  const upEl_loading = document.getElementById('van-upcoming-list');
+  const hiEl_loading = document.getElementById('van-history-list');
+  if (upEl_loading) upEl_loading.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);text-align:center">Loading...</div>';
+  if (hiEl_loading) hiEl_loading.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);text-align:center">Loading...</div>';
+
   try {
     const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
     const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
+    const raw  = await resp.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch(parseErr) {
+      console.error('getVanActivity parse error:', raw.substring(0,200));
+      throw new Error('Invalid response from server');
+    }
     if (!data.success) return;
 
     // Last park photo from most recent sign-off
@@ -2164,8 +2223,21 @@ async function loadMyShifts() {
       const statusBg = s.status==='In Progress' ? 'var(--gl)' : s.status==='Completed' ? 'var(--bg2)' : 'var(--bl)';
       const statusC  = s.status==='In Progress' ? 'var(--gt)' : s.status==='Completed' ? 'var(--t2)'  : 'var(--blu)';
       // Show actual times if available, fall back to scheduled
-      const displayStart = s.actualStart || s.startTime || '—';
-      const displayEnd   = s.actualEnd   || s.endTime   || '—';
+      // Guard against raw ISO date strings like "1899-12-29T..."
+      function cleanTime(t) {
+        if (!t) return '—';
+        if (t.includes('T') || t.includes('1899') || t.includes('1970')) {
+          try {
+            const d = new Date(t);
+            const h = d.getHours(), m = d.getMinutes();
+            const p = h >= 12 ? 'PM' : 'AM';
+            return (h%12||12) + ':' + String(m).padStart(2,'0') + ' ' + p;
+          } catch(e) { return '—'; }
+        }
+        return t;
+      }
+      const displayStart = cleanTime(s.actualStart || s.startTime);
+      const displayEnd   = cleanTime(s.actualEnd   || s.endTime);
       const kmInfo = (s.startKm && s.endKm)
         ? `${s.startKm} → ${s.endKm} km (${(parseFloat(s.endKm)-parseFloat(s.startKm)).toFixed(0)} km)`
         : (s.startKm ? `Start: ${s.startKm} km` : '');
@@ -2227,6 +2299,13 @@ async function submitFuel() {
   const dateEl     = document.querySelector('#screen-fuel input[type="date"]');
   const fuelTypeEl = document.querySelector('#screen-fuel .sel');
   if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('Please enter the fuel amount'); return; }
+
+  // Wait for receipt photo upload to finish
+  if (photoInput && photoInput.dataset.localFile === 'selected') {
+    toast('Uploading receipt photo...');
+    await waitForUploads('fuel');
+  }
+
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
@@ -2234,11 +2313,18 @@ async function submitFuel() {
       body: JSON.stringify({
         action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
         fuelDate: dateEl?dateEl.value:'', amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
-        receiptUrl: photoInput?.dataset?.uploadedUrl||''
+        receiptUrl: photoInput?.dataset?.uploadedUrl || ''
       })
     });
     const data = JSON.parse(await resp.text());
-    if (data.success) { toast('Reimbursement submitted ✅ Paid Wednesday.'); amountEl.value=''; goBack(); }
+    if (data.success) {
+      toast('Reimbursement submitted ✅ Paid Wednesday.');
+      amountEl.value = '';
+      if (photoInput) { photoInput.value = ''; photoInput.dataset.uploadedUrl = ''; photoInput.dataset.localFile = ''; }
+      const lbl = document.getElementById('cam-5-lbl');
+      if (lbl) { lbl.textContent = 'Upload receipt photo'; lbl.style.color = ''; }
+      goBack();
+    }
     else toast('Error: ' + (data.message||'Try again'));
   } catch(e) { toast('Connection error. Try again.'); }
 }
