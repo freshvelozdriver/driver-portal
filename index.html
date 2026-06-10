@@ -1329,7 +1329,7 @@ body { display: block !important; overflow: hidden; }
     </div>
     <!-- Van details -->
     <div class="prof-sec">
-      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">🚐</div><div class="prof-info"><p id="vehicle-reg-display">NSW 123 ABC</p><span id="vehicle-details">Assigned vehicle</span></div></div>
+      <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">🚐</div><div class="prof-info"><p id="vehicle-reg-display">NSW 123 ABC</p><span id="vehicle-details">Assigned vehicle</span><span id="vehicle-colour-sub" style="display:block;font-size:11px;color:var(--g);font-weight:700;margin-top:1px"></span></div></div>
       <div class="prof-row"><div class="prof-icon" style="background:var(--al)">⛽</div><div class="prof-info"><p>Fuel type</p><span>Diesel only</span></div></div>
       <div class="prof-row" onclick="togglePin()"><div class="prof-icon" style="background:var(--pl)">🔒</div><div class="prof-info"><p>Lock box PIN</p><span id="pin-val">● ● ● ●</span></div><i class="ti ti-eye" style="color:var(--t2)"></i></div>
       <div class="prof-row"><div class="prof-icon" style="background:var(--gl)">✅</div><div class="prof-info"><p>Condition</p><span id="vehicle-condition-text">Good — checked recently</span></div></div>
@@ -1345,8 +1345,12 @@ body { display: block !important; overflow: hidden; }
     <div id="vehicle-history-list" style="margin-bottom:14px">
       <div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Loading...</div>
     </div>
+    <button onclick="navigate('vanactivity')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:11px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:6px">
+      <i class="ti ti-tool" style="font-size:15px"></i> Report damage / defect &amp; view history
+    </button>
   </div>
   <div class="ftr" style="flex-shrink:0;background:#00D062;color:#fff;text-align:center;padding:8px;font-size:10px">© 2026 Fresh Veloz. All rights reserved.</div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════ -->
 <!-- VAN ACTIVITY SCREEN                                 -->
@@ -1415,7 +1419,7 @@ body { display: block !important; overflow: hidden; }
         </div>
         <button onclick="toggleDef()" id="def-btn" style="background:var(--red);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer">Report new</button>
       </div>
-      <div class="damage-history-list"><div style="text-align:center;padding:10px;color:var(--t3);font-size:11px">No defects logged</div></div>
+      <div id="van-defects-list" class="damage-history-list"><div style="text-align:center;padding:10px;color:var(--t3);font-size:11px">Loading defects…</div></div>
       <div id="def-form" style="display:none;margin-top:10px">
         <div style="height:1px;background:var(--bor);margin-bottom:10px"></div>
         <p style="font-size:11px;font-weight:700;margin-bottom:8px;color:var(--red)">🔧 New defect report</p>
@@ -2147,28 +2151,43 @@ async function loadVehicleData() {
     const data = JSON.parse(await resp.text());
     if (!data.success) return;
 
-    if (data.history && data.history.length > 0) {
-      const last   = data.history[0];
-      const addr   = last.endLocation || data.lastParked?.address || last.address || '';
-      const addrEl = document.getElementById('van-parked-addr');
-      const byEl   = document.getElementById('van-parked-by');
-      const mapsEl = document.getElementById('van-maps-link');
-      const locEl  = document.getElementById('van-last-location');
+    // Vehicle make / colour under the van name (#8)
+    if (data.vehicle) {
+      const detailEl = document.getElementById('vehicle-details');
+      const colourBits = [data.vehicle.makeModel, data.vehicle.colour].filter(Boolean).join(' · ');
+      if (detailEl) detailEl.textContent = colourBits || 'Assigned vehicle';
+      const titleSub = document.getElementById('vehicle-colour-sub');
+      if (titleSub) titleSub.textContent = data.vehicle.colour || '';
+    }
+
+    // Last parked address — prefer the synced Vehicles record, then last completed shift
+    const last   = (data.history && data.history.length > 0) ? data.history[0] : null;
+    const parked = data.lastParked || {};
+    const addr   = parked.address || (last && last.endLocation) || '';
+    const parkedBy   = parked.parkedBy || (last && last.driver) || '';
+    const parkedDate = parked.parkedDate || parked.time || (last && last.date) || '';
+
+    const addrEl = document.getElementById('van-parked-addr');
+    const byEl   = document.getElementById('van-parked-by');
+    const mapsEl = document.getElementById('van-maps-link');
+    const locEl  = document.getElementById('van-last-location');
+    if (addr) {
       if (addrEl) addrEl.textContent = addr;
-      if (byEl)   byEl.textContent   = 'Parked by ' + last.driver + ' · ' + last.date;
+      if (byEl)   byEl.textContent   = (parkedBy ? 'Parked by ' + parkedBy : 'Last updated') + (parkedDate ? ' · ' + parkedDate : '');
       if (locEl)  locEl.textContent  = addr.split(',')[0] || addr;
       if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+    }
 
-      // Last park photo — show inline
-      if (last.handoverPhotoUrl) {
-        _lastParkPhotoUrl = last.handoverPhotoUrl;
-        const wrap   = document.getElementById('vehicle-park-photo-wrap');
-        const box    = document.getElementById('vehicle-park-photo-box');
-        const credit = document.getElementById('vehicle-park-photo-credit');
-        if (wrap)   wrap.style.display = 'block';
-        if (box)    box.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover">';
-        if (credit) credit.textContent = 'Parked by ' + last.driver + ' · ' + last.date;
-      }
+    // Last handover photo (#2) — prefer synced Vehicles photo, then last shift
+    const photoUrl = parked.handoverPhotoUrl || (last && last.handoverPhotoUrl) || '';
+    if (photoUrl) {
+      _lastParkPhotoUrl = photoUrl;
+      const wrap   = document.getElementById('vehicle-park-photo-wrap');
+      const box    = document.getElementById('vehicle-park-photo-box');
+      const credit = document.getElementById('vehicle-park-photo-credit');
+      if (wrap)   wrap.style.display = 'block';
+      if (box)    box.innerHTML = '<img src="' + photoUrl + '" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML=\'<div style=&quot;text-align:center;color:var(--text3);font-size:11px&quot;>Photo unavailable</div>\'">';
+      if (credit) credit.textContent = (parkedBy ? 'Parked by ' + parkedBy : '') + (parkedDate ? ' · ' + parkedDate : '');
     }
     // Populate inline upcoming shifts and history in vehicle screen
     const vUpEl = document.getElementById('vehicle-upcoming-list');
@@ -2264,7 +2283,7 @@ async function loadVanActivity() {
       const photoBox    = document.getElementById('van-last-photo-box');
       const photoCredit = document.getElementById('van-last-photo-credit');
       if (last.handoverPhotoUrl && photoBox) {
-        photoBox.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)">';
+        photoBox.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)" onerror="this.parentNode.innerHTML=\'<div style=&quot;text-align:center;color:var(--t3);font-size:11px&quot;>Photo unavailable</div>\'">';
         photoBox.onclick = () => window.open(last.handoverPhotoUrl, '_blank');
       }
       if (photoCredit) photoCredit.textContent = last.handoverPhotoUrl
@@ -2594,7 +2613,16 @@ async function submitDefectForm() {
       })
     });
     const data = JSON.parse(await resp.text());
-    if (data.success) { toast('Defect reported ✅ Manager notified.'); descEl.value=''; toggleDef(); }
+    if (data.success) {
+      toast('Defect reported ✅ Manager notified.');
+      descEl.value='';
+      const dp = document.getElementById('cam-5-input-def');
+      if (dp) { dp.value=''; dp.dataset.uploadedUrl=''; dp.dataset.localFile=''; }
+      const dpl = document.getElementById('cam-5-lbl-def');
+      if (dpl) { dpl.textContent='Photo of defect'; dpl.style.color=''; }
+      toggleDef();
+      if (driverData.assignedVan) loadDefectsForVan(driverData.assignedVan);
+    }
     else toast('Error: ' + (data.message||'Try again'));
   } catch(e) { toast('Connection error. Try again.'); }
 }
@@ -2769,5 +2797,6 @@ function togglePin() {
 }
 
 </script>
+</div>
 </body>
 </html>
