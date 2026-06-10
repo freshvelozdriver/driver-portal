@@ -1058,15 +1058,9 @@ body { display: block !important; overflow: hidden; }
     <div class="info-box info-amber"><i class="ti ti-alert-triangle"></i><p>Personal items must not appear on receipt. Use a separate transaction.</p></div>
     <button class="btn-primary" onclick="submitFuel()">Submit reimbursement</button>
     <div class="divider"></div>
-    <div class="list-item">
-      <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-receipt"></i></div>
-      <div class="list-info"><p>NSW 123 ABC · Mon 26 May</p><span>$85.40</span></div>
-      <span class="badge badge-amber">Pending</span>
-    </div>
-    <div class="list-item">
-      <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-receipt"></i></div>
-      <div class="list-info"><p>NSW 123 ABC · Mon 19 May</p><span>$92.15</span></div>
-      <span class="badge badge-green">Paid</span>
+    <p style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Recent submissions</p>
+    <div id="fuel-history-list">
+      <div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Loading...</div>
     </div>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
@@ -1294,8 +1288,8 @@ body { display: block !important; overflow: hidden; }
   </div>
   <div class="scroll">
     <div class="stat-grid">
-      <div class="stat-box"><div class="stat-lbl">Last location</div><div id="van-last-location" style="font-size:14px;font-weight:700">Alexandria</div><div class="stat-sub" id="van-last-suburb">NSW 2015</div></div>
-      <div class="stat-box"><div class="stat-lbl">Last seen</div><div id="van-last-seen-time" style="font-size:14px;font-weight:700">6:08 PM</div><div class="stat-sub" id="van-last-seen-date">Mon 26 May</div></div>
+      <div class="stat-box"><div class="stat-lbl">Last location</div><div id="van-last-location" style="font-size:14px;font-weight:700">—</div><div class="stat-sub" id="van-last-suburb"></div></div>
+      <div class="stat-box"><div class="stat-lbl">Last seen</div><div id="van-last-seen-time" style="font-size:14px;font-weight:700">—</div><div class="stat-sub" id="van-last-seen-date"></div></div>
     </div>
     <!-- Last parked address -->
     <div style="background:#fff;border:1px solid var(--g);border-radius:var(--r);padding:11px;margin-bottom:11px">
@@ -1303,9 +1297,8 @@ body { display: block !important; overflow: hidden; }
         <div style="width:28px;height:28px;background:var(--gl);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-map-pin" style="color:var(--g);font-size:13px"></i></div>
         <div>
           <span style="font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:2px">Last parked address</span>
-          <p id="van-parked-addr" style="font-size:13px;font-weight:700;margin-bottom:2px">88 Bourke Rd, Alexandria NSW 2015</p>
-          <span style="font-size:10px;color:var(--t2)">Near Amazon Warehouse</span>
-          <span id="van-parked-by" style="font-size:9px;color:var(--t3);display:block;margin-top:2px">Parked by Driver at 6:08 PM · Mon 26 May</span>
+          <p id="van-parked-addr" style="font-size:13px;font-weight:700;margin-bottom:2px">—</p>
+          <span id="van-parked-by" style="font-size:9px;color:var(--t3);display:block;margin-top:2px"></span>
           <a id="van-maps-link" href="https://www.google.com/maps/search/?api=1&query=88+Bourke+Rd+Alexandria+NSW+2015" target="_blank" style="text-decoration:none;display:block;margin-top:9px">
             <button style="width:100%;background:#4285F4;color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
               <i class="ti ti-map-2" style="font-size:14px"></i> Open in Google Maps
@@ -1320,6 +1313,12 @@ body { display: block !important; overflow: hidden; }
           </div>
         </div>
       </div>
+    </div>
+    <!-- Note from last driver -->
+    <div id="van-lastnote-card" style="display:none;background:var(--amber-light,#FFF8E1);border:1px solid var(--amber,#F5A623);border-radius:var(--r);padding:11px;margin-bottom:11px">
+      <span style="font-size:9px;font-weight:700;color:#9a6a00;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px">📝 Note from last driver</span>
+      <p id="van-lastnote-text" style="font-size:12px;color:var(--text);line-height:1.5"></p>
+      <span id="van-lastnote-by" style="font-size:9px;color:var(--t3);display:block;margin-top:3px"></span>
     </div>
     <!-- Van details -->
     <div class="prof-sec">
@@ -1355,51 +1354,6 @@ body { display: block !important; overflow: hidden; }
     <div class="hdr-title"><h1>Van Activity</h1><p id="vanactivity-reg-title">NSW 123 ABC</p></div>
   </div>
   <div class="content">
-
-    <!-- LAST PARKED PHOTO -->
-    <div style="margin-bottom:11px">
-      <p style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Last park photo</p>
-      <div id="van-last-photo-box" style="background:var(--bg2);border:1px solid var(--bor);border-radius:var(--radius);height:160px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer">
-        <div style="text-align:center">
-          <i class="ti ti-camera" style="font-size:28px;color:var(--t3);display:block;margin-bottom:6px"></i>
-          <p style="font-size:11px;color:var(--t3)">No photo yet</p>
-        </div>
-      </div>
-      <span id="van-last-photo-credit" style="font-size:9px;color:var(--t3);display:block;margin-top:3px;text-align:center"></span>
-    </div>
-
-    <!-- ACTIVE DRIVER -->
-    <p style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Now</p>
-    <div id="van-active-box" style="background:var(--gl);border:1px solid var(--g);border-radius:9px;padding:9px 10px;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
-        <div style="width:8px;height:8px;background:var(--g);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0"></div>
-        <span style="font-size:9px;font-weight:700;color:var(--gt);text-transform:uppercase;letter-spacing:1px">Active on shift</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-        <div id="van-active-avatar" style="width:30px;height:30px;background:var(--g);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0">—</div>
-        <div style="flex:1"><p id="van-active-name" style="font-size:12px;font-weight:700">No active driver</p><span id="van-active-info" style="font-size:9px;color:var(--gt)">Van is available</span></div>
-      </div>
-      <div style="display:flex;gap:6px">
-        <a id="van-active-call" href="#" style="flex:1;text-decoration:none"><button style="width:100%;background:#fff;color:var(--gt);border:1px solid var(--g);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">📞 Call</button></a>
-        <a id="van-active-sms" href="#" style="flex:1;text-decoration:none"><button style="width:100%;background:#fff;color:var(--gt);border:1px solid var(--g);border-radius:7px;padding:6px;font-size:10px;font-weight:700;cursor:pointer">💬 SMS</button></a>
-      </div>
-    </div>
-
-    <!-- UPCOMING SHIFTS -->
-    <p style="font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Up next</p>
-    <div id="van-upcoming-list" style="margin-bottom:12px">
-      <div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">Loading...</div>
-    </div>
-
-    <!-- SHIFT HISTORY -->
-    <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">
-      <div style="height:1px;background:var(--bor);flex:1"></div>
-      <span style="font-size:9px;color:var(--t2);font-weight:700;text-transform:uppercase;letter-spacing:1px">History</span>
-      <div style="height:1px;background:var(--bor);flex:1"></div>
-    </div>
-    <div id="van-history-list" style="margin-bottom:12px">
-      <div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">Loading...</div>
-    </div>
 
     <!-- DAMAGE & DEFECTS -->
     <div class="card">
@@ -1602,6 +1556,7 @@ function showScreen(name) {
     if (name === 'myshifts')    loadMyShifts();
     if (name === 'payout')      loadPayouts();
     if (name === 'tickets')     loadTickets();
+    if (name === 'fuel')        loadFuelHistory();
     if (name === 'profile')     loadProfile();
     if (name === 'settings')    loadProfile();
   } else {
@@ -2177,10 +2132,11 @@ async function loadVehicleData() {
     // Vehicle make / colour under the van name (#8)
     if (data.vehicle) {
       const detailEl = document.getElementById('vehicle-details');
-      const colourBits = [data.vehicle.makeModel, data.vehicle.colour].filter(Boolean).join(' · ');
-      if (detailEl) detailEl.textContent = colourBits || 'Assigned vehicle';
+      if (detailEl) detailEl.textContent = data.vehicle.makeModel || 'Assigned vehicle';
       const titleSub = document.getElementById('vehicle-colour-sub');
-      if (titleSub) titleSub.textContent = data.vehicle.colour || '';
+      if (titleSub) titleSub.textContent = data.vehicle.colour ? ('Colour: ' + data.vehicle.colour) : '';
+      const condEl = document.getElementById('vehicle-condition-text');
+      if (condEl && data.vehicle.status) condEl.textContent = data.vehicle.status;
     }
 
     // Last parked address — prefer the synced Vehicles record, then last completed shift
@@ -2188,29 +2144,64 @@ async function loadVehicleData() {
     const parked = data.lastParked || {};
     const addr   = parked.address || (last && last.endLocation) || '';
     const parkedBy   = parked.parkedBy || (last && last.driver) || '';
-    const parkedDate = parked.parkedDate || parked.time || (last && last.date) || '';
+    const parkedDate = parked.parkedDate || parked.time || (last && last.dateFull) || (last && last.date) || '';
 
     const addrEl = document.getElementById('van-parked-addr');
     const byEl   = document.getElementById('van-parked-by');
     const mapsEl = document.getElementById('van-maps-link');
     const locEl  = document.getElementById('van-last-location');
+    const subEl  = document.getElementById('van-last-suburb');
+    const seenT  = document.getElementById('van-last-seen-time');
+    const seenD  = document.getElementById('van-last-seen-date');
+
     if (addr) {
       if (addrEl) addrEl.textContent = addr;
       if (byEl)   byEl.textContent   = (parkedBy ? 'Parked by ' + parkedBy : 'Last updated') + (parkedDate ? ' · ' + parkedDate : '');
-      if (locEl)  locEl.textContent  = addr.split(',')[0] || addr;
-      if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+      if (mapsEl) { mapsEl.style.display='block'; mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr); }
+      const parts = addr.split(',');
+      if (locEl) locEl.textContent = (parts[0] || addr).trim();
+      if (subEl) subEl.textContent = (parts[1] || '').trim();
+    } else {
+      if (addrEl) addrEl.textContent = 'No parking location recorded yet';
+      if (byEl)   byEl.textContent   = '';
+      if (mapsEl) mapsEl.style.display = 'none';
+      if (locEl)  locEl.textContent  = '—';
+      if (subEl)  subEl.textContent  = '';
+    }
+    // Last seen time/date from the parked timestamp
+    if (parkedDate) {
+      const dParts = String(parkedDate).split(' ');
+      if (seenT) seenT.textContent = dParts.length > 1 ? dParts.slice(1).join(' ') : '';
+      if (seenD) seenD.textContent = dParts[0] || parkedDate;
+    } else {
+      if (seenT) seenT.textContent = '—';
+      if (seenD) seenD.textContent = '';
     }
 
-    // Last handover photo (#2) — prefer synced Vehicles photo, then last shift
+    // Note from last driver (#7)
+    const noteCard = document.getElementById('van-lastnote-card');
+    if (data.lastNote && data.lastNote.note) {
+      if (noteCard) noteCard.style.display = 'block';
+      const nt = document.getElementById('van-lastnote-text');
+      const nb = document.getElementById('van-lastnote-by');
+      if (nt) nt.textContent = data.lastNote.note;
+      if (nb) nb.textContent = (data.lastNote.driver ? 'By ' + data.lastNote.driver : '') + (data.lastNote.time ? ' · ' + data.lastNote.time : '');
+    } else if (noteCard) {
+      noteCard.style.display = 'none';
+    }
+
+    // Last handover photo (#3) — prefer synced Vehicles photo, then last shift
     const photoUrl = parked.handoverPhotoUrl || (last && last.handoverPhotoUrl) || '';
+    const wrap   = document.getElementById('vehicle-park-photo-wrap');
+    const box    = document.getElementById('vehicle-park-photo-box');
+    const credit = document.getElementById('vehicle-park-photo-credit');
     if (photoUrl) {
       _lastParkPhotoUrl = photoUrl;
-      const wrap   = document.getElementById('vehicle-park-photo-wrap');
-      const box    = document.getElementById('vehicle-park-photo-box');
-      const credit = document.getElementById('vehicle-park-photo-credit');
       if (wrap)   wrap.style.display = 'block';
       if (box)    box.innerHTML = '<img src="' + photoUrl + '" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML=\'<div style=&quot;text-align:center;color:var(--text3);font-size:11px&quot;>Photo unavailable</div>\'">';
       if (credit) credit.textContent = (parkedBy ? 'Parked by ' + parkedBy : '') + (parkedDate ? ' · ' + parkedDate : '');
+    } else if (wrap) {
+      wrap.style.display = 'none';
     }
     // Populate inline upcoming shifts and history in vehicle screen
     const vUpEl = document.getElementById('vehicle-upcoming-list');
@@ -2270,9 +2261,8 @@ async function loadVehicleData() {
 // ── Load Van Activity (sub-screen) ───────────────────────
 async function loadVanActivity() {
   if (!driverData || !driverData.assignedVan) {
-    const upEl = document.getElementById('van-upcoming-list');
-    const hiEl = document.getElementById('van-history-list');
-    if (upEl) upEl.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);text-align:center">No van assigned to your account</div>';
+    const defEl = document.getElementById('van-defects-list');
+    if (defEl) defEl.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);text-align:center">No van assigned to your account</div>';
     return;
   }
   const van = driverData.assignedVan;
@@ -2280,132 +2270,10 @@ async function loadVanActivity() {
   if (titleEl) titleEl.textContent = van;
   const defSpan = document.getElementById('va-defect-van');
   if (defSpan) defSpan.textContent = van + ' — all assigned drivers';
-
-  // Show loading state
-  const upEl_loading = document.getElementById('van-upcoming-list');
-  const hiEl_loading = document.getElementById('van-history-list');
-  if (upEl_loading) upEl_loading.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);text-align:center">Loading...</div>';
-  if (hiEl_loading) hiEl_loading.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--text3);text-align:center">Loading...</div>';
-
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getVanActivity&van=' + encodeURIComponent(van);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const raw  = await resp.text();
-    let data;
-    try { data = JSON.parse(raw); }
-    catch(parseErr) {
-      console.error('getVanActivity parse error:', raw.substring(0,200));
-      throw new Error('Invalid response from server');
-    }
-    if (!data.success) return;
-
-    // Last park photo from most recent sign-off
-    // Last parked address
-    if (data.lastParked && data.lastParked.address) {
-      const addrEl = document.getElementById('van-parked-addr');
-      const byEl   = document.getElementById('van-parked-by');
-      const mapsEl = document.getElementById('van-maps-link');
-      if (addrEl) addrEl.textContent = data.lastParked.address;
-      if (byEl)   byEl.textContent   = 'Last updated: ' + (data.lastParked.time || '');
-      if (mapsEl) mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(data.lastParked.address);
-    }
-
-    // Last park photo
-    if (data.history && data.history.length > 0) {
-      const last = data.history[0];
-      const photoBox    = document.getElementById('van-last-photo-box');
-      const photoCredit = document.getElementById('van-last-photo-credit');
-      if (last.handoverPhotoUrl && photoBox) {
-        photoBox.innerHTML = '<img src="' + last.handoverPhotoUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius)" onerror="this.parentNode.innerHTML=\'<div style=&quot;text-align:center;color:var(--t3);font-size:11px&quot;>Photo unavailable</div>\'">';
-        photoBox.onclick = () => window.open(last.handoverPhotoUrl, '_blank');
-      }
-      if (photoCredit) photoCredit.textContent = last.handoverPhotoUrl
-        ? 'Taken by ' + last.driver + ' · ' + last.date
-        : 'No photo from last driver';
-    }
-
-    // Active driver
-    const nameEl   = document.getElementById('van-active-name');
-    const infoEl   = document.getElementById('van-active-info');
-    const callEl   = document.getElementById('van-active-call');
-    const smsEl    = document.getElementById('van-active-sms');
-    const avatarEl = document.getElementById('van-active-avatar');
-    if (data.activeDriver) {
-      if (nameEl)   nameEl.textContent = data.activeDriver.name;
-      if (infoEl)   infoEl.textContent = 'Currently on shift';
-      if (avatarEl) {
-        const parts = data.activeDriver.name.split(' ');
-        avatarEl.textContent = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
-      }
-      const phone = data.activeDriver.phone ? data.activeDriver.phone.replace(/^0/, '') : '';
-      if (callEl && phone) callEl.href = 'tel:+61' + phone;
-      if (smsEl  && phone) smsEl.href  = 'sms:+61' + phone;
-    } else {
-      if (nameEl)   nameEl.textContent = 'No active driver';
-      if (infoEl)   infoEl.textContent = 'Van is available';
-      if (avatarEl) avatarEl.textContent = '—';
-    }
-
-    // Upcoming shifts
-    const upEl = document.getElementById('van-upcoming-list');
-    if (upEl) {
-      if (!data.upcoming || data.upcoming.length === 0) {
-        upEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">No upcoming shifts scheduled</div>';
-      } else {
-        upEl.innerHTML = data.upcoming.map(u => {
-          const phone = u.phone ? u.phone.replace(/^0/, '') : '';
-          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
-            <div style="width:32px;height:32px;background:var(--bl);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-              <span style="font-size:7px;color:var(--blu)">${u.date||''}</span>
-              <span style="font-size:9px;font-weight:800;color:var(--blu)">${u.startTime||''}</span>
-            </div>
-            <div style="flex:1"><p style="font-size:11px;font-weight:600">${u.driver||''}</p><span style="font-size:9px;color:var(--t2)">${u.type||''} shift · ${u.status||''}</span></div>
-            <div style="display:flex;gap:4px">
-              ${phone ? `<a href="tel:+61${phone}"><button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">📞</button></a>` : ''}
-              ${phone ? `<a href="sms:+61${phone}"><button style="background:var(--bl);color:var(--blu);border:1px solid var(--blu);border-radius:6px;padding:4px 7px;font-size:9px;font-weight:700;cursor:pointer">💬</button></a>` : ''}
-            </div>
-          </div>`;
-        }).join('');
-      }
-    }
-
-    // History
-    const histEl = document.getElementById('van-history-list');
-    if (histEl) {
-      if (!data.history || data.history.length === 0) {
-        histEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--t3);font-size:12px">No shift history yet</div>';
-      } else {
-        histEl.innerHTML = data.history.map(h => {
-          const phone = h.phone ? h.phone.replace(/^0/, '') : '';
-          return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">
-            <div style="width:32px;height:32px;background:var(--bg2);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-              <span style="font-size:9px;font-weight:800">${h.date||''}</span>
-            </div>
-            <div style="flex:1">
-              <p style="font-size:11px;font-weight:600">${h.driver||''}</p>
-              <span style="font-size:9px;color:var(--t2)">${h.type||''} · ${h.hoursWorked ? h.hoursWorked + ' hrs' : ''} ${h.startKm && h.endKm ? '· ' + (parseFloat(h.endKm)-parseFloat(h.startKm)).toFixed(0) + ' km' : ''}</span>
-              ${h.note ? `<div style="font-size:9px;color:var(--t2);background:var(--bg2);border-radius:5px;padding:4px 6px;margin-top:3px">📝 ${h.note}</div>` : ''}
-            </div>
-            <div style="display:flex;gap:4px">
-              ${phone ? `<a href="tel:+61${phone}"><button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;cursor:pointer">📞</button></a>` : ''}
-              ${phone ? `<a href="sms:+61${phone}"><button style="background:var(--bg2);color:var(--t2);border:1px solid var(--bor);border-radius:6px;padding:3px 6px;font-size:9px;cursor:pointer">💬</button></a>` : ''}
-            </div>
-          </div>`;
-        }).join('');
-      }
-    }
-
-    // Defects
-    loadDefectsForVan(van);
-  } catch(e) {
-    console.error('loadVanActivity error', e);
-    const upEl   = document.getElementById('van-upcoming-list');
-    const histEl = document.getElementById('van-history-list');
-    const errMsg = '<div style="padding:14px;color:var(--red);font-size:12px;text-align:center">Could not load data. Check connection.</div>';
-    if (upEl)   upEl.innerHTML   = errMsg;
-    if (histEl) histEl.innerHTML = errMsg;
-  }
+  // Van Activity now only shows Damage & Defects (+ Report new) and Inspection.
+  loadDefectsForVan(van);
 }
+
 
 // ── Load Defects for Van ──────────────────────────────
 async function loadDefectsForVan(van) {
@@ -2459,6 +2327,35 @@ async function loadAlerts() {
   }
 }
 
+// ── Load Fuel History ─────────────────────────────────────
+async function loadFuelHistory() {
+  if (!driverData) return;
+  const listEl = document.getElementById('fuel-history-list');
+  if (!listEl) return;
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getFuel&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    if (!data.success || !data.fuel || data.fuel.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">No submissions yet</div>';
+      return;
+    }
+    listEl.innerHTML = data.fuel.map(f => {
+      const paid = String(f.status||'').toLowerCase().includes('paid') || String(f.status||'').toLowerCase().includes('approv');
+      const badgeBg = paid ? 'var(--green-light)' : 'var(--amber-light)';
+      const badgeC  = paid ? 'var(--green)' : 'var(--amber)';
+      const rcpt = f.receiptUrl ? `<a href="${f.receiptUrl}" target="_blank" style="margin-left:6px;font-size:11px">🧾</a>` : '';
+      return `<div class="list-item">
+        <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-receipt"></i></div>
+        <div class="list-info"><p>${f.van||''} · ${f.date||''}</p><span>$${parseFloat(f.amount||0).toFixed(2)} ${rcpt}</span></div>
+        <span class="badge" style="background:${badgeBg};color:${badgeC}">${f.status||'Pending'}</span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Could not load history</div>';
+  }
+}
+
 // ── Load Tickets ──────────────────────────────────────────
 let _activeTicketId = '';
 async function loadTickets() {
@@ -2479,6 +2376,14 @@ async function loadTickets() {
     const adminPic = open.adminPhotoUrl
       ? `<div style="margin:8px 0"><span style="font-size:9px;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:4px">Attached by admin</span><img src="${open.adminPhotoUrl}" onclick="window.open('${open.adminPhotoUrl}','_blank')" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;cursor:pointer" onerror="this.style.display='none'"></div>`
       : '';
+    // Admin may put a reference link in Notes
+    const urlMatch = String(open.notes||'').match(/https?:\/\/\S+/);
+    const adminLink = urlMatch
+      ? `<a href="${urlMatch[0]}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--blue);margin-bottom:6px"><i class="ti ti-link"></i> Reference link from admin</a>`
+      : '';
+    const adminNote = (open.notes && !urlMatch)
+      ? `<div style="font-size:11px;color:var(--text2);background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px;margin-bottom:6px">📌 ${open.notes}</div>`
+      : '';
     card.innerHTML = `
       <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
         <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--red-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-alert-circle" style="color:var(--red);font-size:15px"></i></div>
@@ -2489,7 +2394,7 @@ async function loadTickets() {
         <span class="badge badge-red">Open</span>
       </div>
       <div style="font-size:11px;color:var(--text2);line-height:1.6;padding:8px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:6px">${open.description||''}</div>
-      ${adminPic}`;
+      ${adminNote}${adminLink}${adminPic}`;
   } catch(e) {
     console.log('Tickets load failed, showing static content');
   }
@@ -2614,7 +2519,7 @@ async function submitFuel() {
       if (photoInput) { photoInput.value = ''; photoInput.dataset.uploadedUrl = ''; photoInput.dataset.localFile = ''; }
       const lbl = document.getElementById('cam-5-lbl');
       if (lbl) { lbl.textContent = 'Upload receipt photo'; lbl.style.color = ''; }
-      goBack();
+      loadFuelHistory();
     }
     else toast('Error: ' + (data.message||'Try again'));
   } catch(e) { toast('Connection error. Try again.'); }
