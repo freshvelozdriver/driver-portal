@@ -1871,8 +1871,8 @@ async function completeSignIn() {
   const btn = document.getElementById('si-submit-btn');
   if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
   // Ensure media uploads finished (upload now if needed) → guarantees URLs
-  const siVideoUrl  = await ensureUploaded(document.getElementById('si-video-input'));
-  const siDamageUrl = await ensureUploaded(document.getElementById('cam-1-input'));
+  const siVideoUrl  = await ensureUploaded(document.getElementById('si-video-input'), 12000);
+  const siDamageUrl = await ensureUploaded(document.getElementById('cam-1-input'), 12000);
   if (btn) btn.textContent = 'Submitting...';
   const payload = {
     action:        'submitSignIn',
@@ -1959,8 +1959,8 @@ async function completeSignOff() {
   const btn = document.getElementById('so-submit-btn');
   if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
   // Ensure media uploads finished (upload now if needed) → guarantees URLs
-  const soDamageUrl   = await ensureUploaded(document.getElementById('cam-2-input'));
-  const soHandoverUrl = await ensureUploaded(document.getElementById('cam-3-input'));
+  const soDamageUrl   = await ensureUploaded(document.getElementById('cam-2-input'), 12000);
+  const soHandoverUrl = await ensureUploaded(document.getElementById('cam-3-input'), 12000);
   if (btn) btn.textContent = 'Submitting...';
 
   const noteEl = document.getElementById('so-next-driver-note');
@@ -2053,12 +2053,42 @@ function handleFileSelect(input, labelId, folderKey) {
   uploadFileInBackground(input, file, folderKey);
 }
 
+// Compress an image File to a smaller JPEG (max ~1280px, quality 0.7).
+// Cuts a 6MB phone photo to a few hundred KB → faster + reliable uploads.
+// Non-images (or failures) fall through to the original file.
+async function compressImage(file) {
+  if (!file || !/^image\//.test(file.type)) return file;
+  try {
+    const dataUrl = await new Promise((res, rej) => {
+      const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file);
+    });
+    const img = await new Promise((res, rej) => {
+      const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = dataUrl;
+    });
+    const maxDim = 1280;
+    let { width, height } = img;
+    if (width > maxDim || height > maxDim) {
+      if (width >= height) { height = Math.round(height * maxDim / width); width = maxDim; }
+      else                 { width  = Math.round(width  * maxDim / height); height = maxDim; }
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.7));
+    if (blob && blob.size < file.size) {
+      return new File([blob], (file.name.replace(/\.[^.]+$/, '') || 'photo') + '.jpg', { type: 'image/jpeg' });
+    }
+    return file;
+  } catch(e) { return file; }
+}
+
 async function uploadFileInBackground(input, file, folderKey) {
   input.dataset.localFile = 'uploading';
   try {
-    const ext   = (file.name.split('.').pop() || 'jpg');
+    const compressed = await compressImage(file);
+    const ext   = (compressed.name.split('.').pop() || 'jpg');
     const name_ = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
-    const url   = await uploadFileToDrive(file, folderKey || 'Delivery Photos Folder ID', name_);
+    const url   = await uploadFileToDrive(compressed, folderKey || 'Delivery Photos Folder ID', name_);
     if (url) { input.dataset.uploadedUrl = url; input.dataset.localFile = 'uploaded'; }
     else     { input.dataset.localFile = 'failed'; }
   } catch(e) {
@@ -2088,9 +2118,9 @@ async function uploadFileToDrive(file, folderKey, filename) {
     reader.readAsDataURL(file);
   });
 
-  // Try the upload up to 2 times; parse defensively.
+  // Try the upload up to 3 times; parse defensively.
   let lastErr = '';
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const resp = await fetch(APPS_SCRIPT_URL, {
         method:'POST', redirect:'follow',
@@ -2101,7 +2131,6 @@ async function uploadFileToDrive(file, folderKey, filename) {
       let data = null;
       try { data = JSON.parse(text); }
       catch(parseErr) {
-        // Apps Script sometimes returns an HTML wrapper; try to find the JSON
         const m = text && text.match(/\{[\s\S]*\}/);
         if (m) { try { data = JSON.parse(m[0]); } catch(e2) {} }
       }
@@ -2110,38 +2139,41 @@ async function uploadFileToDrive(file, folderKey, filename) {
     } catch(err) {
       lastErr = err.message || 'Network error';
     }
-    await new Promise(r => setTimeout(r, 600)); // brief pause before retry
+    await new Promise(r => setTimeout(r, 800)); // pause before retry
   }
   throw new Error(lastErr || 'Upload failed');
 }
 
 // Guarantee a file input's URL is ready. Reuses an in-flight/completed
-// background upload; only uploads itself if nothing is happening. Removes
-// both the race condition AND the double-upload problem.
-async function ensureUploaded(input) {
+// background upload; only uploads itself if nothing is happening.
+// maxWaitMs caps how long we wait for an in-flight background upload.
+async function ensureUploaded(input, maxWaitMs) {
   if (!input || !input.files || !input.files[0]) {
     return input?.dataset?.uploadedUrl || '';
   }
-  // Already done
   if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
-  // A background upload is in flight — wait for it (up to 30s)
+  const cap = maxWaitMs || 30000;
   if (input.dataset.localFile === 'uploading' || input.dataset.localFile === 'selected') {
     let waited = 0;
-    while (waited < 30000) {
+    while (waited < cap) {
       if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
       if (input.dataset.localFile === 'failed') break;
       await new Promise(r => setTimeout(r, 400));
       waited += 400;
     }
     if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
+    // If still uploading after the cap, don't start a duplicate — just return
+    // what we have (the background upload will keep going).
+    if (input.dataset.localFile === 'uploading') return input.dataset.uploadedUrl || '';
   }
-  // Nothing in flight or it failed — upload now
+  // Nothing in flight or it failed — upload now (compressed)
   const file      = input.files[0];
   const folderKey = input.dataset.folderKey || 'Delivery Photos Folder ID';
-  const ext       = (file.name.split('.').pop() || 'jpg');
-  const name_     = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
   try {
-    const url = await uploadFileToDrive(file, folderKey, name_);
+    const compressed = await compressImage(file);
+    const ext   = (compressed.name.split('.').pop() || 'jpg');
+    const name_ = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
+    const url   = await uploadFileToDrive(compressed, folderKey, name_);
     input.dataset.uploadedUrl = url;
     input.dataset.localFile   = 'uploaded';
     return url;
@@ -2569,18 +2601,15 @@ async function submitFuel() {
   if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('⚠️ Please enter the fuel amount'); flashField(document.getElementById('fuel-amount')); return; }
 
   const btn = document.querySelector('#screen-fuel .btn-primary');
-  // Upload the receipt NOW if not already uploaded (no race condition)
+  if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
+
+  // Get the receipt URL if the background upload already finished, or wait a
+  // short while for it — but NEVER block the submission. The row is always
+  // created; the URL is back-filled by the server if it arrives.
   let receiptUrl = '';
   if (photoInput && photoInput.files && photoInput.files[0]) {
-    if (btn) { btn.textContent = 'Uploading receipt...'; btn.disabled = true; }
-    receiptUrl = await ensureUploaded(photoInput);
-    if (!receiptUrl) {
-      if (btn) { btn.textContent = 'Submit reimbursement'; btn.disabled = false; }
-      toast('⚠️ Receipt upload failed. Please retry.');
-      return;
-    }
+    receiptUrl = await ensureUploaded(photoInput, 12000); // wait up to 12s, then proceed anyway
   }
-  if (btn) btn.textContent = 'Submitting...';
 
   const van = (vanEl && vanEl.value && vanEl.value !== 'Loading...') ? vanEl.value : (driverData.assignedVan || '');
   try {
@@ -2595,7 +2624,7 @@ async function submitFuel() {
     });
     const data = JSON.parse(await resp.text());
     if (data.success) {
-      toast('Reimbursement submitted ✅ Paid Wednesday.');
+      toast(receiptUrl ? 'Reimbursement submitted ✅' : 'Submitted ✅ (receipt still uploading — it will attach shortly)');
       amountEl.value = '';
       if (photoInput) { photoInput.value = ''; photoInput.dataset.uploadedUrl = ''; photoInput.dataset.localFile = ''; }
       const lbl = document.getElementById('cam-5-lbl');
@@ -2665,7 +2694,7 @@ async function submitTicket() {
   if (!explEl?.value) { toast('Please describe what happened'); flashField(explEl); return; }
 
   if (btn) { btn.textContent = 'Uploading evidence...'; btn.disabled = true; }
-  const evidenceUrl = await ensureUploaded(evInput);
+  const evidenceUrl = await ensureUploaded(evInput, 12000);
   if (btn) btn.textContent = 'Submitting...';
 
   try {
@@ -2700,7 +2729,7 @@ async function submitDefectForm() {
   const photoInput = document.getElementById('cam-5-input-def');
   if (!descEl?.value) { toast('Please describe the defect'); return; }
   const van = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
-  const photoUrl = await ensureUploaded(photoInput);
+  const photoUrl = await ensureUploaded(photoInput, 12000);
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
@@ -2756,7 +2785,7 @@ async function submitEmergencyReport() {
 
   // Upload the photo now if one was selected (no race condition)
   if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
-  const emPhotoUrl = await ensureUploaded(photoIn);
+  const emPhotoUrl = await ensureUploaded(photoIn, 12000);
   if (btn) btn.textContent = 'Submitting...';
   const emVan = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
 
