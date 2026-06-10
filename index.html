@@ -2048,16 +2048,19 @@ function handleFileSelect(input, labelId, folderKey) {
   input.dataset.localFile   = 'selected';
   input.dataset.uploadedUrl = '';
   if (labelEl) { labelEl.textContent = '✅ ' + file.name.substring(0,28); labelEl.style.color = 'var(--gt)'; }
+  // Start uploading in the background so it's likely ready by submit time.
+  // ensureUploaded() at submit will reuse this result or upload if not ready.
   uploadFileInBackground(input, file, folderKey);
 }
 
 async function uploadFileInBackground(input, file, folderKey) {
+  input.dataset.localFile = 'uploading';
   try {
-    const ext      = file.name.split('.').pop();
-    const name_    = (driverData ? driverData.driverName.replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
-    const url      = await uploadFileToDrive(file, folderKey || 'Delivery Photos Folder ID', name_);
-    input.dataset.uploadedUrl = url;
-    input.dataset.localFile   = 'uploaded';
+    const ext   = (file.name.split('.').pop() || 'jpg');
+    const name_ = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
+    const url   = await uploadFileToDrive(file, folderKey || 'Delivery Photos Folder ID', name_);
+    if (url) { input.dataset.uploadedUrl = url; input.dataset.localFile = 'uploaded'; }
+    else     { input.dataset.localFile = 'failed'; }
   } catch(e) {
     input.dataset.localFile = 'failed';
   }
@@ -2066,51 +2069,77 @@ async function uploadFileInBackground(input, file, folderKey) {
 // Wait for all pending uploads on a screen before submitting
 async function waitForUploads(screenId) {
   const inputs = document.querySelectorAll('#screen-' + screenId + ' input[type="file"]');
-  const pending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected');
-  if (pending.length === 0) return true;
   let waited = 0;
-  while (waited < 15000) {
-    await new Promise(r => setTimeout(r, 500));
-    waited += 500;
-    const stillPending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected');
-    if (stillPending.length === 0) return true;
+  while (waited < 30000) {
+    const pending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected' || i.dataset.localFile === 'uploading');
+    if (pending.length === 0) return true;
+    await new Promise(r => setTimeout(r, 400));
+    waited += 400;
   }
-  return false; // timeout — submit anyway
+  return false;
 }
 
 async function uploadFileToDrive(file, folderKey, filename) {
-  return new Promise((resolve, reject) => {
+  // Read file as base64
+  const base64 = await new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const base64 = e.target.result.split(',')[1];
-        const resp   = await fetch(APPS_SCRIPT_URL, {
-          method:'POST', redirect:'follow',
-          headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body: JSON.stringify({ action:'uploadFile', filename, mimeType:file.type, base64Data:base64, folderKey, driverEmail: driverData?.email || '' })
-        });
-        const data = JSON.parse(await resp.text());
-        if (data.success) resolve(data.fileUrl);
-        else reject(data.message || 'Upload failed');
-      } catch(err) { reject(err.message); }
-    };
-    reader.onerror = () => reject('Could not read file');
+    reader.onload  = e => resolve(e.target.result.split(',')[1]);
+    reader.onerror = () => reject(new Error('Could not read file'));
     reader.readAsDataURL(file);
   });
+
+  // Try the upload up to 2 times; parse defensively.
+  let lastErr = '';
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const resp = await fetch(APPS_SCRIPT_URL, {
+        method:'POST', redirect:'follow',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({ action:'uploadFile', filename, mimeType:file.type || 'image/jpeg', base64Data:base64, folderKey, driverName: driverData?.driverName || '', driverEmail: driverData?.email || '' })
+      });
+      const text = await resp.text();
+      let data = null;
+      try { data = JSON.parse(text); }
+      catch(parseErr) {
+        // Apps Script sometimes returns an HTML wrapper; try to find the JSON
+        const m = text && text.match(/\{[\s\S]*\}/);
+        if (m) { try { data = JSON.parse(m[0]); } catch(e2) {} }
+      }
+      if (data && data.success && data.fileUrl) return data.fileUrl;
+      lastErr = (data && data.message) ? data.message : ('Unexpected response: ' + String(text).slice(0,80));
+    } catch(err) {
+      lastErr = err.message || 'Network error';
+    }
+    await new Promise(r => setTimeout(r, 600)); // brief pause before retry
+  }
+  throw new Error(lastErr || 'Upload failed');
 }
 
-// Guarantee a file input's URL is ready: if a file is selected but not yet
-// uploaded (or upload failed), upload it NOW and return the URL. Removes the
-// race where Submit fires before the background upload finished.
+// Guarantee a file input's URL is ready. Reuses an in-flight/completed
+// background upload; only uploads itself if nothing is happening. Removes
+// both the race condition AND the double-upload problem.
 async function ensureUploaded(input) {
   if (!input || !input.files || !input.files[0]) {
     return input?.dataset?.uploadedUrl || '';
   }
+  // Already done
   if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
-  const file     = input.files[0];
-  const folderKey= input.dataset.folderKey || 'Delivery Photos Folder ID';
-  const ext      = (file.name.split('.').pop() || 'jpg');
-  const name_    = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
+  // A background upload is in flight — wait for it (up to 30s)
+  if (input.dataset.localFile === 'uploading' || input.dataset.localFile === 'selected') {
+    let waited = 0;
+    while (waited < 30000) {
+      if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
+      if (input.dataset.localFile === 'failed') break;
+      await new Promise(r => setTimeout(r, 400));
+      waited += 400;
+    }
+    if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
+  }
+  // Nothing in flight or it failed — upload now
+  const file      = input.files[0];
+  const folderKey = input.dataset.folderKey || 'Delivery Photos Folder ID';
+  const ext       = (file.name.split('.').pop() || 'jpg');
+  const name_     = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
   try {
     const url = await uploadFileToDrive(file, folderKey, name_);
     input.dataset.uploadedUrl = url;
@@ -2179,7 +2208,10 @@ async function loadVehicleData() {
     // Last parked address — prefer the synced Vehicles record, then last completed shift
     const last   = (data.history && data.history.length > 0) ? data.history[0] : null;
     const parked = data.lastParked || {};
-    const addr   = parked.address || (last && last.endLocation) || '';
+    // Guard: ignore values that are actually ISO timestamps (bad legacy data)
+    function looksLikeTimestamp(v){ return /^\d{4}-\d{2}-\d{2}T/.test(String(v)) || /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(String(v)); }
+    let addr = parked.address || (last && last.endLocation) || '';
+    if (looksLikeTimestamp(addr)) addr = '';
     const parkedBy   = parked.parkedBy || (last && last.driver) || '';
     const parkedDate = parked.parkedDate || parked.time || (last && last.dateFull) || (last && last.date) || '';
 
@@ -2195,9 +2227,11 @@ async function loadVehicleData() {
       if (addrEl) addrEl.textContent = addr;
       if (byEl)   byEl.textContent   = (parkedBy ? 'Parked by ' + parkedBy : 'Last updated') + (parkedDate ? ' · ' + parkedDate : '');
       if (mapsEl) { mapsEl.style.display='block'; mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr); }
+      // If the address is GPS coords (lat,lng), show just the first part nicely
+      const isCoords = /^-?\d+\.\d+\s*,\s*-?\d+\.\d+$/.test(addr.trim());
       const parts = addr.split(',');
-      if (locEl) locEl.textContent = (parts[0] || addr).trim();
-      if (subEl) subEl.textContent = (parts[1] || '').trim();
+      if (locEl) locEl.textContent = isCoords ? 'GPS pin' : (parts[0] || addr).trim();
+      if (subEl) subEl.textContent = isCoords ? '' : (parts[1] || '').trim();
     } else {
       if (addrEl) addrEl.textContent = 'No parking location recorded yet';
       if (byEl)   byEl.textContent   = '';
