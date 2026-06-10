@@ -1042,13 +1042,13 @@ body { display: block !important; overflow: hidden; }
   </div>
   <div class="content">
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>Reimbursed with weekly payment every Wednesday. Submit before Sunday 11:59 PM.</p></div>
-    <div class="form-group"><label class="form-label">Van number</label><select class="form-select"><option>NSW 123 ABC</option></select></div>
-    <div class="form-group"><label class="form-label">Fuel date</label><input type="date" class="form-input"></div>
+    <div class="form-group"><label class="form-label">Van number</label><select class="form-select" id="fuel-van"><option>Loading...</option></select></div>
+    <div class="form-group"><label class="form-label">Fuel date</label><input type="date" class="form-input" id="fuel-date"></div>
     <div class="form-group">
       <label class="form-label">Amount ($)</label>
       <div class="amount-wrap"><span class="prefix">$</span><input id="fuel-amount" type="number" class="form-input" placeholder="0.00"></div>
     </div>
-    <div class="form-group"><label class="form-label">Fuel type</label><select class="form-select"><option>Diesel</option><option>Petrol</option></select></div>
+    <div class="form-group"><label class="form-label">Fuel type</label><select class="form-select" id="fuel-type"><option>Diesel</option><option>Petrol</option></select></div>
     <input type="file" accept="image/*" capture="environment" id="fuel-photo-input" style="display:none" onchange="handleFileSelect(this,'cam-5-lbl','Fuel Receipts Folder ID')">
     <div class="upload-area" onclick="document.getElementById('fuel-photo-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
@@ -1556,7 +1556,7 @@ function showScreen(name) {
     if (name === 'myshifts')    loadMyShifts();
     if (name === 'payout')      loadPayouts();
     if (name === 'tickets')     loadTickets();
-    if (name === 'fuel')        loadFuelHistory();
+    if (name === 'fuel')        { loadFuelHistory(); loadFuelVans(); }
     if (name === 'profile')     loadProfile();
     if (name === 'settings')    loadProfile();
   } else {
@@ -1870,7 +1870,9 @@ async function completeSignIn() {
 
   const btn = document.getElementById('si-submit-btn');
   if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
-  await waitForUploads('signin');
+  // Ensure media uploads finished (upload now if needed) → guarantees URLs
+  const siVideoUrl  = await ensureUploaded(document.getElementById('si-video-input'));
+  const siDamageUrl = await ensureUploaded(document.getElementById('cam-1-input'));
   if (btn) btn.textContent = 'Submitting...';
   const payload = {
     action:        'submitSignIn',
@@ -1884,8 +1886,8 @@ async function completeSignIn() {
     vanCondition:  document.querySelector('#screen-signin .cond-btn.active')?.textContent?.trim() || 'Good',
     fuelLevel:     (['si-fuel-full','si-fuel-half','si-fuel-low','si-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:   document.getElementById('si-damage-notes')?.value || '',
-    damagePhotoUrl: document.getElementById('cam-1-input')?.dataset?.uploadedUrl || '',
-    videoUrl:       document.getElementById('si-video-input')?.dataset?.uploadedUrl || '',
+    damagePhotoUrl: siDamageUrl,
+    videoUrl:       siVideoUrl,
     checklist:     Array.from(document.querySelectorAll('#screen-signin .chk-item')).map(el => {
                      const lbl = el.querySelector('.chk-label')?.textContent || '';
                      const checked = el.querySelector('.chk-box')?.classList.contains('checked');
@@ -1907,7 +1909,14 @@ async function completeSignIn() {
     if (data.success) {
       shiftActive = true;
       localStorage.setItem('fv_shift_on','true');
-      localStorage.setItem('fv_sign_in_id', data.signInId || '');
+      localStorage.setItem('fv_sign_in_id', data.shiftId || data.signInId || '');
+      // Remember the van the driver actually signed in with, and make it the
+      // active van everywhere (My Vehicle, sign-off, fuel).
+      localStorage.setItem('fv_active_van', payload.van || '');
+      if (payload.van) {
+        driverData.assignedVan = payload.van;
+        localStorage.setItem('fv_driver_data', JSON.stringify(driverData));
+      }
       document.getElementById('shift-btn').textContent = 'End shift';
       document.getElementById('shift-btn').className   = 'shift-btn-end';
       document.getElementById('shift-label').textContent = 'Shift in progress';
@@ -1949,15 +1958,20 @@ async function completeSignOff() {
 
   const btn = document.getElementById('so-submit-btn');
   if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
-  await waitForUploads('signoff');
+  // Ensure media uploads finished (upload now if needed) → guarantees URLs
+  const soDamageUrl   = await ensureUploaded(document.getElementById('cam-2-input'));
+  const soHandoverUrl = await ensureUploaded(document.getElementById('cam-3-input'));
   if (btn) btn.textContent = 'Submitting...';
 
   const noteEl = document.getElementById('so-next-driver-note');
+  // Use the van the driver actually signed in with (stored at sign-in), not the
+  // stale Drivers.Assigned Van placeholder.
+  const activeVan = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
   const payload = {
     action:          'submitSignOff',
     driver:          driverData.driverName,
     email:           driverData.email,
-    van:             driverData.assignedVan,
+    van:             activeVan,
     lat:             currentGPS.lat || '',
     lng:             currentGPS.lng || '',
     address:         (document.getElementById('so-dropoff-address')?.value || currentGPS.address || ''),
@@ -1965,8 +1979,8 @@ async function completeSignOff() {
     vanCondition:    document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
     fuelLevel:       (['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:     document.getElementById('so-damage-notes')?.value || '',
-    damagePhotoUrl:  document.getElementById('cam-2-input')?.dataset?.uploadedUrl || '',
-    handoverPhotoUrl: document.getElementById('cam-3-input')?.dataset?.uploadedUrl || '',
+    damagePhotoUrl:  soDamageUrl,
+    handoverPhotoUrl: soHandoverUrl,
     checklist:       Array.from(document.querySelectorAll('#screen-signoff .chk-item')).map(el => {
                        const lbl = el.querySelector('.chk-label')?.textContent || '';
                        const checked = el.querySelector('.chk-box')?.classList.contains('checked');
@@ -2085,6 +2099,29 @@ async function uploadFileToDrive(file, folderKey, filename) {
   });
 }
 
+// Guarantee a file input's URL is ready: if a file is selected but not yet
+// uploaded (or upload failed), upload it NOW and return the URL. Removes the
+// race where Submit fires before the background upload finished.
+async function ensureUploaded(input) {
+  if (!input || !input.files || !input.files[0]) {
+    return input?.dataset?.uploadedUrl || '';
+  }
+  if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
+  const file     = input.files[0];
+  const folderKey= input.dataset.folderKey || 'Delivery Photos Folder ID';
+  const ext      = (file.name.split('.').pop() || 'jpg');
+  const name_    = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
+  try {
+    const url = await uploadFileToDrive(file, folderKey, name_);
+    input.dataset.uploadedUrl = url;
+    input.dataset.localFile   = 'uploaded';
+    return url;
+  } catch(e) {
+    input.dataset.localFile = 'failed';
+    return '';
+  }
+}
+
 // ── Load Driver Vans (sign-in van picker) ────────────────
 async function loadDriverVans() {
   const sel = document.getElementById('signin-van');
@@ -2116,8 +2153,8 @@ let _lastParkPhotoUrl = '';
 function openParkPhoto() { if (_lastParkPhotoUrl) window.open(_lastParkPhotoUrl, '_blank'); }
 
 async function loadVehicleData() {
-  if (!driverData || !driverData.assignedVan) return;
-  const van = driverData.assignedVan;
+  const van = localStorage.getItem('fv_active_van') || (driverData && driverData.assignedVan) || '';
+  if (!driverData || !van) return;
   const titleEl = document.getElementById('vehicle-reg-title');
   const displayEl = document.getElementById('vehicle-reg-display');
   if (titleEl) titleEl.textContent = van;
@@ -2492,24 +2529,34 @@ async function submitFuel() {
   if (!driverData) return;
   const amountEl   = document.getElementById('fuel-amount');
   const photoInput = document.getElementById('fuel-photo-input');
-  const dateEl     = document.querySelector('#screen-fuel input[type="date"]');
-  const fuelTypeEl = document.querySelector('#screen-fuel .form-select');
+  const dateEl     = document.getElementById('fuel-date');
+  const fuelTypeEl = document.getElementById('fuel-type');
+  const vanEl      = document.getElementById('fuel-van');
   if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('⚠️ Please enter the fuel amount'); flashField(document.getElementById('fuel-amount')); return; }
 
-  // Wait for receipt photo upload to finish
-  if (photoInput && photoInput.dataset.localFile === 'selected') {
-    toast('Uploading receipt photo...');
-    await waitForUploads('fuel');
+  const btn = document.querySelector('#screen-fuel .btn-primary');
+  // Upload the receipt NOW if not already uploaded (no race condition)
+  let receiptUrl = '';
+  if (photoInput && photoInput.files && photoInput.files[0]) {
+    if (btn) { btn.textContent = 'Uploading receipt...'; btn.disabled = true; }
+    receiptUrl = await ensureUploaded(photoInput);
+    if (!receiptUrl) {
+      if (btn) { btn.textContent = 'Submit reimbursement'; btn.disabled = false; }
+      toast('⚠️ Receipt upload failed. Please retry.');
+      return;
+    }
   }
+  if (btn) btn.textContent = 'Submitting...';
 
+  const van = (vanEl && vanEl.value && vanEl.value !== 'Loading...') ? vanEl.value : (driverData.assignedVan || '');
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
-        action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
+        action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:van,
         fuelDate: dateEl?dateEl.value:'', amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
-        receiptUrl: photoInput?.dataset?.uploadedUrl || ''
+        receiptUrl: receiptUrl
       })
     });
     const data = JSON.parse(await resp.text());
@@ -2518,11 +2565,33 @@ async function submitFuel() {
       amountEl.value = '';
       if (photoInput) { photoInput.value = ''; photoInput.dataset.uploadedUrl = ''; photoInput.dataset.localFile = ''; }
       const lbl = document.getElementById('cam-5-lbl');
-      if (lbl) { lbl.textContent = 'Upload receipt photo'; lbl.style.color = ''; }
+      if (lbl) { lbl.textContent = 'Receipt photo'; lbl.style.color = ''; }
       loadFuelHistory();
     }
     else toast('Error: ' + (data.message||'Try again'));
   } catch(e) { toast('Connection error. Try again.'); }
+  finally { if (btn) { btn.textContent = 'Submit reimbursement'; btn.disabled = false; } }
+}
+
+// ── Populate fuel van dropdown from driver's vans ─────────
+async function loadFuelVans() {
+  const sel = document.getElementById('fuel-van');
+  if (!sel || !driverData) return;
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getDriverVans&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    let vans = (data.success && data.vans && data.vans.length) ? data.vans.slice() : [];
+    const fallback = (data && data.defaultVan) || driverData.assignedVan || '';
+    if (fallback && vans.indexOf(fallback) === -1) vans.unshift(fallback);
+    if (!vans.length && fallback) vans = [fallback];
+    if (!vans.length) { sel.innerHTML = '<option>No van assigned</option>'; return; }
+    sel.innerHTML = vans.map(v => `<option value="${v}">${v}</option>`).join('');
+    sel.value = (fallback && vans.indexOf(fallback) > -1) ? fallback : vans[0];
+  } catch(e) {
+    const fb = driverData.assignedVan || 'No van assigned';
+    sel.innerHTML = `<option value="${fb}">${fb}</option>`;
+  }
 }
 
 // ── Submit Leave ──────────────────────────────────────────
@@ -2561,10 +2630,9 @@ async function submitTicket() {
   const btn        = document.querySelector('#screen-tickets .btn-primary');
   if (!explEl?.value) { toast('Please describe what happened'); flashField(explEl); return; }
 
-  if (evInput && evInput.dataset.localFile === 'selected') {
-    if (btn) { btn.textContent = 'Uploading evidence...'; btn.disabled = true; }
-    await waitForUploads('tickets');
-  }
+  if (btn) { btn.textContent = 'Uploading evidence...'; btn.disabled = true; }
+  const evidenceUrl = await ensureUploaded(evInput);
+  if (btn) btn.textContent = 'Submitting...';
 
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
@@ -2573,7 +2641,7 @@ async function submitTicket() {
       body: JSON.stringify({
         action:'submitTicketResponse', driver:driverData.driverName, email:driverData.email,
         responseType: responseEl?responseEl.value:'', explanation:explEl.value,
-        evidenceUrl: evInput?.dataset?.uploadedUrl || ''
+        evidenceUrl: evidenceUrl
       })
     });
     const data = JSON.parse(await resp.text());
@@ -2597,13 +2665,15 @@ async function submitDefectForm() {
   const descEl  = document.getElementById('def-description');
   const photoInput = document.getElementById('cam-5-input-def');
   if (!descEl?.value) { toast('Please describe the defect'); return; }
+  const van = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
+  const photoUrl = await ensureUploaded(photoInput);
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
-        action:'submitDefect', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
-        category: catEl?catEl.value:'Other', description:descEl.value, photoUrl:photoInput?.dataset?.uploadedUrl||''
+        action:'submitDefect', driver:driverData.driverName, email:driverData.email, van:van,
+        category: catEl?catEl.value:'Other', description:descEl.value, photoUrl:photoUrl
       })
     });
     const data = JSON.parse(await resp.text());
@@ -2615,7 +2685,7 @@ async function submitDefectForm() {
       const dpl = document.getElementById('cam-5-lbl-def');
       if (dpl) { dpl.textContent='Photo of defect'; dpl.style.color=''; }
       toggleDef();
-      if (driverData.assignedVan) loadDefectsForVan(driverData.assignedVan);
+      if (van) loadDefectsForVan(van);
     }
     else toast('Error: ' + (data.message||'Try again'));
   } catch(e) { toast('Connection error. Try again.'); }
@@ -2650,22 +2720,22 @@ async function submitEmergencyReport() {
   const photoIn = document.getElementById('cam-6-input');
   const btn     = document.querySelector('#screen-emergency .btn-red');
 
-  // Make sure any selected photo finished uploading before we send
-  if (photoIn && photoIn.dataset.localFile === 'selected') {
-    if (btn) { btn.textContent = 'Uploading photo...'; btn.disabled = true; }
-    await waitForUploads('emergency');
-  }
+  // Upload the photo now if one was selected (no race condition)
+  if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
+  const emPhotoUrl = await ensureUploaded(photoIn);
+  if (btn) btn.textContent = 'Submitting...';
+  const emVan = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
 
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
-        action:'submitEmergency', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
+        action:'submitEmergency', driver:driverData.driverName, email:driverData.email, van:emVan,
         type: typeEl?typeEl.textContent.trim():'Emergency',
         lat:currentGPS.lat||'', lng:currentGPS.lng||'', address:currentGPS.address||'',
         description: descEl?descEl.value:'',
-        photoUrl: photoIn?.dataset?.uploadedUrl || ''
+        photoUrl: emPhotoUrl
       })
     });
     const data = JSON.parse(await resp.text());
