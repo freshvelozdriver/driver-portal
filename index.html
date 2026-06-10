@@ -705,7 +705,7 @@ body { display: block !important; overflow: hidden; }
     </div>
     <div class="form-group">
       <label class="form-label">Notes (optional)</label>
-      <textarea class="form-textarea" placeholder="Any issues or notes..."></textarea>
+      <textarea class="form-textarea" id="si-notes" placeholder="Any issues or notes..."></textarea>
     </div>
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>GPS and timestamp captured automatically.</p></div>
     <button class="btn-primary" id="si-submit-btn" onclick="completeSignIn()">Confirm start shift</button>
@@ -1158,19 +1158,13 @@ body { display: block !important; overflow: hidden; }
     <div class="hdr-title"><h1>Tickets</h1><p>Assigned issues</p></div>
   </div>
   <div class="content">
-    <div class="card">
+    <div id="ticket-active-card" class="card">
       <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
         <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--red-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-alert-circle" style="color:var(--red);font-size:15px"></i></div>
         <div style="flex:1">
-          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Missed delivery — D-LIME-030626-001</p>
-          <span style="font-size:11px;color:var(--text2)">Assigned 26 May · 2:30 PM</span>
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Loading tickets…</p>
+          <span style="font-size:11px;color:var(--text2)"></span>
         </div>
-        <span class="badge badge-red">Open</span>
-      </div>
-      <div style="font-size:11px;color:var(--text2);line-height:1.6;padding:8px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:10px">Customer reported delivery was marked complete but not received. Please provide your explanation and supporting evidence.</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
-        <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px"><span style="font-size:9px;color:var(--text2);text-transform:uppercase;display:block">Type</span><p style="font-size:12px;font-weight:600;color:var(--text)">Missed delivery</p></div>
-        <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px"><span style="font-size:9px;color:var(--text2);text-transform:uppercase;display:block">Due by</span><p style="font-size:12px;font-weight:600;color:var(--text)">5 Jun 2026</p></div>
       </div>
     </div>
     <div class="form-group"><label class="form-label">Response type</label><select class="form-select"><option>I delivered successfully</option><option>Customer not present</option><option>Left in safe location</option><option>Other</option></select></div>
@@ -1232,10 +1226,10 @@ body { display: block !important; overflow: hidden; }
     <div class="divider"></div>
     <label class="form-label">Report what happened</label>
     <div class="em-grid">
-      <div class="em-btn active"><i class="ti ti-car-crash"></i><p>Breakdown</p></div>
-      <div class="em-btn"><i class="ti ti-flat-tyre"></i><p>Tyre issue</p></div>
-      <div class="em-btn"><i class="ti ti-shield-exclamation"></i><p>Accident</p></div>
-      <div class="em-btn"><i class="ti ti-badge"></i><p>Police involved</p></div>
+      <div class="em-btn active" onclick="selectEmType(this)"><i class="ti ti-car-crash"></i><p>Breakdown</p></div>
+      <div class="em-btn" onclick="selectEmType(this)"><i class="ti ti-flat-tyre"></i><p>Tyre issue</p></div>
+      <div class="em-btn" onclick="selectEmType(this)"><i class="ti ti-shield-exclamation"></i><p>Accident</p></div>
+      <div class="em-btn" onclick="selectEmType(this)"><i class="ti ti-badge"></i><p>Police involved</p></div>
     </div>
     <div class="gps-box">
       <div class="gps-icon"><i class="ti ti-map-pin"></i></div>
@@ -1243,7 +1237,7 @@ body { display: block !important; overflow: hidden; }
       <div class="gps-dot"></div>
     </div>
     <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" style="height:90px" placeholder="Describe what happened..."></textarea></div>
-    <input type="file" accept="image/*" capture="environment" id="cam-6-input" style="display:none" onchange="handleFileSelect(this,'cam-6-lbl','Damage Photos Folder ID')">
+    <input type="file" accept="image/*" capture="environment" id="cam-6-input" style="display:none" onchange="handleFileSelect(this,'cam-6-lbl','Emergency Photos Folder ID')">
     <div class="upload-area" onclick="document.getElementById('cam-6-input').click()">
       <div class="upload-icon"><i class="ti ti-camera"></i></div>
       <h3 id="cam-6-lbl">Upload photo / video</h3>
@@ -1601,11 +1595,13 @@ function showScreen(name) {
     if (c) c.scrollTop = 0;
     if (['signin','signoff','emergency'].includes(name)) getGPS(name);
     if (['signin','signoff'].includes(name)) updateDateTime(name);
+    if (name === 'signin')      loadDriverVans();
     if (name === 'vehicle')     loadVehicleData();
     if (name === 'vanactivity') loadVanActivity();
     if (name === 'alerts')      loadAlerts();
     if (name === 'myshifts')    loadMyShifts();
     if (name === 'payout')      loadPayouts();
+    if (name === 'tickets')     loadTickets();
     if (name === 'profile')     loadProfile();
     if (name === 'settings')    loadProfile();
   } else {
@@ -1925,7 +1921,7 @@ async function completeSignIn() {
     action:        'submitSignIn',
     driver:        driverData.driverName,
     email:         driverData.email,
-    van:           driverData.assignedVan,
+    van:           (document.getElementById('signin-van')?.value || driverData.assignedVan || ''),
     lat:           currentGPS.lat || '',
     lng:           currentGPS.lng || '',
     address:       currentGPS.address || '',
@@ -1943,7 +1939,7 @@ async function completeSignIn() {
     startTime:     document.getElementById('signin-time')?.textContent || new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
     startDate:     document.getElementById('signin-date')?.textContent || new Date().toLocaleDateString('en-AU'),
     shiftId:       '',
-    notes:         document.querySelector('#screen-signin textarea.inp')?.value || ''
+    notes:         document.getElementById('si-notes')?.value || ''
   };
 
   try {
@@ -2025,7 +2021,8 @@ async function completeSignOff() {
     endTime:         document.getElementById('signoff-time')?.textContent || new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'}),
     endDate:         document.getElementById('signoff-date')?.textContent || new Date().toLocaleDateString('en-AU'),
     shiftId:         localStorage.getItem('fv_sign_in_id') || '',
-    notes:           ''
+    notes:           [ (document.getElementById('so-damage-notes')?.value || ''),
+                       (noteEl ? noteEl.value : '') ].filter(Boolean).join(' | ')
   };
 
   try {
@@ -2133,6 +2130,32 @@ async function uploadFileToDrive(file, folderKey, filename) {
   });
 }
 
+// ── Load Driver Vans (sign-in van picker) ────────────────
+async function loadDriverVans() {
+  const sel = document.getElementById('signin-van');
+  if (!sel || !driverData) return;
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getDriverVans&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    let vans = (data.success && data.vans && data.vans.length) ? data.vans : [];
+    // Always include the resolved/assigned van as a fallback option
+    const fallback = (data && data.defaultVan) || driverData.assignedVan || '';
+    if (fallback && vans.indexOf(fallback) === -1) vans.unshift(fallback);
+    if (!vans.length && fallback) vans = [fallback];
+    if (!vans.length) { sel.innerHTML = '<option>No van assigned</option>'; return; }
+    sel.innerHTML = vans.map(v => `<option value="${v}">${v}</option>`).join('');
+    // Default-select the resolved van
+    const pick = fallback && vans.indexOf(fallback) > -1 ? fallback : vans[0];
+    sel.value = pick;
+    // If only one van, lock it; otherwise allow change
+    sel.disabled = vans.length === 1;
+  } catch(e) {
+    const fb = driverData.assignedVan || 'No van assigned';
+    sel.innerHTML = `<option value="${fb}">${fb}</option>`;
+  }
+}
+
 // ── Load Vehicle Data (My Vehicle screen) ────────────────
 let _lastParkPhotoUrl = '';
 function openParkPhoto() { if (_lastParkPhotoUrl) window.open(_lastParkPhotoUrl, '_blank'); }
@@ -2197,18 +2220,23 @@ async function loadVehicleData() {
       if (!data.upcoming || data.upcoming.length === 0) {
         vUpEl.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text3);font-size:12px">No upcoming shifts scheduled</div>';
       } else {
-        vUpEl.innerHTML = data.upcoming.map(u => `
+        vUpEl.innerHTML = data.upcoming.map(u => {
+          const ph = u.phone ? String(u.phone).replace(/^0/, '') : '';
+          return `
           <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
-            <div style="width:36px;height:36px;background:var(--blue-light);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-              <span style="font-size:7px;color:var(--blue);font-weight:700">${u.date||''}</span>
+            <div style="width:38px;height:38px;background:var(--blue-light);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
               <span style="font-size:9px;font-weight:800;color:var(--blue)">${u.startTime||''}</span>
             </div>
             <div style="flex:1">
               <p style="font-size:12px;font-weight:600;color:var(--text)">${u.driver||'TBC'}</p>
-              <span style="font-size:10px;color:var(--text2)">${u.type||''} shift · ${u.status||''}</span>
+              <span style="font-size:10px;color:var(--text2)">${u.dateFull||u.date||''} · ${u.type||''} ${u.status?('· '+u.status):''}</span>
             </div>
-            <span style="font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;background:var(--blue-light);color:var(--blue)">${u.type||''}</span>
-          </div>`).join('');
+            <div style="display:flex;gap:4px">
+              ${ph ? `<a href="tel:+61${ph}"><button style="background:var(--blue-light);color:var(--blue);border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">📞</button></a>` : ''}
+              ${ph ? `<a href="sms:+61${ph}"><button style="background:var(--blue-light);color:var(--blue);border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">💬</button></a>` : ''}
+            </div>
+          </div>`;
+        }).join('');
       }
     }
 
@@ -2216,18 +2244,23 @@ async function loadVehicleData() {
       if (!data.history || data.history.length === 0) {
         vHiEl.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text3);font-size:12px">No shift history yet</div>';
       } else {
-        vHiEl.innerHTML = data.history.map(h => `
+        vHiEl.innerHTML = data.history.map(h => {
+          const ph = h.phone ? String(h.phone).replace(/^0/, '') : '';
+          return `
           <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
-            <div style="width:36px;height:36px;background:var(--bg2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-              <span style="font-size:7px;color:var(--text3)">${h.date||''}</span>
-              <i class="ti ti-check" style="font-size:14px;color:var(--green)"></i>
+            <div style="width:38px;height:38px;background:var(--bg2);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="ti ti-check" style="font-size:16px;color:var(--green)"></i>
             </div>
             <div style="flex:1">
               <p style="font-size:12px;font-weight:600;color:var(--text)">${h.driver||''}</p>
-              <span style="font-size:10px;color:var(--text2)">${h.hoursWorked ? h.hoursWorked + ' hrs · ' : ''}${h.endLocation||''}</span>
+              <span style="font-size:10px;color:var(--text2)">${h.dateFull||h.date||''}${h.hoursWorked ? ' · ' + h.hoursWorked + ' hrs' : ''}</span>
             </div>
-            ${h.handoverPhotoUrl ? `<button onclick="window.open('${h.handoverPhotoUrl}','_blank')" style="background:var(--green-light);color:var(--green-text);border:none;border-radius:6px;padding:4px 8px;font-size:9px;font-weight:700;cursor:pointer">📷 Photo</button>` : ''}
-          </div>`).join('');
+            <div style="display:flex;gap:4px;align-items:center">
+              ${h.handoverPhotoUrl ? `<button onclick="window.open('${h.handoverPhotoUrl}','_blank')" style="background:var(--green-light);color:var(--green-text);border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">📷</button>` : ''}
+              ${ph ? `<a href="tel:+61${ph}"><button style="background:var(--bg2);color:var(--text2);border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">📞</button></a>` : ''}
+            </div>
+          </div>`;
+        }).join('');
       }
     }
 
@@ -2426,6 +2459,43 @@ async function loadAlerts() {
   }
 }
 
+// ── Load Tickets ──────────────────────────────────────────
+let _activeTicketId = '';
+async function loadTickets() {
+  if (!driverData) return;
+  const card = document.getElementById('ticket-active-card');
+  if (!card) return;
+  try {
+    const url  = APPS_SCRIPT_URL + '?action=getTickets&email=' + encodeURIComponent(driverData.email);
+    const resp = await fetch(url, { method:'GET', redirect:'follow' });
+    const data = JSON.parse(await resp.text());
+    const open = (data.tickets || []).find(t => t.status === 'Open');
+    if (!open) {
+      card.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--green-light);display:flex;align-items:center;justify-content:center"><i class="ti ti-check" style="color:var(--green)"></i></div><div><p style="font-size:13px;font-weight:600">No open tickets</p><span style="font-size:11px;color:var(--text2)">You\'re all caught up.</span></div></div>';
+      _activeTicketId = '';
+      return;
+    }
+    _activeTicketId = open.id;
+    const adminPic = open.adminPhotoUrl
+      ? `<div style="margin:8px 0"><span style="font-size:9px;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:4px">Attached by admin</span><img src="${open.adminPhotoUrl}" onclick="window.open('${open.adminPhotoUrl}','_blank')" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;cursor:pointer" onerror="this.style.display='none'"></div>`
+      : '';
+    card.innerHTML = `
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+        <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--red-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-alert-circle" style="color:var(--red);font-size:15px"></i></div>
+        <div style="flex:1">
+          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">${open.type||'Ticket'} — ${open.id}</p>
+          <span style="font-size:11px;color:var(--text2)">Assigned ${open.created||''}</span>
+        </div>
+        <span class="badge badge-red">Open</span>
+      </div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.6;padding:8px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:6px">${open.description||''}</div>
+      ${adminPic}`;
+  } catch(e) {
+    console.log('Tickets load failed, showing static content');
+  }
+}
+
+
 // ── Load Shifts ───────────────────────────────────────────
 async function loadMyShifts() {
   if (!driverData) return;
@@ -2518,7 +2588,7 @@ async function submitFuel() {
   const amountEl   = document.getElementById('fuel-amount');
   const photoInput = document.getElementById('fuel-photo-input');
   const dateEl     = document.querySelector('#screen-fuel input[type="date"]');
-  const fuelTypeEl = document.querySelector('#screen-fuel .sel');
+  const fuelTypeEl = document.querySelector('#screen-fuel .form-select');
   if (!amountEl || !amountEl.value || parseFloat(amountEl.value) <= 0) { toast('⚠️ Please enter the fuel amount'); flashField(document.getElementById('fuel-amount')); return; }
 
   // Wait for receipt photo upload to finish
@@ -2554,18 +2624,20 @@ async function submitFuel() {
 async function submitLeave() {
   if (!driverData) return;
   const typeEl   = document.querySelector('#screen-leave .type-btn.active p');
-  const fromEl   = document.querySelector('#screen-leave input[type="date"]');
-  const reasonEl = document.querySelector('#screen-leave .textarea');
-  const shiftEl  = document.querySelector('#screen-leave .sel');
-  if (!fromEl?.value) { toast('Please select a start date'); return; }
-  if (!reasonEl?.value) { toast('Please enter a reason'); return; }
+  const dateEls  = document.querySelectorAll('#screen-leave input[type="date"]');
+  const fromEl   = dateEls[0];
+  const toEl     = dateEls[1] || dateEls[0];
+  const reasonEl = document.querySelector('#screen-leave .form-textarea');
+  const shiftEl  = document.querySelector('#screen-leave .form-select');
+  if (!fromEl?.value) { toast('Please select a start date'); flashField(fromEl); return; }
+  if (!reasonEl?.value) { toast('Please enter a reason'); flashField(reasonEl); return; }
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
         action:'submitLeave', driver:driverData.driverName, email:driverData.email,
-        type: typeEl?typeEl.textContent:'Leave', fromDate:fromEl.value, toDate:fromEl.value,
+        type: typeEl?typeEl.textContent:'Leave', fromDate:fromEl.value, toDate:(toEl?.value||fromEl.value),
         shiftAffected: shiftEl?shiftEl.value:'', reason:reasonEl.value
       })
     });
@@ -2578,22 +2650,39 @@ async function submitLeave() {
 // ── Submit Ticket ─────────────────────────────────────────
 async function submitTicket() {
   if (!driverData) return;
-  const responseEl = document.querySelector('#screen-tickets .sel');
-  const explEl     = document.querySelector('#screen-tickets .textarea');
-  if (!explEl?.value) { toast('Please describe what happened'); return; }
+  const responseEl = document.querySelector('#screen-tickets .form-select');
+  const explEl     = document.querySelector('#screen-tickets .form-textarea');
+  const evInput    = document.getElementById('ev-input');
+  const btn        = document.querySelector('#screen-tickets .btn-primary');
+  if (!explEl?.value) { toast('Please describe what happened'); flashField(explEl); return; }
+
+  if (evInput && evInput.dataset.localFile === 'selected') {
+    if (btn) { btn.textContent = 'Uploading evidence...'; btn.disabled = true; }
+    await waitForUploads('tickets');
+  }
+
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
         action:'submitTicketResponse', driver:driverData.driverName, email:driverData.email,
-        responseType: responseEl?responseEl.value:'', explanation:explEl.value
+        responseType: responseEl?responseEl.value:'', explanation:explEl.value,
+        evidenceUrl: evInput?.dataset?.uploadedUrl || ''
       })
     });
     const data = JSON.parse(await resp.text());
-    if (data.success) { toast('Response submitted ✅ Manager notified.'); explEl.value=''; goBack(); }
+    if (data.success) {
+      toast('Response submitted ✅ Manager notified.');
+      explEl.value='';
+      if (evInput) { evInput.value=''; evInput.dataset.uploadedUrl=''; evInput.dataset.localFile=''; }
+      const lbl = document.getElementById('ev-lbl');
+      if (lbl) { lbl.textContent = 'Supporting evidence'; lbl.style.color=''; }
+      goBack();
+    }
     else toast('Error: ' + (data.message||'Try again'));
   } catch(e) { toast('Connection error. Try again.'); }
+  finally { if (btn) { btn.textContent = 'Submit response'; btn.disabled = false; } }
 }
 
 // ── Submit Defect ─────────────────────────────────────────
@@ -2651,8 +2740,17 @@ async function submitInspectionForm() {
 // ── Submit Emergency ──────────────────────────────────────
 async function submitEmergencyReport() {
   if (!driverData) return;
-  const typeEl = document.querySelector('#screen-emergency .incident-type.active');
-  const descEl = document.querySelector('#screen-emergency .textarea');
+  const typeEl  = document.querySelector('#screen-emergency .em-btn.active p');
+  const descEl  = document.querySelector('#screen-emergency .form-textarea');
+  const photoIn = document.getElementById('cam-6-input');
+  const btn     = document.querySelector('#screen-emergency .btn-red');
+
+  // Make sure any selected photo finished uploading before we send
+  if (photoIn && photoIn.dataset.localFile === 'selected') {
+    if (btn) { btn.textContent = 'Uploading photo...'; btn.disabled = true; }
+    await waitForUploads('emergency');
+  }
+
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
@@ -2661,12 +2759,22 @@ async function submitEmergencyReport() {
         action:'submitEmergency', driver:driverData.driverName, email:driverData.email, van:driverData.assignedVan,
         type: typeEl?typeEl.textContent.trim():'Emergency',
         lat:currentGPS.lat||'', lng:currentGPS.lng||'', address:currentGPS.address||'',
-        description: descEl?descEl.value:''
+        description: descEl?descEl.value:'',
+        photoUrl: photoIn?.dataset?.uploadedUrl || ''
       })
     });
-    JSON.parse(await resp.text());
-    toast('Emergency reported ✅ Manager notified immediately.');
+    const data = JSON.parse(await resp.text());
+    if (data && data.success) {
+      toast('Emergency reported ✅ Manager notified immediately.');
+      if (descEl) descEl.value = '';
+      if (photoIn) { photoIn.value=''; photoIn.dataset.uploadedUrl=''; photoIn.dataset.localFile=''; }
+      const lbl = document.getElementById('cam-6-lbl');
+      if (lbl) { lbl.textContent = 'Upload photo / video'; lbl.style.color=''; }
+    } else {
+      toast('Error: ' + ((data && data.message) || 'Could not submit. Manager being contacted.'));
+    }
   } catch(e) { toast('Manager being contacted. Stay safe.'); }
+  finally { if (btn) { btn.textContent = 'Submit emergency report'; btn.disabled = false; } }
 }
 
 // ── Checklist Toggle ─────────────────────────────────────
@@ -2715,6 +2823,10 @@ let inspOpen = false, defOpen = false;
 
 function selectType(el) {
   el.closest('.type-grid').querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function selectEmType(el) {
+  el.closest('.em-grid').querySelectorAll('.em-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
 }
 function selectPeriod(el) {
