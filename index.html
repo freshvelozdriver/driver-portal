@@ -2093,27 +2093,27 @@ async function uploadOnce(file, folderKey) {
   const ext   = (file.name.split('.').pop() || 'jpg');
   const fname = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 25000);
-    try {
-      const resp = await fetch(APPS_SCRIPT_URL, {
-        method:'POST', redirect:'follow', signal: controller.signal,
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({ action:'uploadFile', filename:fname, mimeType:file.type || 'image/jpeg', base64Data:base64, folderKey, driverName: driverData?.driverName || '', driverEmail: driverData?.email || '' })
-      });
-      clearTimeout(timer);
-      const text = await resp.text();
-      let data = null;
-      try { data = JSON.parse(text); } catch(_) {
-        const m = text && text.match(/\{[\s\S]*\}/);
-        if (m) { try { data = JSON.parse(m[0]); } catch(__){} }
-      }
-      if (data && data.success && data.fileUrl) return data.fileUrl;
-    } catch(err) {
-      clearTimeout(timer);
+  // SINGLE attempt only. Retrying on an unreadable response uploads the file
+  // twice (the server saves it, the browser just can't read the reply). The
+  // backend also records the URL itself, so we never need a blind retry.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow', signal: controller.signal,
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'uploadFile', filename:fname, mimeType:file.type || 'image/jpeg', base64Data:base64, folderKey, driverName: driverData?.driverName || '', driverEmail: driverData?.email || '' })
+    });
+    clearTimeout(timer);
+    const text = await resp.text();
+    let data = null;
+    try { data = JSON.parse(text); } catch(_) {
+      const m = text && text.match(/\{[\s\S]*\}/);
+      if (m) { try { data = JSON.parse(m[0]); } catch(__){} }
     }
-    await new Promise(r => setTimeout(r, 500));
+    if (data && data.success && data.fileUrl) return data.fileUrl;
+  } catch(err) {
+    clearTimeout(timer);
   }
   return '';
 }
@@ -2206,32 +2206,34 @@ async function loadVehicleData() {
     const seenT  = document.getElementById('van-last-seen-time');
     const seenD  = document.getElementById('van-last-seen-date');
 
-    if (addr) {
-      if (addrEl) addrEl.textContent = addr;
+    // GPS address: from Vehicles last-known / shift end location (NOT driver input)
+    let gpsAddr = parked.address || (last && last.endLocation) || '';
+    if (looksLikeTimestamp(gpsAddr)) gpsAddr = '';
+    // Driver-entered address
+    const drvAddr = (data.locationByDriver || (last && last.locationByDriver) || '');
+
+    // "Last parked address by GPS" card + Google Maps link.
+    // If GPS is empty but driver gave an address, fall back to it for the map.
+    const mapAddr = gpsAddr || drvAddr || '';
+    if (mapAddr) {
+      if (addrEl) addrEl.textContent = gpsAddr || drvAddr;
       if (byEl)   byEl.textContent   = (parkedBy ? 'Parked by ' + parkedBy : 'Last updated') + (parkedDate ? ' · ' + parkedDate : '');
-      if (mapsEl) { mapsEl.style.display='block'; mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr); }
-      // If the address is GPS coords (lat,lng), show just the first part nicely
-      const isCoords = /^-?\d+\.\d+\s*,\s*-?\d+\.\d+$/.test(addr.trim());
-      const parts = addr.split(',');
-      if (locEl) locEl.textContent = isCoords ? 'GPS pin' : (parts[0] || addr).trim();
-      if (subEl) subEl.textContent = isCoords ? '' : (parts[1] || '').trim();
+      if (mapsEl) { mapsEl.style.display='block'; mapsEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(mapAddr); }
     } else {
       if (addrEl) addrEl.textContent = 'No parking location recorded yet';
       if (byEl)   byEl.textContent   = '';
       if (mapsEl) mapsEl.style.display = 'none';
-      if (locEl)  locEl.textContent  = '—';
-      if (subEl)  subEl.textContent  = '';
     }
-    // Box 1 "Last Location by GPS" = GPS end location; Box 2 "Last location by driver" = driver-entered
-    const gpsLoc = (last && last.endLocation && !looksLikeTimestamp(last.endLocation)) ? last.endLocation : (addr || '');
-    const drvLoc = (data.locationByDriver || (last && last.locationByDriver) || '');
+
+    // Box 1 "Last Location by GPS" = GPS address
     if (locEl) {
-      const isCoords = /^-?\d+\.\d+\s*,\s*-?\d+\.\d+$/.test(String(gpsLoc).trim());
-      locEl.textContent = gpsLoc ? (isCoords ? 'GPS pin' : (gpsLoc.split(',')[0] || gpsLoc).trim()) : '—';
-      if (subEl) subEl.textContent = (gpsLoc && !isCoords) ? (gpsLoc.split(',')[1] || '').trim() : '';
+      const isCoords = /^-?\d+\.\d+\s*,\s*-?\d+\.\d+$/.test(String(gpsAddr).trim());
+      locEl.textContent = gpsAddr ? (isCoords ? 'GPS pin' : (gpsAddr.split(',')[0] || gpsAddr).trim()) : '—';
+      if (subEl) subEl.textContent = (gpsAddr && !isCoords) ? (gpsAddr.split(',')[1] || '').trim() : '';
     }
-    if (seenT) { seenT.textContent = drvLoc ? (drvLoc.split(',')[0] || drvLoc).trim() : '—'; seenT.style.color = drvLoc ? '' : 'var(--t3)'; }
-    if (seenD) seenD.textContent = drvLoc ? (drvLoc.split(',').slice(1).join(',').trim()) : '';
+    // Box 2 "Last location by driver" = driver-entered address
+    if (seenT) { seenT.textContent = drvAddr ? (drvAddr.split(',')[0] || drvAddr).trim() : '—'; seenT.style.color = drvAddr ? '' : 'var(--t3)'; }
+    if (seenD) seenD.textContent = drvAddr ? (drvAddr.split(',').slice(1).join(',').trim()) : '';
 
     // Note from last driver (#7)
     const noteCard = document.getElementById('van-lastnote-card');
@@ -2575,12 +2577,18 @@ async function submitFuel() {
   const btn = document.querySelector('#screen-fuel .btn-primary');
   if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
 
-  // Get the receipt URL if the background upload already finished, or wait a
-  // short while for it — but NEVER block the submission. The row is always
-  // created; the URL is back-filled by the server if it arrives.
-  let receiptUrl = '';
+  // Read + compress the receipt and send it WITH the submission. The server
+  // uploads it and writes the URL into the sheet in one step — so the URL
+  // lands even if the browser can't read a separate upload response.
+  let receiptBase64 = '', receiptMime = '', receiptFilename = '';
   if (photoInput && photoInput.files && photoInput.files[0]) {
-    receiptUrl = await ensureUploaded(photoInput); // wait up to 12s, then proceed anyway
+    try {
+      let f = photoInput.files[0];
+      try { f = await compressImage(f); } catch(_) {}
+      receiptBase64   = await fileToBase64(f);
+      receiptMime     = f.type || 'image/jpeg';
+      receiptFilename = (driverData.driverName||'Driver').replace(/\s+/g,'_') + '_' + Date.now() + '.jpg';
+    } catch(e) {}
   }
 
   const van = (vanEl && vanEl.value && vanEl.value !== 'Loading...') ? vanEl.value : (driverData.assignedVan || '');
@@ -2591,12 +2599,12 @@ async function submitFuel() {
       body: JSON.stringify({
         action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:van,
         fuelDate: dateEl?dateEl.value:'', amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
-        receiptUrl: receiptUrl
+        receiptBase64: receiptBase64, receiptMime: receiptMime, receiptFilename: receiptFilename
       })
     });
     const data = JSON.parse(await resp.text());
     if (data.success) {
-      toast(receiptUrl ? 'Reimbursement submitted ✅' : 'Submitted ✅ (receipt still uploading — it will attach shortly)');
+      toast('Reimbursement submitted ✅');
       amountEl.value = '';
       if (photoInput) { photoInput.value = ''; photoInput.dataset.uploadedUrl = ''; photoInput.dataset.localFile = ''; }
       const lbl = document.getElementById('cam-5-lbl');
@@ -2606,6 +2614,16 @@ async function submitFuel() {
     else toast('Error: ' + (data.message||'Try again'));
   } catch(e) { toast('Connection error. Try again.'); }
   finally { if (btn) { btn.textContent = 'Submit reimbursement'; btn.disabled = false; } }
+}
+
+// Read a File as base64 (no data: prefix)
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload  = e => resolve(e.target.result.split(',')[1]);
+    r.onerror = () => reject(new Error('read failed'));
+    r.readAsDataURL(file);
+  });
 }
 
 // ── Populate fuel van dropdown from driver's vans ─────────
