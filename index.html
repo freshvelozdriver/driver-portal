@@ -1969,7 +1969,7 @@ async function completeSignOff() {
     van:             activeVan,
     lat:             currentGPS.lat || '',
     lng:             currentGPS.lng || '',
-    address:         (currentGPS.address || document.getElementById('so-dropoff-address')?.value || ''),
+    address:         (currentGPS.address || ''),
     addressByDriver: (document.getElementById('so-dropoff-address-driver')?.value || ''),
     kmReading:       kmEl ? kmEl.value : '',
     vanCondition:    document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
@@ -2894,8 +2894,10 @@ function useCurrentLocation() {
 }
 
 function updateMapFromAddress(addr) {
-  // Update GPS address as user types
-  if (addr && addr.length > 5) currentGPS.address = addr;
+  // Driver's manual address must NOT overwrite the GPS address.
+  // It is sent separately as addressByDriver. This only refreshes a map
+  // preview if one exists; it no longer mutates currentGPS.
+  // (intentionally left as a no-op for GPS state)
 }
 
 function flashField(el) {
