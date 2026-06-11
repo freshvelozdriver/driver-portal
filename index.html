@@ -1952,11 +1952,10 @@ async function completeSignOff() {
   if (!addrEl?.value) { toast('⚠️ Please enter where you parked the van'); flashField(addrEl); addrEl?.focus(); return; }
 
   const btn = document.getElementById('so-submit-btn');
-  if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
-  // Ensure media uploads finished (upload now if needed) → guarantees URLs
-  const soDamageUrl   = await ensureUploaded(document.getElementById('cam-2-input'));
-  const soHandoverUrl = await ensureUploaded(document.getElementById('cam-3-input'));
-  if (btn) btn.textContent = 'Submitting...';
+  if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
+  // Read photos as base64 and let the server upload them (reliable method)
+  const soDamage   = await fileInputToBase64(document.getElementById('cam-2-input'));
+  const soHandover = await fileInputToBase64(document.getElementById('cam-3-input'));
 
   const noteEl = document.getElementById('so-next-driver-note');
   // Use the van the driver actually signed in with (stored at sign-in), not the
@@ -1975,8 +1974,8 @@ async function completeSignOff() {
     vanCondition:    document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
     fuelLevel:       (['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
     damageNotes:     document.getElementById('so-damage-notes')?.value || '',
-    damagePhotoUrl:  soDamageUrl,
-    handoverPhotoUrl: soHandoverUrl,
+    damageBase64:    soDamage.base64, damageMime: soDamage.mime, damageFilename: soDamage.filename,
+    handoverBase64:  soHandover.base64, handoverMime: soHandover.mime, handoverFilename: soHandover.filename,
     checklist:       Array.from(document.querySelectorAll('#screen-signoff .chk-item')).map(el => {
                        const lbl = el.querySelector('.chk-label')?.textContent || '';
                        const checked = el.querySelector('.chk-box')?.classList.contains('checked');
@@ -2626,6 +2625,20 @@ function fileToBase64(file) {
   });
 }
 
+// Read a file <input>, compress if image, return {base64, mime, filename}.
+// Returns empty strings if no file selected. Never throws.
+async function fileInputToBase64(input) {
+  const empty = { base64:'', mime:'', filename:'' };
+  if (!input || !input.files || !input.files[0]) return empty;
+  try {
+    let f = input.files[0];
+    try { f = await compressImage(f); } catch(_) {}
+    const base64 = await fileToBase64(f);
+    const dn = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver');
+    return { base64, mime: f.type || 'image/jpeg', filename: dn + '_' + Date.now() + '.jpg' };
+  } catch(e) { return empty; }
+}
+
 // ── Populate fuel van dropdown from driver's vans ─────────
 async function loadFuelVans() {
   const sel = document.getElementById('fuel-van');
@@ -2684,7 +2697,7 @@ async function submitTicket() {
   if (!explEl?.value) { toast('Please describe what happened'); flashField(explEl); return; }
 
   if (btn) { btn.textContent = 'Uploading evidence...'; btn.disabled = true; }
-  const evidenceUrl = await ensureUploaded(evInput);
+  const ev = await fileInputToBase64(evInput);
   if (btn) btn.textContent = 'Submitting...';
 
   try {
@@ -2694,7 +2707,7 @@ async function submitTicket() {
       body: JSON.stringify({
         action:'submitTicketResponse', driver:driverData.driverName, email:driverData.email,
         responseType: responseEl?responseEl.value:'', explanation:explEl.value,
-        evidenceUrl: evidenceUrl
+        evidenceBase64: ev.base64, evidenceMime: ev.mime, evidenceFilename: ev.filename
       })
     });
     const data = JSON.parse(await resp.text());
@@ -2719,14 +2732,14 @@ async function submitDefectForm() {
   const photoInput = document.getElementById('cam-5-input-def');
   if (!descEl?.value) { toast('Please describe the defect'); return; }
   const van = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
-  const photoUrl = await ensureUploaded(photoInput);
+  const dp = await fileInputToBase64(photoInput);
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
         action:'submitDefect', driver:driverData.driverName, email:driverData.email, van:van,
-        category: catEl?catEl.value:'Other', description:descEl.value, photoUrl:photoUrl
+        category: catEl?catEl.value:'Other', description:descEl.value, photoBase64:dp.base64, photoMime:dp.mime, photoFilename:dp.filename
       })
     });
     const data = JSON.parse(await resp.text());
@@ -2775,7 +2788,7 @@ async function submitEmergencyReport() {
 
   // Upload the photo now if one was selected (no race condition)
   if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
-  const emPhotoUrl = await ensureUploaded(photoIn);
+  const ep = await fileInputToBase64(photoIn);
   if (btn) btn.textContent = 'Submitting...';
   const emVan = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
 
@@ -2788,7 +2801,7 @@ async function submitEmergencyReport() {
         type: typeEl?typeEl.textContent.trim():'Emergency',
         lat:currentGPS.lat||'', lng:currentGPS.lng||'', address:currentGPS.address||'',
         description: descEl?descEl.value:'',
-        photoUrl: emPhotoUrl
+        photoBase64: ep.base64, photoMime: ep.mime, photoFilename: ep.filename
       })
     });
     const data = JSON.parse(await resp.text());
