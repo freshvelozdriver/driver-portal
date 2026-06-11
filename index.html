@@ -763,9 +763,13 @@ body { display: block !important; overflow: hidden; }
       <div class="chk-item" onclick="toggleChk(this)"><div class="chk-box"><i class="ti ti-check" style="color:transparent"></i></div><span class="chk-label">Fuelled up (diesel)</span></div>
     </div>
     <div class="form-group">
-      <label class="form-label">Van drop-off address <span style="color:#A32D2D;font-weight:700">*</span></label>
-      <input type="text" id="so-dropoff-address" class="form-input" placeholder="Enter where you are leaving the van..." oninput="updateMapFromAddress(this.value)" style="border-color:#00D062">
+      <label class="form-label">Van drop-off address by GPS</label>
+      <input type="text" id="so-dropoff-address" class="form-input" placeholder="Auto-detected from your GPS..." readonly style="border-color:#00D062;background:#f5f7f6">
       <button onclick="useCurrentLocation()" style="width:100%;background:#e6f9f0;color:#00704A;border:1px solid #00D062;border-radius:8px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;margin-top:6px">📍 Use my current GPS location</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Van drop-off address by Driver</label>
+      <input type="text" id="so-dropoff-address-driver" class="form-input" placeholder="Insert a drop off address where you parked" oninput="updateMapFromAddress(this.value)" style="border-color:#00D062">
     </div>
     <label class="form-label">Van condition</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
@@ -1086,17 +1090,8 @@ body { display: block !important; overflow: hidden; }
   </div>
   <div class="content">
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>Pay week: Mon 00:01 to Sun 23:59. Paid every Wednesday.</p></div>
-    <div class="pay-card">
-      <div class="pay-card-header"><div><h3>19–25 May 2026</h3><span>Wed 21 May</span></div><span class="badge badge-green">Paid</span></div>
-      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-package" style="color:var(--green)"></i></div><div class="pay-info"><p>Deliveries</p><span>412 consignments</span></div></div><div class="pay-amount pos">+$1,481.00</div></div>
-      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-gas-station" style="color:var(--green)"></i></div><div class="pay-info"><p>Fuel rebate</p><span>Receipt submitted</span></div></div><div class="pay-amount pos">+$92.15</div></div>
-      <div style="padding:0 12px 10px"><div class="pay-total"><p>Total paid</p><span>$1,573.15</span></div></div>
-    </div>
-    <div class="pay-card">
-      <div class="pay-card-header"><div><h3>12–18 May 2026</h3><span>Wed 14 May</span></div><span class="badge badge-green">Paid</span></div>
-      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-package" style="color:var(--green)"></i></div><div class="pay-info"><p>Deliveries</p><span>389 consignments</span></div></div><div class="pay-amount pos">+$1,340.50</div></div>
-      <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--red-light)"><i class="ti ti-receipt-tax" style="color:var(--red)"></i></div><div class="pay-info"><p>Toll deduction</p><span>1 toll incurred</span></div></div><div class="pay-amount neg">-$8.50</div></div>
-      <div style="padding:0 12px 10px"><div class="pay-total"><p>Total paid</p><span>$1,410.90</span></div></div>
+    <div id="payout-list">
+      <div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">Loading earnings...</div>
     </div>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
@@ -1288,15 +1283,15 @@ body { display: block !important; overflow: hidden; }
   </div>
   <div class="scroll">
     <div class="stat-grid">
-      <div class="stat-box"><div class="stat-lbl">Last location</div><div id="van-last-location" style="font-size:14px;font-weight:700">—</div><div class="stat-sub" id="van-last-suburb"></div></div>
-      <div class="stat-box"><div class="stat-lbl">Last seen</div><div id="van-last-seen-time" style="font-size:14px;font-weight:700">—</div><div class="stat-sub" id="van-last-seen-date"></div></div>
+      <div class="stat-box"><div class="stat-lbl">Last Location by GPS</div><div id="van-last-location" style="font-size:14px;font-weight:700">—</div><div class="stat-sub" id="van-last-suburb"></div></div>
+      <div class="stat-box"><div class="stat-lbl">Last location by driver</div><div id="van-last-seen-time" style="font-size:13px;font-weight:700">—</div><div class="stat-sub" id="van-last-seen-date"></div></div>
     </div>
     <!-- Last parked address -->
     <div style="background:#fff;border:1px solid var(--g);border-radius:var(--r);padding:11px;margin-bottom:11px">
       <div style="display:flex;align-items:flex-start;gap:9px">
         <div style="width:28px;height:28px;background:var(--gl);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-map-pin" style="color:var(--g);font-size:13px"></i></div>
         <div>
-          <span style="font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:2px">Last parked address</span>
+          <span style="font-size:9px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:2px">Last parked address by GPS</span>
           <p id="van-parked-addr" style="font-size:13px;font-weight:700;margin-bottom:2px">—</p>
           <span id="van-parked-by" style="font-size:9px;color:var(--t3);display:block;margin-top:2px"></span>
           <a id="van-maps-link" href="https://www.google.com/maps/search/?api=1&query=88+Bourke+Rd+Alexandria+NSW+2015" target="_blank" style="text-decoration:none;display:block;margin-top:9px">
@@ -1871,8 +1866,8 @@ async function completeSignIn() {
   const btn = document.getElementById('si-submit-btn');
   if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
   // Ensure media uploads finished (upload now if needed) → guarantees URLs
-  const siVideoUrl  = await ensureUploaded(document.getElementById('si-video-input'), 12000);
-  const siDamageUrl = await ensureUploaded(document.getElementById('cam-1-input'), 12000);
+  const siVideoUrl  = await ensureUploaded(document.getElementById('si-video-input'));
+  const siDamageUrl = await ensureUploaded(document.getElementById('cam-1-input'));
   if (btn) btn.textContent = 'Submitting...';
   const payload = {
     action:        'submitSignIn',
@@ -1959,8 +1954,8 @@ async function completeSignOff() {
   const btn = document.getElementById('so-submit-btn');
   if (btn) { btn.textContent = 'Uploading files...'; btn.disabled = true; }
   // Ensure media uploads finished (upload now if needed) → guarantees URLs
-  const soDamageUrl   = await ensureUploaded(document.getElementById('cam-2-input'), 12000);
-  const soHandoverUrl = await ensureUploaded(document.getElementById('cam-3-input'), 12000);
+  const soDamageUrl   = await ensureUploaded(document.getElementById('cam-2-input'));
+  const soHandoverUrl = await ensureUploaded(document.getElementById('cam-3-input'));
   if (btn) btn.textContent = 'Submitting...';
 
   const noteEl = document.getElementById('so-next-driver-note');
@@ -1974,7 +1969,8 @@ async function completeSignOff() {
     van:             activeVan,
     lat:             currentGPS.lat || '',
     lng:             currentGPS.lng || '',
-    address:         (document.getElementById('so-dropoff-address')?.value || currentGPS.address || ''),
+    address:         (currentGPS.address || document.getElementById('so-dropoff-address')?.value || ''),
+    addressByDriver: (document.getElementById('so-dropoff-address-driver')?.value || ''),
     kmReading:       kmEl ? kmEl.value : '',
     vanCondition:    document.querySelector('#screen-signoff .cond-btn.active')?.textContent?.trim() || 'Good',
     fuelLevel:       (['so-fuel-full','so-fuel-half','so-fuel-low','so-fuel-empty']).map(id=>{const el=document.getElementById(id);return el?.classList.contains('active')?el.textContent.trim():null;}).filter(Boolean)[0]||'',
@@ -2040,6 +2036,8 @@ function toggleShift() {
 }
 
 // ── File Handling ─────────────────────────────────────────
+// We DO NOT upload on select anymore (that caused duplicate uploads).
+// The file is uploaded exactly once, at submit time, by ensureUploaded().
 function handleFileSelect(input, labelId, folderKey) {
   if (!input.files || !input.files[0]) return;
   const file    = input.files[0];
@@ -2048,9 +2046,6 @@ function handleFileSelect(input, labelId, folderKey) {
   input.dataset.localFile   = 'selected';
   input.dataset.uploadedUrl = '';
   if (labelEl) { labelEl.textContent = '✅ ' + file.name.substring(0,28); labelEl.style.color = 'var(--gt)'; }
-  // Start uploading in the background so it's likely ready by submit time.
-  // ensureUploaded() at submit will reuse this result or upload if not ready.
-  uploadFileInBackground(input, file, folderKey);
 }
 
 // Compress an image File to a smaller JPEG (max ~1280px, quality 0.7).
@@ -2082,105 +2077,61 @@ async function compressImage(file) {
   } catch(e) { return file; }
 }
 
-async function uploadFileInBackground(input, file, folderKey) {
-  input.dataset.localFile = 'uploading';
+// Single, reliable upload. AbortController gives a hard 25s timeout so the
+// request can NEVER hang forever. Returns the URL or '' (never throws).
+async function uploadOnce(file, folderKey) {
+  let base64;
   try {
-    const compressed = await compressImage(file);
-    const ext   = (compressed.name.split('.').pop() || 'jpg');
-    const name_ = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
-    const url   = await uploadFileToDrive(compressed, folderKey || 'Delivery Photos Folder ID', name_);
-    if (url) { input.dataset.uploadedUrl = url; input.dataset.localFile = 'uploaded'; }
-    else     { input.dataset.localFile = 'failed'; }
-  } catch(e) {
-    input.dataset.localFile = 'failed';
-  }
-}
+    base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result.split(',')[1]);
+      reader.onerror = () => reject(new Error('read failed'));
+      reader.readAsDataURL(file);
+    });
+  } catch(e) { return ''; }
 
-// Wait for all pending uploads on a screen before submitting
-async function waitForUploads(screenId) {
-  const inputs = document.querySelectorAll('#screen-' + screenId + ' input[type="file"]');
-  let waited = 0;
-  while (waited < 30000) {
-    const pending = Array.from(inputs).filter(i => i.dataset.localFile === 'selected' || i.dataset.localFile === 'uploading');
-    if (pending.length === 0) return true;
-    await new Promise(r => setTimeout(r, 400));
-    waited += 400;
-  }
-  return false;
-}
+  const ext   = (file.name.split('.').pop() || 'jpg');
+  const fname = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
 
-async function uploadFileToDrive(file, folderKey, filename) {
-  // Read file as base64
-  const base64 = await new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = e => resolve(e.target.result.split(',')[1]);
-    reader.onerror = () => reject(new Error('Could not read file'));
-    reader.readAsDataURL(file);
-  });
-
-  // Try the upload up to 3 times; parse defensively.
-  let lastErr = '';
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
     try {
       const resp = await fetch(APPS_SCRIPT_URL, {
-        method:'POST', redirect:'follow',
+        method:'POST', redirect:'follow', signal: controller.signal,
         headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({ action:'uploadFile', filename, mimeType:file.type || 'image/jpeg', base64Data:base64, folderKey, driverName: driverData?.driverName || '', driverEmail: driverData?.email || '' })
+        body: JSON.stringify({ action:'uploadFile', filename:fname, mimeType:file.type || 'image/jpeg', base64Data:base64, folderKey, driverName: driverData?.driverName || '', driverEmail: driverData?.email || '' })
       });
+      clearTimeout(timer);
       const text = await resp.text();
       let data = null;
-      try { data = JSON.parse(text); }
-      catch(parseErr) {
+      try { data = JSON.parse(text); } catch(_) {
         const m = text && text.match(/\{[\s\S]*\}/);
-        if (m) { try { data = JSON.parse(m[0]); } catch(e2) {} }
+        if (m) { try { data = JSON.parse(m[0]); } catch(__){} }
       }
       if (data && data.success && data.fileUrl) return data.fileUrl;
-      lastErr = (data && data.message) ? data.message : ('Unexpected response: ' + String(text).slice(0,80));
     } catch(err) {
-      lastErr = err.message || 'Network error';
+      clearTimeout(timer);
     }
-    await new Promise(r => setTimeout(r, 800)); // pause before retry
+    await new Promise(r => setTimeout(r, 500));
   }
-  throw new Error(lastErr || 'Upload failed');
+  return '';
 }
 
-// Guarantee a file input's URL is ready. Reuses an in-flight/completed
-// background upload; only uploads itself if nothing is happening.
-// maxWaitMs caps how long we wait for an in-flight background upload.
-async function ensureUploaded(input, maxWaitMs) {
+// Compress (if image) then upload exactly once. Returns URL or '' .
+async function ensureUploaded(input) {
   if (!input || !input.files || !input.files[0]) {
     return input?.dataset?.uploadedUrl || '';
   }
   if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
-  const cap = maxWaitMs || 30000;
-  if (input.dataset.localFile === 'uploading' || input.dataset.localFile === 'selected') {
-    let waited = 0;
-    while (waited < cap) {
-      if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
-      if (input.dataset.localFile === 'failed') break;
-      await new Promise(r => setTimeout(r, 400));
-      waited += 400;
-    }
-    if (input.dataset.uploadedUrl) return input.dataset.uploadedUrl;
-    // If still uploading after the cap, don't start a duplicate — just return
-    // what we have (the background upload will keep going).
-    if (input.dataset.localFile === 'uploading') return input.dataset.uploadedUrl || '';
-  }
-  // Nothing in flight or it failed — upload now (compressed)
-  const file      = input.files[0];
+  input.dataset.localFile = 'uploading';
   const folderKey = input.dataset.folderKey || 'Delivery Photos Folder ID';
-  try {
-    const compressed = await compressImage(file);
-    const ext   = (compressed.name.split('.').pop() || 'jpg');
-    const name_ = (driverData ? String(driverData.driverName||'Driver').replace(/\s+/g,'_') : 'Driver') + '_' + Date.now() + '.' + ext;
-    const url   = await uploadFileToDrive(compressed, folderKey, name_);
-    input.dataset.uploadedUrl = url;
-    input.dataset.localFile   = 'uploaded';
-    return url;
-  } catch(e) {
-    input.dataset.localFile = 'failed';
-    return '';
-  }
+  let file = input.files[0];
+  try { file = await compressImage(file); } catch(_) {}
+  const url = await uploadOnce(file, folderKey);
+  if (url) { input.dataset.uploadedUrl = url; input.dataset.localFile = 'uploaded'; }
+  else     { input.dataset.localFile = 'failed'; }
+  return url;
 }
 
 // ── Load Driver Vans (sign-in van picker) ────────────────
@@ -2271,15 +2222,16 @@ async function loadVehicleData() {
       if (locEl)  locEl.textContent  = '—';
       if (subEl)  subEl.textContent  = '';
     }
-    // Last seen time/date from the parked timestamp
-    if (parkedDate) {
-      const dParts = String(parkedDate).split(' ');
-      if (seenT) seenT.textContent = dParts.length > 1 ? dParts.slice(1).join(' ') : '';
-      if (seenD) seenD.textContent = dParts[0] || parkedDate;
-    } else {
-      if (seenT) seenT.textContent = '—';
-      if (seenD) seenD.textContent = '';
+    // Box 1 "Last Location by GPS" = GPS end location; Box 2 "Last location by driver" = driver-entered
+    const gpsLoc = (last && last.endLocation && !looksLikeTimestamp(last.endLocation)) ? last.endLocation : (addr || '');
+    const drvLoc = (data.locationByDriver || (last && last.locationByDriver) || '');
+    if (locEl) {
+      const isCoords = /^-?\d+\.\d+\s*,\s*-?\d+\.\d+$/.test(String(gpsLoc).trim());
+      locEl.textContent = gpsLoc ? (isCoords ? 'GPS pin' : (gpsLoc.split(',')[0] || gpsLoc).trim()) : '—';
+      if (subEl) subEl.textContent = (gpsLoc && !isCoords) ? (gpsLoc.split(',')[1] || '').trim() : '';
     }
+    if (seenT) { seenT.textContent = drvLoc ? (drvLoc.split(',')[0] || drvLoc).trim() : '—'; seenT.style.color = drvLoc ? '' : 'var(--t3)'; }
+    if (seenD) seenD.textContent = drvLoc ? (drvLoc.split(',').slice(1).join(',').trim()) : '';
 
     // Note from last driver (#7)
     const noteCard = document.getElementById('van-lastnote-card');
@@ -2288,7 +2240,7 @@ async function loadVehicleData() {
       const nt = document.getElementById('van-lastnote-text');
       const nb = document.getElementById('van-lastnote-by');
       if (nt) nt.textContent = data.lastNote.note;
-      if (nb) nb.textContent = (data.lastNote.driver ? 'By ' + data.lastNote.driver : '') + (data.lastNote.time ? ' · ' + data.lastNote.time : '');
+      if (nb) nb.textContent = (data.lastNote.driver ? 'By ' + data.lastNote.driver : '') + (data.lastNote.date ? ' · ' + data.lastNote.date : '') + (data.lastNote.time ? ' · ' + data.lastNote.time : '');
     } else if (noteCard) {
       noteCard.style.display = 'none';
     }
@@ -2577,17 +2529,37 @@ async function submitShiftRequest() { toast('Shift request submitted ✅ Manager
 // ── Load Payouts ──────────────────────────────────────────
 async function loadPayouts() {
   if (!driverData) return;
+  const listEl = document.getElementById('payout-list');
   try {
     const url  = APPS_SCRIPT_URL + '?action=getPayouts&email=' + encodeURIComponent(driverData.email);
     const resp = await fetch(url, { method:'GET', redirect:'follow' });
     const data = JSON.parse(await resp.text());
-    if (!data.success || !data.payouts || data.payouts.length === 0) return;
-    const last = data.payouts.find(p => p.status==='Paid');
-    if (last) {
-      const a = document.getElementById('payout-last-amount'); if (a) a.textContent = '$' + parseFloat(last.total||0).toFixed(2);
-      const d = document.getElementById('payout-last-date');   if (d) d.textContent = 'Paid ' + (last.paymentDate||'');
+    if (!data.success || !data.payouts || data.payouts.length === 0) {
+      if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">No payout records yet</div>';
+      return;
     }
-  } catch(e) {}
+    // Hero = most recent paid (or most recent overall)
+    const paid = data.payouts.find(p => String(p.status).toLowerCase()==='paid') || data.payouts[0];
+    if (paid) {
+      const a = document.getElementById('payout-last-amount'); if (a) a.textContent = '$' + parseFloat(paid.total||0).toFixed(2);
+      const d = document.getElementById('payout-last-date');   if (d) d.textContent = (String(paid.status).toLowerCase()==='paid' ? 'Paid ' : 'Pending ') + (paid.paymentDate||'');
+    }
+    if (listEl) {
+      listEl.innerHTML = data.payouts.map(p => {
+        const isPaid = String(p.status).toLowerCase()==='paid';
+        const fuelRow = (parseFloat(p.fuelRebate)||0) ? `<div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-gas-station" style="color:var(--green)"></i></div><div class="pay-info"><p>Fuel rebate</p><span>Receipts</span></div></div><div class="pay-amount pos">+$${parseFloat(p.fuelRebate).toFixed(2)}</div></div>` : '';
+        const dedRow  = (parseFloat(p.deductions)||0) ? `<div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--red-light)"><i class="ti ti-receipt-tax" style="color:var(--red)"></i></div><div class="pay-info"><p>Deductions</p><span>Tolls / other</span></div></div><div class="pay-amount neg">-$${parseFloat(p.deductions).toFixed(2)}</div></div>` : '';
+        return `<div class="pay-card">
+          <div class="pay-card-header"><div><h3>${p.weekStart||''}${p.weekEnd?(' – '+p.weekEnd):''}</h3><span>${p.paymentDate||''}</span></div><span class="badge ${isPaid?'badge-green':'badge-amber'}">${p.status||'Pending'}</span></div>
+          <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-package" style="color:var(--green)"></i></div><div class="pay-info"><p>Deliveries</p><span>${p.count||0} consignments</span></div></div><div class="pay-amount pos">+$${(parseFloat(p.earnings)||0).toFixed(2)}</div></div>
+          ${fuelRow}${dedRow}
+          <div style="padding:0 12px 10px"><div class="pay-total"><p>Total</p><span>$${(parseFloat(p.total)||0).toFixed(2)}</span></div></div>
+        </div>`;
+      }).join('');
+    }
+  } catch(e) {
+    if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">Could not load earnings</div>';
+  }
 }
 
 // ── Submit Fuel ───────────────────────────────────────────
@@ -2608,7 +2580,7 @@ async function submitFuel() {
   // created; the URL is back-filled by the server if it arrives.
   let receiptUrl = '';
   if (photoInput && photoInput.files && photoInput.files[0]) {
-    receiptUrl = await ensureUploaded(photoInput, 12000); // wait up to 12s, then proceed anyway
+    receiptUrl = await ensureUploaded(photoInput); // wait up to 12s, then proceed anyway
   }
 
   const van = (vanEl && vanEl.value && vanEl.value !== 'Loading...') ? vanEl.value : (driverData.assignedVan || '');
@@ -2694,7 +2666,7 @@ async function submitTicket() {
   if (!explEl?.value) { toast('Please describe what happened'); flashField(explEl); return; }
 
   if (btn) { btn.textContent = 'Uploading evidence...'; btn.disabled = true; }
-  const evidenceUrl = await ensureUploaded(evInput, 12000);
+  const evidenceUrl = await ensureUploaded(evInput);
   if (btn) btn.textContent = 'Submitting...';
 
   try {
@@ -2729,7 +2701,7 @@ async function submitDefectForm() {
   const photoInput = document.getElementById('cam-5-input-def');
   if (!descEl?.value) { toast('Please describe the defect'); return; }
   const van = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
-  const photoUrl = await ensureUploaded(photoInput, 12000);
+  const photoUrl = await ensureUploaded(photoInput);
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
       method:'POST', redirect:'follow',
@@ -2785,7 +2757,7 @@ async function submitEmergencyReport() {
 
   // Upload the photo now if one was selected (no race condition)
   if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
-  const emPhotoUrl = await ensureUploaded(photoIn, 12000);
+  const emPhotoUrl = await ensureUploaded(photoIn);
   if (btn) btn.textContent = 'Submitting...';
   const emVan = localStorage.getItem('fv_active_van') || driverData.assignedVan || '';
 
