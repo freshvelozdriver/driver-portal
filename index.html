@@ -1080,8 +1080,8 @@ body { display: block !important; overflow: hidden; }
   </div>
   <div class="pay-hero">
     <div class="pay-hero-label">Last payment</div>
-    <div class="pay-hero-amount" id="payout-last-amount">—</div>
-    <div class="pay-hero-sub" id="payout-last-date">Loading…</div>
+    <div class="pay-hero-amount" id="payout-last-amount">$1,284.50</div>
+    <div class="pay-hero-sub" id="payout-last-date">Paid Wed 21 May 2026</div>
     <div class="pay-pills">
       <div class="ppill active" onclick="selectPeriod(this)">Weekly</div>
       <div class="ppill" onclick="selectPeriod(this)">Fortnightly</div>
@@ -1124,9 +1124,15 @@ body { display: block !important; overflow: hidden; }
     <div class="info-box info-green"><i class="ti ti-info-circle"></i><p>Requests reviewed by manager. You will be notified once approved or rejected.</p></div>
     <button class="btn-primary" onclick="submitLeave()">Submit request</button>
     <div class="divider"></div>
-    <p style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Your requests</p>
-    <div id="leave-history-list">
-      <div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Loading...</div>
+    <div class="list-item">
+      <div class="list-icon" style="background:var(--blue-light);color:var(--blue)"><i class="ti ti-beach"></i></div>
+      <div class="list-info"><p>Leave — 2–4 Jun 2026</p><span>Submitted 26 May</span></div>
+      <span class="badge badge-amber">Pending</span>
+    </div>
+    <div class="list-item">
+      <div class="list-icon" style="background:var(--red-light);color:var(--red)"><i class="ti ti-alert-circle"></i></div>
+      <div class="list-info"><p>Emergency — 20 May 2026</p><span>Submitted 19 May</span></div>
+      <span class="badge badge-green">Approved</span>
     </div>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
@@ -1546,7 +1552,6 @@ function showScreen(name) {
     if (name === 'payout')      loadPayouts();
     if (name === 'tickets')     loadTickets();
     if (name === 'fuel')        { loadFuelHistory(); loadFuelVans(); }
-    if (name === 'leave')       loadLeaveHistory();
     if (name === 'profile')     loadProfile();
     if (name === 'settings')    loadProfile();
   } else {
@@ -1940,6 +1945,7 @@ async function completeSignOff() {
   const kmEl    = document.getElementById('so-km');
   const addrEl  = document.getElementById('so-dropoff-address');
   const drvAddrEl = document.getElementById('so-dropoff-address-driver');
+  const handoverInput = document.getElementById('cam-3-input');
   if (!kmEl?.value) { toast('⚠️ Please enter the end odometer reading'); flashField(kmEl); kmEl?.focus(); return; }
   // Auto-fill GPS address if blank
   if (addrEl && !addrEl.value && currentGPS.address) {
@@ -1949,6 +1955,12 @@ async function completeSignOff() {
   if (!drvAddrEl?.value || !drvAddrEl.value.trim()) {
     toast('⚠️ Please enter the van drop-off address');
     flashField(drvAddrEl); drvAddrEl?.focus(); return;
+  }
+  // Van handover photo is mandatory
+  if (!handoverInput || !handoverInput.files || !handoverInput.files[0]) {
+    toast('⚠️ Please take the van handover photo');
+    const ho = document.getElementById('cam-3-lbl'); if (ho) { ho.style.color = '#A32D2D'; }
+    return;
   }
 
   const btn = document.getElementById('so-submit-btn');
@@ -2185,11 +2197,6 @@ async function loadVehicleData() {
       if (titleSub) titleSub.textContent = data.vehicle.colour ? ('Colour: ' + data.vehicle.colour) : '';
       const condEl = document.getElementById('vehicle-condition-text');
       if (condEl && data.vehicle.status) condEl.textContent = data.vehicle.status;
-      // Store the lock box PIN so togglePin() can reveal it
-      if (data.vehicle.lockBoxPin) {
-        _vanLockPin = String(data.vehicle.lockBoxPin);
-        if (driverData) driverData.vanPin = _vanLockPin;
-      }
     }
 
     // Last parked address — prefer the synced Vehicles record, then last completed shift
@@ -2200,8 +2207,7 @@ async function loadVehicleData() {
     let addr = parked.address || (last && last.endLocation) || '';
     if (looksLikeTimestamp(addr)) addr = '';
     const parkedBy   = parked.parkedBy || (last && last.driver) || '';
-    const parkedDateRaw = parked.parkedDate || parked.time || (last && last.dateFull) || (last && last.date) || '';
-    const parkedDate = prettyDateTime(parkedDateRaw);
+    const parkedDate = parked.parkedDate || parked.time || (last && last.dateFull) || (last && last.date) || '';
 
     const addrEl = document.getElementById('van-parked-addr');
     const byEl   = document.getElementById('van-parked-by');
@@ -2253,7 +2259,7 @@ async function loadVehicleData() {
     }
 
     // Last handover photo (#3) — prefer synced Vehicles photo, then last shift
-    const photoUrl = parked.handoverPhotoUrl || (last && last.handoverPhotoUrl) || '';
+    const photoUrl = parked.handoverPhotoUrl || data.bestHandoverPhotoUrl || (last && last.handoverPhotoUrl) || '';
     const wrap   = document.getElementById('vehicle-park-photo-wrap');
     const box    = document.getElementById('vehicle-park-photo-box');
     const credit = document.getElementById('vehicle-park-photo-credit');
@@ -2390,34 +2396,6 @@ async function loadAlerts() {
 }
 
 // ── Load Fuel History ─────────────────────────────────────
-async function loadLeaveHistory() {
-  if (!driverData) return;
-  const listEl = document.getElementById('leave-history-list');
-  if (!listEl) return;
-  try {
-    const url  = APPS_SCRIPT_URL + '?action=getLeave&email=' + encodeURIComponent(driverData.email);
-    const resp = await fetch(url, { method:'GET', redirect:'follow' });
-    const data = JSON.parse(await resp.text());
-    if (!data.success || !data.leave || data.leave.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">No requests yet</div>';
-      return;
-    }
-    listEl.innerHTML = data.leave.map(l => {
-      const st = String(l.status||'Pending').toLowerCase();
-      const badge = st.includes('approv') ? 'badge-green' : (st.includes('reject') || st.includes('declin')) ? 'badge-red' : 'badge-amber';
-      const isEm = String(l.type||'').toLowerCase().includes('emerg');
-      const range = prettyDate(l.fromDate) + (l.toDate && l.toDate !== l.fromDate ? ' – ' + prettyDate(l.toDate) : '');
-      return `<div class="list-item">
-        <div class="list-icon" style="background:${isEm?'var(--red-light)':'var(--blue-light)'};color:${isEm?'var(--red)':'var(--blue)'}"><i class="ti ${isEm?'ti-alert-circle':'ti-beach'}"></i></div>
-        <div class="list-info"><p>${l.type||'Leave'} — ${range}</p><span>Submitted ${prettyDate(l.submitted)}</span></div>
-        <span class="badge ${badge}">${l.status||'Pending'}</span>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    listEl.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Could not load</div>';
-  }
-}
-
 async function loadFuelHistory() {
   if (!driverData) return;
   const listEl = document.getElementById('fuel-history-list');
@@ -2437,7 +2415,7 @@ async function loadFuelHistory() {
       const rcpt = f.receiptUrl ? `<a href="${f.receiptUrl}" target="_blank" style="margin-left:6px;font-size:11px">🧾</a>` : '';
       return `<div class="list-item">
         <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-receipt"></i></div>
-        <div class="list-info"><p>${f.van||''} · ${f.date||''}</p><span>$${parseFloat(f.amount||0).toFixed(2)} ${rcpt}</span></div>
+        <div class="list-info"><p>${f.van||''} · ${prettyDate(f.date)||f.date||''}</p><span>$${parseFloat(f.amount||0).toFixed(2)} ${rcpt}</span></div>
         <span class="badge" style="background:${badgeBg};color:${badgeC}">${f.status||'Pending'}</span>
       </div>`;
     }).join('');
@@ -2577,7 +2555,7 @@ async function loadPayouts() {
     const paid = data.payouts.find(p => String(p.status).toLowerCase()==='paid') || data.payouts[0];
     if (paid) {
       const a = document.getElementById('payout-last-amount'); if (a) a.textContent = '$' + parseFloat(paid.total||0).toFixed(2);
-      const d = document.getElementById('payout-last-date');   if (d) d.textContent = (String(paid.status).toLowerCase()==='paid' ? 'Paid ' : 'Pending ') + prettyDate(paid.paymentDate||'');
+      const d = document.getElementById('payout-last-date');   if (d) d.textContent = (String(paid.status).toLowerCase()==='paid' ? 'Paid ' : 'Pending ') + (paid.paymentDate||'');
     }
     if (listEl) {
       listEl.innerHTML = data.payouts.map(p => {
@@ -2585,7 +2563,7 @@ async function loadPayouts() {
         const fuelRow = (parseFloat(p.fuelRebate)||0) ? `<div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-gas-station" style="color:var(--green)"></i></div><div class="pay-info"><p>Fuel rebate</p><span>Receipts</span></div></div><div class="pay-amount pos">+$${parseFloat(p.fuelRebate).toFixed(2)}</div></div>` : '';
         const dedRow  = (parseFloat(p.deductions)||0) ? `<div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--red-light)"><i class="ti ti-receipt-tax" style="color:var(--red)"></i></div><div class="pay-info"><p>Deductions</p><span>Tolls / other</span></div></div><div class="pay-amount neg">-$${parseFloat(p.deductions).toFixed(2)}</div></div>` : '';
         return `<div class="pay-card">
-          <div class="pay-card-header"><div><h3>${prettyDate(p.weekStart)||''}${p.weekEnd?(' – '+prettyDate(p.weekEnd)):''}</h3><span>${prettyDate(p.paymentDate)||''}</span></div><span class="badge ${isPaid?'badge-green':'badge-amber'}">${p.status||'Pending'}</span></div>
+          <div class="pay-card-header"><div><h3>${p.weekStart||''}${p.weekEnd?(' – '+p.weekEnd):''}</h3><span>${p.paymentDate||''}</span></div><span class="badge ${isPaid?'badge-green':'badge-amber'}">${p.status||'Pending'}</span></div>
           <div class="pay-row"><div class="pay-row-left"><div class="pay-icon" style="background:var(--green-light)"><i class="ti ti-package" style="color:var(--green)"></i></div><div class="pay-info"><p>Deliveries</p><span>${p.count||0} consignments</span></div></div><div class="pay-amount pos">+$${(parseFloat(p.earnings)||0).toFixed(2)}</div></div>
           ${fuelRow}${dedRow}
           <div style="padding:0 12px 10px"><div class="pay-total"><p>Total</p><span>$${(parseFloat(p.total)||0).toFixed(2)}</span></div></div>
@@ -2631,7 +2609,7 @@ async function submitFuel() {
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
         action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:van,
-        fuelDate: dateEl?dateEl.value:'', amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
+        fuelDate: (dateEl && dateEl.value ? isoToDMY(dateEl.value) : ''), amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
         receiptBase64: receiptBase64, receiptMime: receiptMime, receiptFilename: receiptFilename
       })
     });
@@ -2947,16 +2925,24 @@ function updateMapFromAddress(addr) {
   // (intentionally left as a no-op for GPS state)
 }
 
-// Format a date/ISO/dd-MM value into "Fri, 6 Nov 2026 · 8:04 PM" (or just date).
+// Convert HTML date input value (yyyy-MM-dd) to dd/MM/yyyy
+function isoToDMY(iso) {
+  if (!iso) return '';
+  const p = String(iso).split('-');
+  if (p.length === 3) return p[2] + '/' + p[1] + '/' + p[0];
+  return iso;
+}
+
+// Format a date/ISO/dd-MM value into "Fri, 6 Nov 2026 · 8:04 PM".
 // Interprets ambiguous dd/MM/yyyy strings as day-first (Australian).
 function prettyDateTime(val) {
   if (!val) return '';
   const s = String(val);
-  // Already friendly (contains a month name) — leave as-is
   if (/[A-Za-z]{3,}/.test(s) && !s.includes('T')) return s;
   let d = null;
   if (val instanceof Date) d = val;
   else if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) { const p=s.split('/'); d=new Date(+p[2],+p[1]-1,+p[0]); }
+  else if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const p=s.split('-'); d=new Date(+p[0],+p[1]-1,+p[2]); }
   else { const t = new Date(s); if (!isNaN(t.getTime())) d = t; }
   if (!d || isNaN(d.getTime()) || d.getFullYear() < 2000) return (s.includes('T')?'':s);
   const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -2967,7 +2953,7 @@ function prettyDateTime(val) {
   return out;
 }
 
-// Date only: "Fri, 6 Nov 2026"
+// Date only
 function prettyDate(val) {
   const full = prettyDateTime(val);
   return full ? full.split(' · ')[0] : '';
@@ -3008,12 +2994,8 @@ function filterCon(el, type) {
 function togglePin() {
   const el = document.getElementById('pin-val');
   if (!el) return;
-  const realPin = _vanLockPin || (driverData && driverData.vanPin) || '';
-  el.textContent = el.textContent === '● ● ● ●'
-    ? (realPin ? realPin.split('').join(' ') : 'Not set')
-    : '● ● ● ●';
+  el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
 }
-var _vanLockPin = '';
 
 </script>
 </div>
