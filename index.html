@@ -2185,6 +2185,10 @@ async function loadVehicleData() {
       if (titleSub) titleSub.textContent = data.vehicle.colour ? ('Colour: ' + data.vehicle.colour) : '';
       const condEl = document.getElementById('vehicle-condition-text');
       if (condEl && data.vehicle.status) condEl.textContent = data.vehicle.status;
+      if (data.vehicle.lockBoxPin) {
+        _vanLockPin = String(data.vehicle.lockBoxPin);
+        if (driverData) driverData.vanPin = _vanLockPin;
+      }
     }
 
     // Last parked address — prefer the synced Vehicles record, then last completed shift
@@ -2946,10 +2950,14 @@ function filterCon(el, type) {
   });
 }
 
+var _vanLockPin = '';
 function togglePin() {
   const el = document.getElementById('pin-val');
   if (!el) return;
-  el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
+  const realPin = _vanLockPin || (driverData && driverData.vanPin) || '';
+  el.textContent = el.textContent === '● ● ● ●'
+    ? (realPin ? realPin.split('').join(' ') : 'Not set')
+    : '● ● ● ●';
 }
 
 </script>
