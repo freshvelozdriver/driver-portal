@@ -972,66 +972,7 @@ body { display: block !important; overflow: hidden; }
     <div class="hdr-title"><h1>My shifts</h1><p>Schedule & requests</p></div>
   </div>
   <div class="content" id="myshifts-list">
-    <div class="shift-item">
-      <div class="shift-item-header"><i class="ti ti-sun" style="color:var(--green)"></i><h3>Day shift — Today</h3><span class="badge badge-green">Active</span></div>
-      <div class="shift-meta">
-        <div class="shift-meta-box"><span>Time</span><p>6AM–6PM</p></div>
-        <div class="shift-meta-box"><span>Van</span><p>NSW 123 ABC</p></div>
-        <div class="shift-meta-box"><span>KM start</span><p>45,230</p></div>
-        <div class="shift-meta-box"><span>GPS KM</span><p>tracking...</p></div>
-      </div>
-    </div>
-    <div class="shift-item">
-      <div class="shift-item-header"><i class="ti ti-moon" style="color:var(--purple)"></i><h3>Night shift — Thu 5 Jun</h3><span class="badge badge-blue">Confirmed</span></div>
-      <div class="shift-meta">
-        <div class="shift-meta-box"><span>Time</span><p>6PM–6AM</p></div>
-        <div class="shift-meta-box"><span>Van</span><p>NSW 123 ABC</p></div>
-        <div class="shift-meta-box"><span>KM driven</span><p>—</p></div>
-        <div class="shift-meta-box"><span>GPS KM</span><p>—</p></div>
-      </div>
-    </div>
-    <div class="shift-item">
-      <div class="shift-item-header"><i class="ti ti-sun" style="color:var(--green)"></i><h3>Day shift — Fri 6 Jun</h3><span class="badge badge-blue">Confirmed</span></div>
-      <div class="shift-meta">
-        <div class="shift-meta-box"><span>Time</span><p>6AM–6PM</p></div>
-        <div class="shift-meta-box"><span>Van</span><p>NSW 123 ABC</p></div>
-        <div class="shift-meta-box"><span>KM driven</span><p>—</p></div>
-        <div class="shift-meta-box"><span>GPS KM</span><p>—</p></div>
-      </div>
-    </div>
-    <div class="divider"></div>
-    <div class="card">
-      <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">Request shift change or extra shift</p>
-      <div class="form-group">
-        <label class="form-label">Request type</label>
-        <select class="form-select">
-          <option>Shift change — day to night</option>
-          <option>Shift change — night to day</option>
-          <option>Request extra shift</option>
-          <option>Cancel a shift</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Date</label>
-        <input type="date" class="form-input">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Reason</label>
-        <textarea class="form-textarea" style="height:60px" placeholder="Why do you need this change?"></textarea>
-      </div>
-      <button class="btn-primary" style="margin-bottom:0" onclick="toast('Request submitted!')">Submit request</button>
-    </div>
-    <div class="divider"></div>
-    <div class="list-item">
-      <div class="list-icon" style="background:var(--purple-light);color:var(--purple)"><i class="ti ti-arrows-exchange"></i></div>
-      <div class="list-info"><p>Shift change — 20 May</p><span>Day to night</span></div>
-      <span class="badge badge-green">Approved</span>
-    </div>
-    <div class="list-item">
-      <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-calendar-plus"></i></div>
-      <div class="list-info"><p>Extra shift — 15 May</p><span>Day shift request</span></div>
-      <span class="badge badge-amber">Pending</span>
-    </div>
+    <div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">Loading your shifts…</div>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
 </div>
@@ -1080,8 +1021,8 @@ body { display: block !important; overflow: hidden; }
   </div>
   <div class="pay-hero">
     <div class="pay-hero-label">Last payment</div>
-    <div class="pay-hero-amount" id="payout-last-amount">$1,284.50</div>
-    <div class="pay-hero-sub" id="payout-last-date">Paid Wed 21 May 2026</div>
+    <div class="pay-hero-amount" id="payout-last-amount">—</div>
+    <div class="pay-hero-sub" id="payout-last-date">Loading…</div>
     <div class="pay-pills">
       <div class="ppill active" onclick="selectPeriod(this)">Weekly</div>
       <div class="ppill" onclick="selectPeriod(this)">Fortnightly</div>
@@ -1466,13 +1407,13 @@ body { display: block !important; overflow: hidden; }
       <span class="badge badge-green" style="margin-top:6px;display:inline-block" id="profile-unit">Lime · Active</span>
     </div>
     <div class="prof-sec">
-      <div class="prof-row"><div class="prof-icon" style="background:var(--green-light)"><i class="ti ti-user" style="color:var(--green)"></i></div><div class="prof-info"><p>Personal details</p><span>Name, phone, address</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--blue-light)"><i class="ti ti-id-badge" style="color:var(--blue)"></i></div><div class="prof-info"><p>Licence & ABN</p><span>Driver licence, ABN number</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--purple-light)"><i class="ti ti-phone" style="color:var(--purple)"></i></div><div class="prof-info"><p>Emergency contact</p><span>Add emergency contact</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
+      <div class="prof-row" onclick="openProfileEdit('personal')"><div class="prof-icon" style="background:var(--green-light)"><i class="ti ti-user" style="color:var(--green)"></i></div><div class="prof-info"><p>Personal details</p><span>Name, phone, address</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
+      <div class="prof-row" onclick="openProfileEdit('licence')"><div class="prof-icon" style="background:var(--blue-light)"><i class="ti ti-id-badge" style="color:var(--blue)"></i></div><div class="prof-info"><p>Licence & ABN</p><span>Driver licence, ABN number</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
+      <div class="prof-row" onclick="openProfileEdit('emergency')"><div class="prof-icon" style="background:var(--purple-light)"><i class="ti ti-phone" style="color:var(--purple)"></i></div><div class="prof-info"><p>Emergency contact</p><span>Add emergency contact</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
     </div>
     <div class="prof-sec">
       <div class="prof-row" onclick="navigate('team')"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-headset" style="color:var(--text2)"></i></div><div class="prof-info"><p>Contact team</p><span>Get help</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
-      <div class="prof-row"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-file-text" style="color:var(--text2)"></i></div><div class="prof-info"><p>Terms & conditions</p><span>Driver agreement</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
+      <div class="prof-row" onclick="openTerms()"><div class="prof-icon" style="background:var(--bg2)"><i class="ti ti-file-text" style="color:var(--text2)"></i></div><div class="prof-info"><p>Terms & conditions</p><span>Driver agreement</span></div><i class="ti ti-chevron-right" style="color:var(--text2)"></i></div>
     </div>
     <button class="btn-danger" onclick="signOut()">Sign out</button>
   </div>
@@ -1480,8 +1421,20 @@ body { display: block !important; overflow: hidden; }
 </div>
 
 <!-- ═══════════════════════════════════════════════════ -->
-<!-- SETTINGS                                            -->
+<!-- PROFILE EDIT                                        -->
 <!-- ═══════════════════════════════════════════════════ -->
+<div id="screen-profile-edit" class="screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="navigate('profile')"><i class="ti ti-arrow-left"></i></button>
+    <div class="hdr-title"><h1 id="pe-title">Edit details</h1><p id="pe-sub">Update your information</p></div>
+  </div>
+  <div class="content">
+    <div id="pe-fields"></div>
+    <div id="pe-readonly-note" style="display:none;font-size:11px;color:var(--text3);background:var(--bg2);border-radius:8px;padding:10px;margin-bottom:10px"></div>
+    <button class="btn-primary" id="pe-save-btn" onclick="saveProfile()">Save changes</button>
+  </div>
+</div>
+
 <div id="screen-settings" class="screen">
   <div class="hdr">
     <button class="hdr-back" onclick="goBack()"><i class="ti ti-arrow-left"></i></button>
@@ -1740,6 +1693,106 @@ function signOut() {
   showScreen('login');
 }
 
+// ── Terms & Conditions / Driver agreement link ───────────
+// Replace this URL with your Google Doc / PDF share link.
+const TERMS_URL = 'https://freshveloz.com.au/driver-agreement';
+function openTerms() {
+  window.open(TERMS_URL, '_blank');
+}
+
+// ── Profile self-edit ─────────────────────────────────────
+function openProfileEdit(section) {
+  const d = driverData || {};
+  const titleEl = document.getElementById('pe-title');
+  const subEl   = document.getElementById('pe-sub');
+  const fieldsEl= document.getElementById('pe-fields');
+  const noteEl  = document.getElementById('pe-readonly-note');
+  const saveBtn = document.getElementById('pe-save-btn');
+  if (!fieldsEl) return;
+  _peSection = section;
+
+  function input(id, label, val, ph, type) {
+    return '<div class="form-group"><label class="form-label">'+label+'</label>'+
+           '<input id="'+id+'" type="'+(type||'text')+'" class="form-input" value="'+(val?String(val).replace(/"/g,'&quot;'):'')+'" placeholder="'+(ph||'')+'"></div>';
+  }
+
+  if (section === 'personal') {
+    titleEl.textContent = 'Personal details';
+    subEl.textContent   = 'Name, phone, address';
+    fieldsEl.innerHTML =
+      input('pe-name','Full name', d.driverName, 'Your full name') +
+      input('pe-phone','Phone', d.phone, 'e.g. 04xx xxx xxx', 'tel') +
+      input('pe-whatsapp','WhatsApp number', d.whatsapp, 'e.g. 04xx xxx xxx', 'tel') +
+      input('pe-suburb','Suburb', d.suburb, 'e.g. Wiley Park') +
+      input('pe-address','Address', d.address, 'Street address');
+    noteEl.style.display = 'none';
+    saveBtn.style.display = 'block';
+  } else if (section === 'emergency') {
+    titleEl.textContent = 'Emergency contact';
+    subEl.textContent   = 'Who we call in an emergency';
+    fieldsEl.innerHTML =
+      input('pe-em-name','Contact name', d.emergencyName, 'Full name') +
+      input('pe-em-phone','Contact phone', d.emergencyPhone, 'e.g. 04xx xxx xxx', 'tel') +
+      input('pe-em-rel','Relationship', d.emergencyRelation, 'e.g. Spouse, Parent');
+    noteEl.style.display = 'none';
+    saveBtn.style.display = 'block';
+  } else if (section === 'licence') {
+    titleEl.textContent = 'Licence & ABN';
+    subEl.textContent   = 'Verified by admin';
+    fieldsEl.innerHTML =
+      '<div class="form-group"><label class="form-label">Driver licence number</label><input class="form-input" value="'+(d.licenceNumber||'—')+'" disabled style="background:#f5f7f6"></div>' +
+      '<div class="form-group"><label class="form-label">Licence expiry</label><input class="form-input" value="'+(d.licenceExpiry||'—')+'" disabled style="background:#f5f7f6"></div>' +
+      '<div class="form-group"><label class="form-label">ABN</label><input class="form-input" value="'+(d.abn||'—')+'" disabled style="background:#f5f7f6"></div>';
+    noteEl.style.display = 'block';
+    noteEl.textContent = 'Licence and ABN details are verified by the Fresh Veloz team. To update these, please contact your manager.';
+    saveBtn.style.display = 'none';
+  }
+  navigate('profile-edit');
+}
+var _peSection = '';
+
+async function saveProfile() {
+  if (!driverData) return;
+  const btn = document.getElementById('pe-save-btn');
+  const payload = { action:'updateDriverProfile', email: driverData.email };
+
+  if (_peSection === 'personal') {
+    payload.fullName = (document.getElementById('pe-name')?.value || '').trim();
+    payload.phone    = (document.getElementById('pe-phone')?.value || '').trim();
+    payload.whatsapp = (document.getElementById('pe-whatsapp')?.value || '').trim();
+    payload.suburb   = (document.getElementById('pe-suburb')?.value || '').trim();
+    payload.address  = (document.getElementById('pe-address')?.value || '').trim();
+    if (!payload.fullName) { toast('⚠️ Name cannot be empty'); return; }
+    driverData.driverName = payload.fullName;
+    driverData.phone = payload.phone; driverData.whatsapp = payload.whatsapp;
+    driverData.suburb = payload.suburb; driverData.address = payload.address;
+  } else if (_peSection === 'emergency') {
+    payload.emergencyName     = (document.getElementById('pe-em-name')?.value || '').trim();
+    payload.emergencyPhone    = (document.getElementById('pe-em-phone')?.value || '').trim();
+    payload.emergencyRelation = (document.getElementById('pe-em-rel')?.value || '').trim();
+    driverData.emergencyName = payload.emergencyName;
+    driverData.emergencyPhone = payload.emergencyPhone;
+    driverData.emergencyRelation = payload.emergencyRelation;
+  } else { return; }
+
+  if (btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const data = JSON.parse(await resp.text());
+    if (data.success) {
+      localStorage.setItem('fv_driver_data', JSON.stringify(driverData));
+      toast('Profile updated ✅');
+      if (typeof setupDashboard === 'function') setupDashboard();
+      navigate('profile');
+    } else { toast('Error: ' + (data.message || 'Try again')); }
+  } catch(e) { toast('Connection error. Try again.'); }
+  finally { if (btn) { btn.textContent = 'Save changes'; btn.disabled = false; } }
+}
+
 // ── Setup Dashboard ───────────────────────────────────────
 function setupDashboard() {
   try {
@@ -1944,12 +1997,23 @@ async function completeSignOff() {
   // Validate mandatory fields
   const kmEl    = document.getElementById('so-km');
   const addrEl  = document.getElementById('so-dropoff-address');
+  const drvAddrEl = document.getElementById('so-dropoff-address-driver');
+  const handoverInput = document.getElementById('cam-3-input');
   if (!kmEl?.value) { toast('⚠️ Please enter the end odometer reading'); flashField(kmEl); kmEl?.focus(); return; }
-  // Auto-fill address from GPS if blank, then validate
+  // Auto-fill GPS address if blank
   if (addrEl && !addrEl.value && currentGPS.address) {
     addrEl.value = currentGPS.address;
   }
-  if (!addrEl?.value) { toast('⚠️ Please enter where you parked the van'); flashField(addrEl); addrEl?.focus(); return; }
+  // Driver drop-off address is mandatory (same as odometer)
+  if (!drvAddrEl?.value || !drvAddrEl.value.trim()) {
+    toast('⚠️ Please enter the van drop-off address'); flashField(drvAddrEl); drvAddrEl?.focus(); return;
+  }
+  // Van handover photo is mandatory
+  if (!handoverInput || !handoverInput.files || !handoverInput.files[0]) {
+    toast('⚠️ Please take the van handover photo');
+    const ho = document.getElementById('cam-3-lbl'); if (ho) ho.style.color = '#A32D2D';
+    return;
+  }
 
   const btn = document.getElementById('so-submit-btn');
   if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
@@ -2185,10 +2249,6 @@ async function loadVehicleData() {
       if (titleSub) titleSub.textContent = data.vehicle.colour ? ('Colour: ' + data.vehicle.colour) : '';
       const condEl = document.getElementById('vehicle-condition-text');
       if (condEl && data.vehicle.status) condEl.textContent = data.vehicle.status;
-      if (data.vehicle.lockBoxPin) {
-        _vanLockPin = String(data.vehicle.lockBoxPin);
-        if (driverData) driverData.vanPin = _vanLockPin;
-      }
     }
 
     // Last parked address — prefer the synced Vehicles record, then last completed shift
@@ -2950,14 +3010,10 @@ function filterCon(el, type) {
   });
 }
 
-var _vanLockPin = '';
 function togglePin() {
   const el = document.getElementById('pin-val');
   if (!el) return;
-  const realPin = _vanLockPin || (driverData && driverData.vanPin) || '';
-  el.textContent = el.textContent === '● ● ● ●'
-    ? (realPin ? realPin.split('').join(' ') : 'Not set')
-    : '● ● ● ●';
+  el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
 }
 
 </script>
