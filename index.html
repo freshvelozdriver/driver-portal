@@ -1425,7 +1425,7 @@ body { display: block !important; overflow: hidden; }
 <!-- ═══════════════════════════════════════════════════ -->
 <div id="screen-profile-edit" class="screen">
   <div class="hdr">
-    <button class="hdr-back" onclick="navigate('profile')"><i class="ti ti-arrow-left"></i></button>
+    <button class="hdr-back" onclick="showScreen('profile')"><i class="ti ti-arrow-left"></i></button>
     <div class="hdr-title"><h1 id="pe-title">Edit details</h1><p id="pe-sub">Update your information</p></div>
   </div>
   <div class="content">
@@ -1718,14 +1718,15 @@ function openProfileEdit(section) {
 
   if (section === 'personal') {
     titleEl.textContent = 'Personal details';
-    subEl.textContent   = 'Name, phone, address';
+    subEl.textContent   = 'Phone, suburb, address';
     fieldsEl.innerHTML =
-      input('pe-name','Full name', d.driverName, 'Your full name') +
+      '<div class="form-group"><label class="form-label">Full name</label><input class="form-input" value="'+(d.driverName||'').replace(/"/g,'&quot;')+'" disabled style="background:#f5f7f6"></div>' +
       input('pe-phone','Phone', d.phone, 'e.g. 04xx xxx xxx', 'tel') +
       input('pe-whatsapp','WhatsApp number', d.whatsapp, 'e.g. 04xx xxx xxx', 'tel') +
       input('pe-suburb','Suburb', d.suburb, 'e.g. Wiley Park') +
       input('pe-address','Address', d.address, 'Street address');
-    noteEl.style.display = 'none';
+    noteEl.style.display = 'block';
+    noteEl.textContent = 'Your name is managed by the Fresh Veloz team. To change it, please contact your manager.';
     saveBtn.style.display = 'block';
   } else if (section === 'emergency') {
     titleEl.textContent = 'Emergency contact';
@@ -1757,13 +1758,10 @@ async function saveProfile() {
   const payload = { action:'updateDriverProfile', email: driverData.email };
 
   if (_peSection === 'personal') {
-    payload.fullName = (document.getElementById('pe-name')?.value || '').trim();
     payload.phone    = (document.getElementById('pe-phone')?.value || '').trim();
     payload.whatsapp = (document.getElementById('pe-whatsapp')?.value || '').trim();
     payload.suburb   = (document.getElementById('pe-suburb')?.value || '').trim();
     payload.address  = (document.getElementById('pe-address')?.value || '').trim();
-    if (!payload.fullName) { toast('⚠️ Name cannot be empty'); return; }
-    driverData.driverName = payload.fullName;
     driverData.phone = payload.phone; driverData.whatsapp = payload.whatsapp;
     driverData.suburb = payload.suburb; driverData.address = payload.address;
   } else if (_peSection === 'emergency') {
@@ -1787,7 +1785,7 @@ async function saveProfile() {
       localStorage.setItem('fv_driver_data', JSON.stringify(driverData));
       toast('Profile updated ✅');
       if (typeof setupDashboard === 'function') setupDashboard();
-      navigate('profile');
+      showScreen('profile');
     } else { toast('Error: ' + (data.message || 'Try again')); }
   } catch(e) { toast('Connection error. Try again.'); }
   finally { if (btn) { btn.textContent = 'Save changes'; btn.disabled = false; } }
@@ -2249,6 +2247,10 @@ async function loadVehicleData() {
       if (titleSub) titleSub.textContent = data.vehicle.colour ? ('Colour: ' + data.vehicle.colour) : '';
       const condEl = document.getElementById('vehicle-condition-text');
       if (condEl && data.vehicle.status) condEl.textContent = data.vehicle.status;
+      if (data.vehicle.lockBoxPin) {
+        _vanLockPin = String(data.vehicle.lockBoxPin);
+        if (driverData) driverData.vanPin = _vanLockPin;
+      }
     }
 
     // Last parked address — prefer the synced Vehicles record, then last completed shift
@@ -3010,10 +3012,14 @@ function filterCon(el, type) {
   });
 }
 
+var _vanLockPin = '';
 function togglePin() {
   const el = document.getElementById('pin-val');
   if (!el) return;
-  el.textContent = el.textContent === '● ● ● ●' ? (driverData?.vanPin || '????') : '● ● ● ●';
+  const realPin = _vanLockPin || (driverData && driverData.vanPin) || '';
+  el.textContent = el.textContent === '● ● ● ●'
+    ? (realPin ? realPin.split('').join(' ') : 'Not set')
+    : '● ● ● ●';
 }
 
 </script>
