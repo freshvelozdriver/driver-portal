@@ -1944,24 +1944,12 @@ async function completeSignOff() {
   // Validate mandatory fields
   const kmEl    = document.getElementById('so-km');
   const addrEl  = document.getElementById('so-dropoff-address');
-  const drvAddrEl = document.getElementById('so-dropoff-address-driver');
-  const handoverInput = document.getElementById('cam-3-input');
   if (!kmEl?.value) { toast('⚠️ Please enter the end odometer reading'); flashField(kmEl); kmEl?.focus(); return; }
-  // Auto-fill GPS address if blank
+  // Auto-fill address from GPS if blank, then validate
   if (addrEl && !addrEl.value && currentGPS.address) {
     addrEl.value = currentGPS.address;
   }
-  // Driver drop-off address is mandatory (same as odometer)
-  if (!drvAddrEl?.value || !drvAddrEl.value.trim()) {
-    toast('⚠️ Please enter the van drop-off address');
-    flashField(drvAddrEl); drvAddrEl?.focus(); return;
-  }
-  // Van handover photo is mandatory
-  if (!handoverInput || !handoverInput.files || !handoverInput.files[0]) {
-    toast('⚠️ Please take the van handover photo');
-    const ho = document.getElementById('cam-3-lbl'); if (ho) { ho.style.color = '#A32D2D'; }
-    return;
-  }
+  if (!addrEl?.value) { toast('⚠️ Please enter where you parked the van'); flashField(addrEl); addrEl?.focus(); return; }
 
   const btn = document.getElementById('so-submit-btn');
   if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
@@ -2220,7 +2208,8 @@ async function loadVehicleData() {
     // GPS address: from Vehicles last-known / shift end location (NOT driver input)
     let gpsAddr = parked.address || (last && last.endLocation) || '';
     if (looksLikeTimestamp(gpsAddr)) gpsAddr = '';
-    // Driver-entered address
+    if (data.bestEndLocation && !looksLikeTimestamp(data.bestEndLocation)) gpsAddr = data.bestEndLocation;
+    // Driver-entered address (latest)
     const drvAddr = (data.locationByDriver || (last && last.locationByDriver) || '');
 
     // "Last parked address by GPS" card + Google Maps link.
@@ -2259,7 +2248,7 @@ async function loadVehicleData() {
     }
 
     // Last handover photo (#3) — prefer synced Vehicles photo, then last shift
-    const photoUrl = parked.handoverPhotoUrl || data.bestHandoverPhotoUrl || (last && last.handoverPhotoUrl) || '';
+    const photoUrl = parked.handoverPhotoUrl || (last && last.handoverPhotoUrl) || '';
     const wrap   = document.getElementById('vehicle-park-photo-wrap');
     const box    = document.getElementById('vehicle-park-photo-box');
     const credit = document.getElementById('vehicle-park-photo-credit');
@@ -2415,7 +2404,7 @@ async function loadFuelHistory() {
       const rcpt = f.receiptUrl ? `<a href="${f.receiptUrl}" target="_blank" style="margin-left:6px;font-size:11px">🧾</a>` : '';
       return `<div class="list-item">
         <div class="list-icon" style="background:var(--amber-light);color:var(--amber)"><i class="ti ti-receipt"></i></div>
-        <div class="list-info"><p>${f.van||''} · ${prettyDate(f.date)||f.date||''}</p><span>$${parseFloat(f.amount||0).toFixed(2)} ${rcpt}</span></div>
+        <div class="list-info"><p>${f.van||''} · ${f.date||''}</p><span>$${parseFloat(f.amount||0).toFixed(2)} ${rcpt}</span></div>
         <span class="badge" style="background:${badgeBg};color:${badgeC}">${f.status||'Pending'}</span>
       </div>`;
     }).join('');
@@ -2609,7 +2598,7 @@ async function submitFuel() {
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
         action:'submitFuel', driver:driverData.driverName, email:driverData.email, van:van,
-        fuelDate: (dateEl && dateEl.value ? isoToDMY(dateEl.value) : ''), amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
+        fuelDate: dateEl?dateEl.value:'', amount:amountEl.value, fuelType:fuelTypeEl?fuelTypeEl.value:'Diesel',
         receiptBase64: receiptBase64, receiptMime: receiptMime, receiptFilename: receiptFilename
       })
     });
@@ -2923,40 +2912,6 @@ function updateMapFromAddress(addr) {
   // It is sent separately as addressByDriver. This only refreshes a map
   // preview if one exists; it no longer mutates currentGPS.
   // (intentionally left as a no-op for GPS state)
-}
-
-// Convert HTML date input value (yyyy-MM-dd) to dd/MM/yyyy
-function isoToDMY(iso) {
-  if (!iso) return '';
-  const p = String(iso).split('-');
-  if (p.length === 3) return p[2] + '/' + p[1] + '/' + p[0];
-  return iso;
-}
-
-// Format a date/ISO/dd-MM value into "Fri, 6 Nov 2026 · 8:04 PM".
-// Interprets ambiguous dd/MM/yyyy strings as day-first (Australian).
-function prettyDateTime(val) {
-  if (!val) return '';
-  const s = String(val);
-  if (/[A-Za-z]{3,}/.test(s) && !s.includes('T')) return s;
-  let d = null;
-  if (val instanceof Date) d = val;
-  else if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) { const p=s.split('/'); d=new Date(+p[2],+p[1]-1,+p[0]); }
-  else if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const p=s.split('-'); d=new Date(+p[0],+p[1]-1,+p[2]); }
-  else { const t = new Date(s); if (!isNaN(t.getTime())) d = t; }
-  if (!d || isNaN(d.getTime()) || d.getFullYear() < 2000) return (s.includes('T')?'':s);
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let out = days[d.getDay()]+', '+d.getDate()+' '+mons[d.getMonth()]+' '+d.getFullYear();
-  const h=d.getHours(), m=d.getMinutes();
-  if (h || m) out += ' · ' + (h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');
-  return out;
-}
-
-// Date only
-function prettyDate(val) {
-  const full = prettyDateTime(val);
-  return full ? full.split(' · ')[0] : '';
 }
 
 function flashField(el) {
