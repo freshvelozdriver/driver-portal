@@ -1088,30 +1088,31 @@ body { display: block !important; overflow: hidden; }
     <div class="hdr-title"><h1>Tickets</h1><p>Assigned issues</p></div>
   </div>
   <div class="content">
-    <div id="ticket-active-card" class="card">
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
-        <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--red-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-alert-circle" style="color:var(--red);font-size:15px"></i></div>
-        <div style="flex:1">
-          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Loading tickets…</p>
-          <span style="font-size:11px;color:var(--text2)"></span>
-        </div>
+    <div id="ticket-open-list">
+      <div class="card"><div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--bg2);display:flex;align-items:center;justify-content:center"><i class="ti ti-loader" style="color:var(--text2)"></i></div><div><p style="font-size:13px;font-weight:600">Loading tickets…</p></div></div></div>
+    </div>
+
+    <!-- Reply form (shown only when there's an open ticket to respond to) -->
+    <div id="ticket-reply-form" style="display:none">
+      <div class="divider"></div>
+      <p style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Your response <span id="ticket-reply-target" style="color:var(--green)"></span></p>
+      <div class="form-group"><label class="form-label">Response type</label><select class="form-select" id="ticket-response-type"><option>I delivered successfully</option><option>Customer not present</option><option>Left in safe location</option><option>Other</option></select></div>
+      <div class="form-group"><label class="form-label">Explanation</label><textarea class="form-textarea" id="ticket-explanation" style="height:90px" placeholder="Describe what happened..."></textarea></div>
+      <input type="file" accept="image/*" id="ev-input" style="display:none" onchange="handleFileSelect(this,'ev-lbl','Ticket Evidence Folder ID')">
+      <div class="upload-area" onclick="document.getElementById('ev-input').click()">
+        <div class="upload-icon"><i class="ti ti-upload"></i></div>
+        <h3 id="ev-lbl">Supporting evidence (photo)</h3>
+        <p>Photo, screenshot, or delivery confirmation</p>
       </div>
+      <div class="info-box info-amber"><i class="ti ti-alert-triangle"></i><p>Please respond honestly. False information may result in disciplinary action.</p></div>
+      <button class="btn-primary" onclick="submitTicket()">Submit response</button>
     </div>
-    <div class="form-group"><label class="form-label">Response type</label><select class="form-select"><option>I delivered successfully</option><option>Customer not present</option><option>Left in safe location</option><option>Other</option></select></div>
-    <div class="form-group"><label class="form-label">Explanation</label><textarea class="form-textarea" style="height:90px" placeholder="Describe what happened..."></textarea></div>
-    <input type="file" accept="image/*,video/*,.pdf" id="ev-input" style="display:none" onchange="handleFileSelect(this,'ev-lbl','Delivery Photos Folder ID')">
-    <div class="upload-area" onclick="document.getElementById('ev-input').click()">
-      <div class="upload-icon"><i class="ti ti-upload"></i></div>
-      <h3 id="ev-lbl">Supporting evidence</h3>
-      <p>Photos, screenshots, delivery confirmation</p>
-    </div>
-    <div class="info-box info-amber"><i class="ti ti-alert-triangle"></i><p>Please respond honestly. False information may result in disciplinary action.</p></div>
-    <button class="btn-primary" onclick="submitTicket()">Submit response</button>
+
+    <!-- Resolved / closed history -->
     <div class="divider"></div>
-    <div class="list-item">
-      <div class="list-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-check"></i></div>
-      <div class="list-info"><p>Missed delivery — D-LIME-030626-008</p><span>15 May 2026</span></div>
-      <span class="badge badge-green">Resolved</span>
+    <p style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">History</p>
+    <div id="ticket-history-list">
+      <div style="text-align:center;padding:12px;color:var(--text3);font-size:12px">Loading…</div>
     </div>
   </div>
   <div class="brand-footer"><p>© 2026 Fresh Veloz. All rights reserved.</p></div>
@@ -2313,15 +2314,17 @@ async function loadVehicleData() {
       noteCard.style.display = 'none';
     }
 
-    // Last handover photo (#3) — prefer synced Vehicles photo, then last shift
-    const photoUrl = parked.handoverPhotoUrl || (last && last.handoverPhotoUrl) || '';
+    // Last handover photo — prefer best (latest) then synced/last shift
+    const photoUrl = data.bestHandoverPhotoUrl || parked.handoverPhotoUrl || (last && last.handoverPhotoUrl) || '';
     const wrap   = document.getElementById('vehicle-park-photo-wrap');
     const box    = document.getElementById('vehicle-park-photo-box');
     const credit = document.getElementById('vehicle-park-photo-credit');
     if (photoUrl) {
       _lastParkPhotoUrl = photoUrl;
+      const thumb = driveThumb(photoUrl);
       if (wrap)   wrap.style.display = 'block';
-      if (box)    box.innerHTML = '<img src="' + photoUrl + '" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML=\'<div style=&quot;text-align:center;color:var(--text3);font-size:11px&quot;>Photo unavailable</div>\'">';
+      if (box)    box.innerHTML = '<img src="' + thumb + '" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" '
+                    + 'onerror="this.onerror=null;this.src=\'' + photoUrl + '\';this.onerror=function(){this.parentNode.innerHTML=\'<div style=&quot;text-align:center;color:var(--g);font-size:12px;font-weight:600&quot;>Click to see the picture</div>\';}">';
       if (credit) credit.textContent = (parkedBy ? 'Parked by ' + parkedBy : '') + (parkedDate ? ' · ' + parkedDate : '');
     } else if (wrap) {
       wrap.style.display = 'none';
@@ -2483,43 +2486,81 @@ async function loadFuelHistory() {
 let _activeTicketId = '';
 async function loadTickets() {
   if (!driverData) return;
-  const card = document.getElementById('ticket-active-card');
-  if (!card) return;
+  const openEl = document.getElementById('ticket-open-list');
+  const histEl = document.getElementById('ticket-history-list');
+  const formEl = document.getElementById('ticket-reply-form');
   try {
     const url  = APPS_SCRIPT_URL + '?action=getTickets&email=' + encodeURIComponent(driverData.email);
     const resp = await fetch(url, { method:'GET', redirect:'follow' });
     const data = JSON.parse(await resp.text());
-    const open = (data.tickets || []).find(t => t.status === 'Open');
-    if (!open) {
-      card.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--green-light);display:flex;align-items:center;justify-content:center"><i class="ti ti-check" style="color:var(--green)"></i></div><div><p style="font-size:13px;font-weight:600">No open tickets</p><span style="font-size:11px;color:var(--text2)">You\'re all caught up.</span></div></div>';
+    const tickets = data.tickets || [];
+    const isOpen = t => { const s = String(t.status||'').toLowerCase(); return s === 'open' || s === 'responded' || s === ''; };
+    const open = tickets.filter(isOpen);
+    const closed = tickets.filter(t => !isOpen(t));
+
+    // OPEN tickets
+    if (open.length === 0) {
+      openEl.innerHTML = '<div class="card"><div style="display:flex;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--green-light);display:flex;align-items:center;justify-content:center"><i class="ti ti-check" style="color:var(--green)"></i></div><div><p style="font-size:13px;font-weight:600">No open tickets</p><span style="font-size:11px;color:var(--text2)">You\'re all caught up.</span></div></div></div>';
+      if (formEl) formEl.style.display = 'none';
       _activeTicketId = '';
-      return;
+    } else {
+      // The reply form targets the first open ticket awaiting a response
+      const awaiting = open.find(t => String(t.status||'').toLowerCase() === 'open') || open[0];
+      _activeTicketId = awaiting.id;
+      const tgt = document.getElementById('ticket-reply-target');
+      if (tgt) tgt.textContent = '· ' + _activeTicketId;
+      if (formEl) formEl.style.display = 'block';
+
+      openEl.innerHTML = open.map(t => {
+        const responded = String(t.status||'').toLowerCase() === 'responded';
+        const adminPic = t.adminPhotoUrl
+          ? `<div style="margin:8px 0"><span style="font-size:9px;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:4px">Attached by admin</span><img src="${driveThumb(t.adminPhotoUrl)}" referrerpolicy="no-referrer" onclick="window.open('${t.adminPhotoUrl}','_blank')" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;cursor:pointer" onerror="this.onerror=null;this.src='${t.adminPhotoUrl}';this.onerror=function(){this.style.display='none';}"></div>`
+          : '';
+        const myReply = t.response
+          ? `<div style="margin-top:6px;font-size:11px;color:var(--text2);background:var(--green-light);border-radius:var(--radius-sm);padding:7px 9px"><b>Your reply:</b> ${t.response}</div>`
+          : '';
+        const myPhoto = (responded && t.evidenceUrl)
+          ? `<img src="${driveThumb(t.evidenceUrl)}" referrerpolicy="no-referrer" onclick="window.open('${t.evidenceUrl}','_blank')" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;cursor:pointer;margin-top:6px" onerror="this.onerror=null;this.src='${t.evidenceUrl}';this.onerror=function(){this.style.display='none';}">`
+          : '';
+        return `<div class="card">
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+            <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--red-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-alert-circle" style="color:var(--red);font-size:15px"></i></div>
+            <div style="flex:1">
+              <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">${t.title || t.type || 'Ticket'} — ${t.id}</p>
+              <span style="font-size:11px;color:var(--text2)">${t.consignment ? t.consignment + ' · ' : ''}Assigned ${prettyDate(t.created)||t.created||''}</span>
+            </div>
+            <span class="badge ${responded?'badge-amber':'badge-red'}">${responded?'Responded':'Open'}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text);line-height:1.6;padding:8px;background:var(--bg2);border-radius:var(--radius-sm)">${t.description||''}</div>
+          ${adminPic}${myReply}${myPhoto}`;
+      }).join('');
     }
-    _activeTicketId = open.id;
-    const adminPic = open.adminPhotoUrl
-      ? `<div style="margin:8px 0"><span style="font-size:9px;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:4px">Attached by admin</span><img src="${open.adminPhotoUrl}" onclick="window.open('${open.adminPhotoUrl}','_blank')" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;cursor:pointer" onerror="this.style.display='none'"></div>`
-      : '';
-    // Admin may put a reference link in Notes
-    const urlMatch = String(open.notes||'').match(/https?:\/\/\S+/);
-    const adminLink = urlMatch
-      ? `<a href="${urlMatch[0]}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--blue);margin-bottom:6px"><i class="ti ti-link"></i> Reference link from admin</a>`
-      : '';
-    const adminNote = (open.notes && !urlMatch)
-      ? `<div style="font-size:11px;color:var(--text2);background:var(--bg2);border-radius:var(--radius-sm);padding:7px 9px;margin-bottom:6px">📌 ${open.notes}</div>`
-      : '';
-    card.innerHTML = `
-      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
-        <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--red-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-alert-circle" style="color:var(--red);font-size:15px"></i></div>
-        <div style="flex:1">
-          <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">${open.type||'Ticket'} — ${open.id}</p>
-          <span style="font-size:11px;color:var(--text2)">Assigned ${open.created||''}</span>
-        </div>
-        <span class="badge badge-red">Open</span>
-      </div>
-      <div style="font-size:11px;color:var(--text2);line-height:1.6;padding:8px;background:var(--bg2);border-radius:var(--radius-sm);margin-bottom:6px">${open.description||''}</div>
-      ${adminNote}${adminLink}${adminPic}`;
+
+    // CLOSED / RESOLVED history with manager outcome
+    if (histEl) {
+      if (closed.length === 0) {
+        histEl.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text3);font-size:12px">No resolved tickets yet</div>';
+      } else {
+        histEl.innerHTML = closed.map(t => {
+          const outcome = t.outcome
+            ? `<div style="margin-top:6px;font-size:11px;color:#1b5e20;background:var(--green-light);border-radius:var(--radius-sm);padding:7px 9px"><b>Outcome:</b> ${t.outcome}</div>`
+            : '';
+          return `<div class="card">
+            <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">
+              <div style="width:30px;height:30px;border-radius:var(--radius-sm);background:var(--green-light);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-check" style="color:var(--green)"></i></div>
+              <div style="flex:1">
+                <p style="font-size:12px;font-weight:600;color:var(--text)">${t.title || t.type || 'Ticket'} — ${t.id}</p>
+                <span style="font-size:10px;color:var(--text2)">Closed ${prettyDate(t.resolved)||t.resolved||''}</span>
+              </div>
+              <span class="badge badge-green">${t.status||'Resolved'}</span>
+            </div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.5">${t.description||''}</div>
+            ${outcome}`;
+        }).join('');
+      }
+    }
   } catch(e) {
-    console.log('Tickets load failed, showing static content');
+    if (openEl) openEl.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text3);font-size:12px">Could not load tickets</div>';
   }
 }
 
@@ -2757,15 +2798,14 @@ async function submitLeave() {
 // ── Submit Ticket ─────────────────────────────────────────
 async function submitTicket() {
   if (!driverData) return;
-  const responseEl = document.querySelector('#screen-tickets .form-select');
-  const explEl     = document.querySelector('#screen-tickets .form-textarea');
+  const responseEl = document.getElementById('ticket-response-type');
+  const explEl     = document.getElementById('ticket-explanation');
   const evInput    = document.getElementById('ev-input');
-  const btn        = document.querySelector('#screen-tickets .btn-primary');
+  const btn        = document.querySelector('#ticket-reply-form .btn-primary');
   if (!explEl?.value) { toast('Please describe what happened'); flashField(explEl); return; }
 
-  if (btn) { btn.textContent = 'Uploading evidence...'; btn.disabled = true; }
+  if (btn) { btn.textContent = 'Submitting...'; btn.disabled = true; }
   const ev = await fileInputToBase64(evInput);
-  if (btn) btn.textContent = 'Submitting...';
 
   try {
     const resp = await fetch(APPS_SCRIPT_URL, {
@@ -2773,6 +2813,7 @@ async function submitTicket() {
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
         action:'submitTicketResponse', driver:driverData.driverName, email:driverData.email,
+        ticketId: _activeTicketId,
         responseType: responseEl?responseEl.value:'', explanation:explEl.value,
         evidenceBase64: ev.base64, evidenceMime: ev.mime, evidenceFilename: ev.filename
       })
@@ -2783,8 +2824,8 @@ async function submitTicket() {
       explEl.value='';
       if (evInput) { evInput.value=''; evInput.dataset.uploadedUrl=''; evInput.dataset.localFile=''; }
       const lbl = document.getElementById('ev-lbl');
-      if (lbl) { lbl.textContent = 'Supporting evidence'; lbl.style.color=''; }
-      goBack();
+      if (lbl) { lbl.textContent = 'Supporting evidence (photo)'; lbl.style.color=''; }
+      loadTickets();
     }
     else toast('Error: ' + (data.message||'Try again'));
   } catch(e) { toast('Connection error. Try again.'); }
@@ -2978,6 +3019,15 @@ function updateMapFromAddress(addr) {
   // It is sent separately as addressByDriver. This only refreshes a map
   // preview if one exists; it no longer mutates currentGPS.
   // (intentionally left as a no-op for GPS state)
+}
+
+// Convert any Google Drive file URL to a thumbnail URL that renders reliably
+// in an <img> tag (uc?export=view often won't display inline).
+function driveThumb(url) {
+  if (!url) return '';
+  const m = String(url).match(/[-\w]{25,}/); // Drive file IDs are 25+ chars
+  if (m) return 'https://drive.google.com/thumbnail?id=' + m[0] + '&sz=w1000';
+  return url;
 }
 
 function flashField(el) {
